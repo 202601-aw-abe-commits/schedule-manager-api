@@ -6,11 +6,16 @@ import java.time.LocalTime;
 
 public class ScheduleItem {
     private Long id;
+    private Long ownerUserId;
+    private String ownerUsername;
+    private String ownerDisplayName;
     private LocalDate scheduleDate;
     private String title;
     private LocalTime startTime;
     private LocalTime endTime;
     private String description;
+    private Boolean sharedWithFriends;
+    private Boolean editable;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -20,6 +25,30 @@ public class ScheduleItem {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getOwnerUserId() {
+        return ownerUserId;
+    }
+
+    public void setOwnerUserId(Long ownerUserId) {
+        this.ownerUserId = ownerUserId;
+    }
+
+    public String getOwnerUsername() {
+        return ownerUsername;
+    }
+
+    public void setOwnerUsername(String ownerUsername) {
+        this.ownerUsername = ownerUsername;
+    }
+
+    public String getOwnerDisplayName() {
+        return ownerDisplayName;
+    }
+
+    public void setOwnerDisplayName(String ownerDisplayName) {
+        this.ownerDisplayName = ownerDisplayName;
     }
 
     public LocalDate getScheduleDate() {
@@ -60,6 +89,22 @@ public class ScheduleItem {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Boolean getSharedWithFriends() {
+        return sharedWithFriends;
+    }
+
+    public void setSharedWithFriends(Boolean sharedWithFriends) {
+        this.sharedWithFriends = sharedWithFriends;
+    }
+
+    public Boolean getEditable() {
+        return editable;
+    }
+
+    public void setEditable(Boolean editable) {
+        this.editable = editable;
     }
 
     public LocalDateTime getCreatedAt() {

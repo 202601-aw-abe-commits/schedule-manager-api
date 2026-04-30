@@ -6,6 +6,7 @@ public class ScheduleRequest {
     private String startTime;
     private String endTime;
     private String description;
+    private Boolean sharedWithFriends;
 
     public String getScheduleDate() {
         return scheduleDate;
@@ -45,5 +46,13 @@ public class ScheduleRequest {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Boolean getSharedWithFriends() {
+        return sharedWithFriends;
+    }
+
+    public void setSharedWithFriends(Boolean sharedWithFriends) {
+        this.sharedWithFriends = sharedWithFriends;
     }
 }

@@ -7,10 +7,13 @@
     <link rel="stylesheet" href="/css/calendar.css">
 </head>
 <body>
-<main class="app-shell" th:attr="data-today=${today}">
+<main class="app-shell" th:attr="data-today=${today},data-current-username=${currentUsername},data-current-display-name=${currentDisplayName}">
     <section class="calendar-pane">
         <header class="calendar-header">
-            <h1>Schedule Manager</h1>
+            <div>
+                <h1>Schedule Manager</h1>
+                <p class="user-badge" th:text="${currentDisplayName + ' (@' + currentUsername + ')'}"></p>
+            </div>
             <div class="month-switch">
                 <button id="prevMonth" type="button" aria-label="前の月">◀</button>
                 <h2 id="monthLabel"></h2>
@@ -24,8 +27,37 @@
     <section class="schedule-pane">
         <header>
             <h2 id="selectedDateLabel"></h2>
-            <button id="newScheduleButton" type="button">+ 新しい予定</button>
+            <div class="header-actions">
+                <button id="newScheduleButton" type="button">+ 新しい予定</button>
+                <form method="post" action="/logout">
+                    <button type="submit" class="secondary">ログアウト</button>
+                </form>
+            </div>
         </header>
+
+        <section class="friend-section">
+            <h3>フレンド共有</h3>
+            <form id="friendRequestForm" class="inline-form">
+                <input id="friendUsername" type="text" placeholder="ユーザー名で申請" required>
+                <button type="submit" class="primary">申請</button>
+            </form>
+            <p id="friendMessage" class="form-message" aria-live="polite"></p>
+
+            <div class="friend-columns">
+                <div>
+                    <h4>フレンド</h4>
+                    <ul id="friendList" class="mini-list"></ul>
+                </div>
+                <div>
+                    <h4>受信申請</h4>
+                    <ul id="incomingRequestList" class="mini-list"></ul>
+                </div>
+                <div>
+                    <h4>送信中申請</h4>
+                    <ul id="outgoingRequestList" class="mini-list"></ul>
+                </div>
+            </div>
+        </section>
 
         <ul id="scheduleList" class="schedule-list"></ul>
 
@@ -47,6 +79,11 @@
 
             <label for="description">メモ</label>
             <textarea id="description" name="description" rows="4" maxlength="1000"></textarea>
+
+            <label class="inline-check">
+                <input id="sharedWithFriends" name="sharedWithFriends" type="checkbox">
+                フレンドにこの予定を共有する
+            </label>
 
             <p id="formMessage" class="form-message" aria-live="polite"></p>
 

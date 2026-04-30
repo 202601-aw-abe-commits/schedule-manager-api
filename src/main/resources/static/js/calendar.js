@@ -1,5 +1,7 @@
 const app = document.querySelector(".app-shell");
 const initialToday = app.dataset.today;
+const currentUsername = app.dataset.currentUsername;
+const currentDisplayName = app.dataset.currentDisplayName;
 
 const state = {
     currentMonth: toDate(initialToday),
@@ -22,7 +24,15 @@ const titleInput = document.getElementById("title");
 const startTimeInput = document.getElementById("startTime");
 const endTimeInput = document.getElementById("endTime");
 const descriptionInput = document.getElementById("description");
+const sharedWithFriendsInput = document.getElementById("sharedWithFriends");
 const formMessage = document.getElementById("formMessage");
+
+const friendRequestForm = document.getElementById("friendRequestForm");
+const friendUsernameInput = document.getElementById("friendUsername");
+const friendMessage = document.getElementById("friendMessage");
+const friendList = document.getElementById("friendList");
+const incomingRequestList = document.getElementById("incomingRequestList");
+const outgoingRequestList = document.getElementById("outgoingRequestList");
 
 document.getElementById("prevMonth").addEventListener("click", () => {
     state.currentMonth = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth() - 1, 1);
@@ -42,6 +52,27 @@ document.getElementById("cancelEditButton").addEventListener("click", () => {
     resetFormForCreate();
 });
 
+friendRequestForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    friendMessage.textContent = "";
+
+    try {
+        await fetchJson("/api/friends/requests", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: friendUsernameInput.value })
+        });
+
+        friendMessage.style.color = "#087057";
+        friendMessage.textContent = "フレンド申請を送信しました。";
+        friendUsernameInput.value = "";
+        await loadFriendDashboard();
+    } catch (error) {
+        friendMessage.style.color = "#be2f2f";
+        friendMessage.textContent = error.message;
+    }
+});
+
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
     formMessage.textContent = "";
@@ -51,7 +82,8 @@ form.addEventListener("submit", async (event) => {
         title: titleInput.value,
         startTime: startTimeInput.value || null,
         endTime: endTimeInput.value || null,
-        description: descriptionInput.value
+        description: descriptionInput.value,
+        sharedWithFriends: sharedWithFriendsInput.checked
     };
 
     const id = scheduleIdInput.value;
@@ -59,16 +91,11 @@ form.addEventListener("submit", async (event) => {
     const method = id ? "PUT" : "POST";
 
     try {
-        const response = await fetch(endpoint, {
+        await fetchJson(endpoint, {
             method,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || "保存に失敗しました。");
-        }
 
         await loadSchedules(state.selectedDate);
         resetFormForCreate();
@@ -163,12 +190,7 @@ async function loadSchedules(dateKey) {
     scheduleList.innerHTML = "<li>読み込み中...</li>";
 
     try {
-        const response = await fetch(`/api/schedules?date=${encodeURIComponent(dateKey)}`);
-        if (!response.ok) {
-            throw new Error("予定の読み込みに失敗しました。");
-        }
-
-        const schedules = await response.json();
+        const schedules = await fetchJson(`/api/schedules?date=${encodeURIComponent(dateKey)}`);
         scheduleList.innerHTML = "";
 
         if (!Array.isArray(schedules) || schedules.length === 0) {
@@ -180,6 +202,10 @@ async function loadSchedules(dateKey) {
             const li = document.createElement("li");
             li.className = "schedule-card";
 
+            const owner = document.createElement("p");
+            owner.className = "schedule-owner";
+            owner.textContent = scheduleOwnerText(item);
+
             const title = document.createElement("h4");
             title.textContent = item.title;
 
@@ -190,45 +216,127 @@ async function loadSchedules(dateKey) {
             const description = document.createElement("p");
             description.textContent = item.description || "";
 
-            const actions = document.createElement("div");
-            actions.className = "schedule-actions";
+            li.append(owner, title, time, description);
 
-            const editButton = document.createElement("button");
-            editButton.type = "button";
-            editButton.className = "edit-btn";
-            editButton.textContent = "編集";
-            editButton.addEventListener("click", () => fillFormForEdit(item));
+            if (item.editable) {
+                const actions = document.createElement("div");
+                actions.className = "schedule-actions";
 
-            const deleteButton = document.createElement("button");
-            deleteButton.type = "button";
-            deleteButton.className = "delete-btn";
-            deleteButton.textContent = "削除";
-            deleteButton.addEventListener("click", async () => {
-                const confirmed = window.confirm("この予定を削除しますか？");
-                if (!confirmed) {
-                    return;
-                }
+                const editButton = document.createElement("button");
+                editButton.type = "button";
+                editButton.className = "edit-btn";
+                editButton.textContent = "編集";
+                editButton.addEventListener("click", () => fillFormForEdit(item));
 
-                const deleteResponse = await fetch(`/api/schedules/${item.id}`, { method: "DELETE" });
-                if (!deleteResponse.ok) {
-                    formMessage.textContent = "削除に失敗しました。";
-                    return;
-                }
+                const deleteButton = document.createElement("button");
+                deleteButton.type = "button";
+                deleteButton.className = "delete-btn";
+                deleteButton.textContent = "削除";
+                deleteButton.addEventListener("click", async () => {
+                    const confirmed = window.confirm("この予定を削除しますか？");
+                    if (!confirmed) {
+                        return;
+                    }
 
-                await loadSchedules(state.selectedDate);
-                resetFormForCreate();
-            });
+                    try {
+                        await fetchJson(`/api/schedules/${item.id}`, { method: "DELETE" });
+                        await loadSchedules(state.selectedDate);
+                        resetFormForCreate();
+                    } catch (error) {
+                        formMessage.textContent = error.message;
+                    }
+                });
 
-            actions.append(editButton, deleteButton);
-            li.append(title, time, description, actions);
+                actions.append(editButton, deleteButton);
+                li.appendChild(actions);
+            }
+
             scheduleList.appendChild(li);
         });
     } catch (error) {
-        scheduleList.innerHTML = "<li>予定の読み込みに失敗しました。</li>";
+        scheduleList.innerHTML = `<li>${error.message}</li>`;
     }
 }
 
+function scheduleOwnerText(item) {
+    const ownerName = item.ownerDisplayName || item.ownerUsername || "不明";
+    if (item.ownerUsername === currentUsername) {
+        if (item.sharedWithFriends) {
+            return "あなたの予定（フレンド共有中）";
+        }
+        return "あなたの予定";
+    }
+    return `共有予定: ${ownerName}`;
+}
+
+async function loadFriendDashboard() {
+    try {
+        const data = await fetchJson("/api/friends");
+        renderFriendList(friendList, data.friends, "フレンドはまだいません。", (friend) => {
+            return `${friend.displayName} (@${friend.username})`;
+        });
+
+        renderIncomingRequests(data.incomingRequests || []);
+        renderFriendList(outgoingRequestList, data.outgoingRequests, "送信中の申請はありません。", (request) => {
+            return `${request.requesterDisplayName} (@${request.requesterUsername})`;
+        });
+    } catch (error) {
+        friendMessage.style.color = "#be2f2f";
+        friendMessage.textContent = error.message;
+    }
+}
+
+function renderIncomingRequests(incomingRequests) {
+    incomingRequestList.innerHTML = "";
+    if (!Array.isArray(incomingRequests) || incomingRequests.length === 0) {
+        incomingRequestList.innerHTML = "<li>受信申請はありません。</li>";
+        return;
+    }
+
+    incomingRequests.forEach((request) => {
+        const li = document.createElement("li");
+        li.textContent = `${request.requesterDisplayName} (@${request.requesterUsername})`;
+
+        const acceptButton = document.createElement("button");
+        acceptButton.type = "button";
+        acceptButton.textContent = "承認";
+        acceptButton.addEventListener("click", async () => {
+            try {
+                await fetchJson(`/api/friends/requests/${request.id}/accept`, { method: "POST" });
+                friendMessage.style.color = "#087057";
+                friendMessage.textContent = "フレンド申請を承認しました。";
+                await loadFriendDashboard();
+                await loadSchedules(state.selectedDate);
+            } catch (error) {
+                friendMessage.style.color = "#be2f2f";
+                friendMessage.textContent = error.message;
+            }
+        });
+
+        li.appendChild(acceptButton);
+        incomingRequestList.appendChild(li);
+    });
+}
+
+function renderFriendList(targetElement, list, emptyText, itemTextBuilder) {
+    targetElement.innerHTML = "";
+    if (!Array.isArray(list) || list.length === 0) {
+        targetElement.innerHTML = `<li>${emptyText}</li>`;
+        return;
+    }
+
+    list.forEach((item) => {
+        const li = document.createElement("li");
+        li.textContent = itemTextBuilder(item);
+        targetElement.appendChild(li);
+    });
+}
+
 function fillFormForEdit(item) {
+    if (!item.editable) {
+        return;
+    }
+
     formTitle.textContent = "予定の編集";
     scheduleIdInput.value = item.id;
     scheduleDateInput.value = item.scheduleDate;
@@ -236,6 +344,7 @@ function fillFormForEdit(item) {
     startTimeInput.value = toTimeInput(item.startTime);
     endTimeInput.value = toTimeInput(item.endTime);
     descriptionInput.value = item.description ?? "";
+    sharedWithFriendsInput.checked = item.sharedWithFriends === true;
 }
 
 function resetFormForCreate() {
@@ -246,6 +355,7 @@ function resetFormForCreate() {
     startTimeInput.value = "";
     endTimeInput.value = "";
     descriptionInput.value = "";
+    sharedWithFriendsInput.checked = false;
     formMessage.textContent = "";
 }
 
@@ -266,6 +376,20 @@ function timeText(startTime, endTime) {
         return `${start} - ${end}`;
     }
     return start || end;
+}
+
+async function fetchJson(url, options = {}) {
+    const response = await fetch(url, options);
+    const contentType = response.headers.get("content-type") || "";
+    const isJson = contentType.includes("application/json");
+    const data = isJson ? await response.json() : null;
+
+    if (!response.ok) {
+        const message = data && data.message ? data.message : "通信に失敗しました。";
+        throw new Error(message);
+    }
+
+    return data;
 }
 
 function toDate(yyyyMmDd) {
@@ -294,10 +418,6 @@ function setDayCellContent(button, dayText, holidayName) {
         holidayNameElement.textContent = holidayName;
         button.appendChild(holidayNameElement);
     }
-}
-
-function isJapaneseHoliday(date) {
-    return getJapaneseHolidayName(date) !== null;
 }
 
 function getJapaneseHolidayName(date) {
@@ -330,7 +450,6 @@ function getBaseHolidayName(date) {
         return null;
     }
 
-    // 祝日法に基づく一時的な特別休日
     if (isSameDate(date, 1959, 4, 10)) {
         return "皇太子明仁親王の結婚の儀";
     }
@@ -578,5 +697,6 @@ function isSameDate(date, year, month, day) {
 }
 
 renderCalendar();
+loadFriendDashboard();
 loadSchedules(state.selectedDate);
 resetFormForCreate();

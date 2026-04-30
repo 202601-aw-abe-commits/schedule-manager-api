@@ -2,6 +2,8 @@ package com.example.schedulemanager.service;
 
 import com.example.schedulemanager.dto.ScheduleRequest;
 import com.example.schedulemanager.mapper.ScheduleMapper;
+import com.example.schedulemanager.mapper.UserMapper;
+import com.example.schedulemanager.model.AppUser;
 import com.example.schedulemanager.model.ScheduleItem;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -14,41 +16,61 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ScheduleService {
     private final ScheduleMapper scheduleMapper;
+    private final UserMapper userMapper;
 
-    public ScheduleService(ScheduleMapper scheduleMapper) {
+    public ScheduleService(ScheduleMapper scheduleMapper, UserMapper userMapper) {
         this.scheduleMapper = scheduleMapper;
+        this.userMapper = userMapper;
     }
 
     @Transactional(readOnly = true)
-    public List<ScheduleItem> getByDate(LocalDate date) {
-        return scheduleMapper.findByDate(date);
+    public List<ScheduleItem> getByDate(LocalDate date, String currentUsername) {
+        AppUser currentUser = getCurrentUser(currentUsername);
+        List<ScheduleItem> items = scheduleMapper.findVisibleByDate(date, currentUser.getId());
+        for (ScheduleItem item : items) {
+            item.setEditable(currentUser.getId().equals(item.getOwnerUserId()));
+        }
+        return items;
     }
 
     @Transactional
-    public ScheduleItem create(ScheduleRequest request) {
+    public ScheduleItem create(ScheduleRequest request, String currentUsername) {
+        AppUser currentUser = getCurrentUser(currentUsername);
         ScheduleItem item = fromRequest(request);
+        item.setOwnerUserId(currentUser.getId());
         scheduleMapper.insert(item);
-        return scheduleMapper.findById(item.getId());
+        ScheduleItem created = scheduleMapper.findVisibleById(item.getId(), currentUser.getId());
+        created.setEditable(true);
+        return created;
     }
 
     @Transactional
-    public ScheduleItem update(Long id, ScheduleRequest request) {
-        ScheduleItem existing = scheduleMapper.findById(id);
+    public ScheduleItem update(Long id, ScheduleRequest request, String currentUsername) {
+        AppUser currentUser = getCurrentUser(currentUsername);
+        ScheduleItem existing = scheduleMapper.findOwnedById(id, currentUser.getId());
         if (existing == null) {
-            throw new NoSuchElementException("指定された予定が存在しません。id=" + id);
+            throw new NoSuchElementException("指定された予定が存在しないか、編集権限がありません。id=" + id);
         }
 
         ScheduleItem item = fromRequest(request);
         item.setId(id);
-        scheduleMapper.update(item);
-        return scheduleMapper.findById(id);
+        item.setOwnerUserId(currentUser.getId());
+        int updatedCount = scheduleMapper.update(item);
+        if (updatedCount == 0) {
+            throw new NoSuchElementException("指定された予定が存在しないか、編集権限がありません。id=" + id);
+        }
+
+        ScheduleItem updated = scheduleMapper.findVisibleById(id, currentUser.getId());
+        updated.setEditable(true);
+        return updated;
     }
 
     @Transactional
-    public void delete(Long id) {
-        int deletedCount = scheduleMapper.delete(id);
+    public void delete(Long id, String currentUsername) {
+        AppUser currentUser = getCurrentUser(currentUsername);
+        int deletedCount = scheduleMapper.delete(id, currentUser.getId());
         if (deletedCount == 0) {
-            throw new NoSuchElementException("指定された予定が存在しません。id=" + id);
+            throw new NoSuchElementException("指定された予定が存在しないか、削除権限がありません。id=" + id);
         }
     }
 
@@ -82,7 +104,16 @@ public class ScheduleService {
         item.setStartTime(startTime);
         item.setEndTime(endTime);
         item.setDescription(normalize(request.getDescription()));
+        item.setSharedWithFriends(Boolean.TRUE.equals(request.getSharedWithFriends()));
         return item;
+    }
+
+    private AppUser getCurrentUser(String username) {
+        AppUser user = userMapper.findByUsername(username);
+        if (user == null) {
+            throw new NoSuchElementException("ログインユーザーが見つかりません。");
+        }
+        return user;
     }
 
     private LocalTime parseTime(String value, String fieldName) {

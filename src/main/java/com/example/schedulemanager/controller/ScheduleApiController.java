@@ -5,11 +5,11 @@ import com.example.schedulemanager.model.ScheduleItem;
 import com.example.schedulemanager.service.ScheduleService;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,33 +31,31 @@ public class ScheduleApiController {
 
     @GetMapping
     public List<ScheduleItem> findByDate(
-            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return scheduleService.getByDate(date);
+            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return scheduleService.getByDate(date, userDetails.getUsername());
     }
 
     @PostMapping
-    public ResponseEntity<ScheduleItem> create(@RequestBody ScheduleRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(scheduleService.create(request));
+    public ResponseEntity<ScheduleItem> create(
+            @RequestBody ScheduleRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(scheduleService.create(request, userDetails.getUsername()));
     }
 
     @PutMapping("/{id}")
-    public ScheduleItem update(@PathVariable("id") Long id, @RequestBody ScheduleRequest request) {
-        return scheduleService.update(id, request);
+    public ScheduleItem update(
+            @PathVariable("id") Long id,
+            @RequestBody ScheduleRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return scheduleService.update(id, request, userDetails.getUsername());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable("id") Long id) {
-        scheduleService.delete(id);
+    public ResponseEntity<Void> delete(
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        scheduleService.delete(id, userDetails.getUsername());
         return ResponseEntity.noContent().build();
-    }
-
-    @org.springframework.web.bind.annotation.ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException ex) {
-        return ResponseEntity.badRequest().body(Map.of("message", ex.getMessage()));
-    }
-
-    @org.springframework.web.bind.annotation.ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<Map<String, String>> handleNotFound(NoSuchElementException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", ex.getMessage()));
     }
 }
