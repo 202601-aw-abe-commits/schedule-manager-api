@@ -51,6 +51,12 @@ public class ScheduleService {
         }
 
         ScheduleItem item = fromRequest(request);
+        if (Boolean.TRUE.equals(item.getJoinable()) && item.getRecruitmentLimit() != null) {
+            int currentParticipants = scheduleMapper.countParticipants(id);
+            if (item.getRecruitmentLimit() < currentParticipants) {
+                throw new IllegalArgumentException("募集人数は現在の参加者数以上にしてください。");
+            }
+        }
         item.setId(id);
         item.setOwnerUserId(currentUser.getId());
         int updatedCount = scheduleMapper.update(item);
@@ -90,6 +96,9 @@ public class ScheduleService {
         if (scheduleMapper.existsParticipant(id, currentUser.getId())) {
             throw new IllegalArgumentException("すでに参加しています。");
         }
+        if (isRecruitmentClosed(target, scheduleMapper.countParticipants(id))) {
+            throw new IllegalArgumentException("この募集は締め切られています。");
+        }
 
         scheduleMapper.insertParticipant(id, currentUser.getId());
     }
@@ -113,7 +122,7 @@ public class ScheduleService {
 
         String title = normalize(request.getTitle());
         if (title == null || title.isBlank()) {
-            throw new IllegalArgumentException("タイトルは必須です。");
+            throw new IllegalArgumentException("ゲーム名は必須です。");
         }
 
         LocalDate scheduleDate;
@@ -126,12 +135,23 @@ public class ScheduleService {
         LocalTime startTime = parseTime(request.getStartTime(), "開始時刻");
         LocalTime endTime = parseTime(request.getEndTime(), "終了時刻");
         boolean joinable = Boolean.TRUE.equals(request.getJoinable());
+        Integer recruitmentLimit = request.getRecruitmentLimit();
 
         if (startTime != null && endTime != null && endTime.isBefore(startTime)) {
             throw new IllegalArgumentException("終了時刻は開始時刻以降にしてください。");
         }
         if (joinable && startTime == null) {
             throw new IllegalArgumentException("参加募集予定は開始時刻を入力してください。");
+        }
+        if (joinable) {
+            if (recruitmentLimit == null) {
+                throw new IllegalArgumentException("募集人数を入力してください。");
+            }
+            if (recruitmentLimit < 1) {
+                throw new IllegalArgumentException("募集人数は1以上で入力してください。");
+            }
+        } else {
+            recruitmentLimit = null;
         }
 
         ScheduleItem item = new ScheduleItem();
@@ -143,6 +163,7 @@ public class ScheduleService {
         boolean sharedWithFriends = Boolean.TRUE.equals(request.getSharedWithFriends()) || joinable;
         item.setSharedWithFriends(sharedWithFriends);
         item.setJoinable(joinable);
+        item.setRecruitmentLimit(recruitmentLimit);
         return item;
     }
 
@@ -191,11 +212,16 @@ public class ScheduleService {
     private void attachParticipationInfo(ScheduleItem item, Long viewerUserId) {
         if (!Boolean.TRUE.equals(item.getJoinable())) {
             item.setParticipantCount(0);
+            item.setRemainingRecruitmentSlots(null);
+            item.setRecruitmentClosed(false);
             item.setJoinedByCurrentUser(false);
             item.setParticipants(List.of());
             return;
         }
-        item.setParticipantCount(scheduleMapper.countParticipants(item.getId()));
+        int participantCount = scheduleMapper.countParticipants(item.getId());
+        item.setParticipantCount(participantCount);
+        item.setRemainingRecruitmentSlots(calcRemainingRecruitmentSlots(item.getRecruitmentLimit(), participantCount));
+        item.setRecruitmentClosed(isRecruitmentClosed(item, participantCount));
         item.setJoinedByCurrentUser(scheduleMapper.existsParticipant(item.getId(), viewerUserId));
         item.setParticipants(scheduleMapper.findParticipants(item.getId()));
     }
@@ -210,5 +236,20 @@ public class ScheduleService {
         if (currentUser.getId().equals(target.getOwnerUserId())) {
             throw new IllegalArgumentException("作成者は自動的に参加者として扱われます。");
         }
+    }
+
+    private Integer calcRemainingRecruitmentSlots(Integer recruitmentLimit, int participantCount) {
+        if (recruitmentLimit == null) {
+            return null;
+        }
+        return Math.max(recruitmentLimit - participantCount, 0);
+    }
+
+    private boolean isRecruitmentClosed(ScheduleItem item, int participantCount) {
+        Integer recruitmentLimit = item.getRecruitmentLimit();
+        if (recruitmentLimit == null) {
+            return false;
+        }
+        return participantCount >= recruitmentLimit;
     }
 }

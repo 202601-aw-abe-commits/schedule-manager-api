@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>フレンド | ゲーム予定</title>
+    <link rel="stylesheet" href="/css/calendar.css">
+</head>
+<body>
+<header class="page-hero">
+    <h1 th:text="${currentDisplayName + 'のフレンド'}"></h1>
+    <nav class="hero-nav" aria-label="メインメニュー">
+        <a href="/calendar">トップ</a>
+        <a href="/friends">フレンド</a>
+        <a href="/profile">ユーザー編集</a>
+        <a href="#messageSection">メッセージ</a>
+    </nav>
+</header>
+
+<main class="app-shell friends-shell" th:attr="data-current-username=${currentUsername},data-current-display-name=${currentDisplayName}">
+    <section class="schedule-pane">
+        <header>
+            <h2>フレンド管理</h2>
+            <form method="post" action="/logout">
+                <button type="submit" class="secondary">ログアウト</button>
+            </form>
+        </header>
+
+        <section class="friend-section">
+            <h3>フレンド検索・申請</h3>
+            <form id="friendRequestForm" class="inline-form">
+                <input id="friendUsername" type="text" placeholder="ユーザー名で検索して申請" required>
+                <button type="submit" class="primary">申請</button>
+            </form>
+            <p id="friendMessage" class="form-message" aria-live="polite"></p>
+        </section>
+
+        <section class="friend-section">
+            <div class="friend-columns">
+                <div>
+                    <h4>フレンド一覧</h4>
+                    <ul id="friendList" class="mini-list"></ul>
+                </div>
+                <div>
+                    <h4>受信申請</h4>
+                    <ul id="incomingRequestList" class="mini-list"></ul>
+                </div>
+                <div>
+                    <h4>送信中申請</h4>
+                    <ul id="outgoingRequestList" class="mini-list"></ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="messageSection" class="friend-section message-section">
+            <h3>メッセージ</h3>
+            <p class="help-text">メッセージ機能は準備中です。</p>
+        </section>
+    </section>
+</main>
+<script src="/js/friends.js"></script>
+</body>
+</html>

@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS app_user (
     username VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(200) NOT NULL,
     display_name VARCHAR(100) NOT NULL,
+    profile_bio VARCHAR(500),
+    profile_image_url VARCHAR(1000),
     enabled BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -27,6 +29,7 @@ CREATE TABLE IF NOT EXISTS schedule_item (
     description VARCHAR(1000),
     shared_with_friends BOOLEAN NOT NULL DEFAULT FALSE,
     joinable BOOLEAN NOT NULL DEFAULT FALSE,
+    recruitment_limit INTEGER,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -42,6 +45,9 @@ CREATE TABLE IF NOT EXISTS schedule_participant (
 ALTER TABLE schedule_item ADD COLUMN IF NOT EXISTS owner_user_id BIGINT;
 ALTER TABLE schedule_item ADD COLUMN IF NOT EXISTS shared_with_friends BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE schedule_item ADD COLUMN IF NOT EXISTS joinable BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE schedule_item ADD COLUMN IF NOT EXISTS recruitment_limit INTEGER;
+ALTER TABLE app_user ADD COLUMN IF NOT EXISTS profile_bio VARCHAR(500);
+ALTER TABLE app_user ADD COLUMN IF NOT EXISTS profile_image_url VARCHAR(1000);
 
 CREATE INDEX IF NOT EXISTS idx_user_username ON app_user(username);
 CREATE INDEX IF NOT EXISTS idx_friendship_requester ON friendship(requester_user_id);

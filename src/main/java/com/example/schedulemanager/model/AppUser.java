@@ -7,6 +7,8 @@ public class AppUser {
     private String username;
     private String passwordHash;
     private String displayName;
+    private String profileBio;
+    private String profileImageUrl;
     private Boolean enabled;
     private LocalDateTime createdAt;
 
@@ -40,6 +42,22 @@ public class AppUser {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public String getProfileBio() {
+        return profileBio;
+    }
+
+    public void setProfileBio(String profileBio) {
+        this.profileBio = profileBio;
+    }
+
+    public String getProfileImageUrl() {
+        return profileImageUrl;
+    }
+
+    public void setProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 
     public Boolean getEnabled() {

@@ -1,8 +1,10 @@
 package com.example.schedulemanager.service;
 
 import com.example.schedulemanager.dto.RegisterRequest;
+import com.example.schedulemanager.dto.ProfileUpdateRequest;
 import com.example.schedulemanager.mapper.UserMapper;
 import com.example.schedulemanager.model.AppUser;
+import java.util.NoSuchElementException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,6 +58,41 @@ public class UserAccountService {
         user.setDisplayName(displayName);
         user.setEnabled(true);
         userMapper.insert(user);
+        return userMapper.findById(user.getId());
+    }
+
+    @Transactional
+    public AppUser updateProfile(String username, ProfileUpdateRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("更新情報が空です。");
+        }
+
+        AppUser user = userMapper.findByUsername(username);
+        if (user == null) {
+            throw new NoSuchElementException("ユーザーが見つかりません。");
+        }
+
+        String displayName = normalize(request.getDisplayName());
+        String profileBio = normalize(request.getProfileBio());
+        String profileImageUrl = normalize(request.getProfileImageUrl());
+
+        if (displayName == null || displayName.isBlank()) {
+            throw new IllegalArgumentException("表示名は必須です。");
+        }
+        if (displayName.length() > 100) {
+            throw new IllegalArgumentException("表示名は100文字以内で入力してください。");
+        }
+        if (profileBio != null && profileBio.length() > 500) {
+            throw new IllegalArgumentException("自己紹介は500文字以内で入力してください。");
+        }
+        if (profileImageUrl != null && profileImageUrl.length() > 1000) {
+            throw new IllegalArgumentException("アイコンURLは1000文字以内で入力してください。");
+        }
+
+        user.setDisplayName(displayName);
+        user.setProfileBio(profileBio);
+        user.setProfileImageUrl(profileImageUrl);
+        userMapper.updateProfile(user);
         return userMapper.findById(user.getId());
     }
 

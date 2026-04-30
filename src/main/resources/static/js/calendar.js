@@ -26,14 +26,8 @@ const endTimeInput = document.getElementById("endTime");
 const descriptionInput = document.getElementById("description");
 const sharedWithFriendsInput = document.getElementById("sharedWithFriends");
 const joinableInput = document.getElementById("joinable");
+const recruitmentLimitInput = document.getElementById("recruitmentLimit");
 const formMessage = document.getElementById("formMessage");
-
-const friendRequestForm = document.getElementById("friendRequestForm");
-const friendUsernameInput = document.getElementById("friendUsername");
-const friendMessage = document.getElementById("friendMessage");
-const friendList = document.getElementById("friendList");
-const incomingRequestList = document.getElementById("incomingRequestList");
-const outgoingRequestList = document.getElementById("outgoingRequestList");
 
 document.getElementById("prevMonth").addEventListener("click", () => {
     state.currentMonth = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth() - 1, 1);
@@ -54,28 +48,7 @@ document.getElementById("cancelEditButton").addEventListener("click", () => {
 });
 
 joinableInput.addEventListener("change", () => {
-    syncSharingForJoinable();
-});
-
-friendRequestForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    friendMessage.textContent = "";
-
-    try {
-        await fetchJson("/api/friends/requests", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username: friendUsernameInput.value })
-        });
-
-        friendMessage.style.color = "#087057";
-        friendMessage.textContent = "フレンド申請を送信しました。";
-        friendUsernameInput.value = "";
-        await loadFriendDashboard();
-    } catch (error) {
-        friendMessage.style.color = "#be2f2f";
-        friendMessage.textContent = error.message;
-    }
+    syncJoinableOptions();
 });
 
 form.addEventListener("submit", async (event) => {
@@ -89,7 +62,8 @@ form.addEventListener("submit", async (event) => {
         endTime: endTimeInput.value || null,
         description: descriptionInput.value,
         sharedWithFriends: sharedWithFriendsInput.checked,
-        joinable: joinableInput.checked
+        joinable: joinableInput.checked,
+        recruitmentLimit: parseRecruitmentLimit()
     };
 
     const id = scheduleIdInput.value;
@@ -278,7 +252,7 @@ function scheduleOwnerText(item) {
     const ownerName = item.ownerDisplayName || item.ownerUsername || "不明";
     if (item.ownerUsername === currentUsername) {
         if (item.joinable) {
-            return "あなたの募集予定（参加受付中）";
+            return item.recruitmentClosed ? "あなたの募集予定（締切）" : "あなたの募集予定（参加受付中）";
         }
         if (item.sharedWithFriends) {
             return "あなたの予定（フレンド共有中）";
@@ -286,72 +260,9 @@ function scheduleOwnerText(item) {
         return "あなたの予定";
     }
     if (item.joinable) {
-        return `募集予定: ${ownerName}`;
+        return item.recruitmentClosed ? `募集締切: ${ownerName}` : `募集予定: ${ownerName}`;
     }
     return `共有予定: ${ownerName}`;
-}
-
-async function loadFriendDashboard() {
-    try {
-        const data = await fetchJson("/api/friends");
-        renderFriendList(friendList, data.friends, "フレンドはまだいません。", (friend) => {
-            return `${friend.displayName} (@${friend.username})`;
-        });
-
-        renderIncomingRequests(data.incomingRequests || []);
-        renderFriendList(outgoingRequestList, data.outgoingRequests, "送信中の申請はありません。", (request) => {
-            return `${request.requesterDisplayName} (@${request.requesterUsername})`;
-        });
-    } catch (error) {
-        friendMessage.style.color = "#be2f2f";
-        friendMessage.textContent = error.message;
-    }
-}
-
-function renderIncomingRequests(incomingRequests) {
-    incomingRequestList.innerHTML = "";
-    if (!Array.isArray(incomingRequests) || incomingRequests.length === 0) {
-        incomingRequestList.innerHTML = "<li>受信申請はありません。</li>";
-        return;
-    }
-
-    incomingRequests.forEach((request) => {
-        const li = document.createElement("li");
-        li.textContent = `${request.requesterDisplayName} (@${request.requesterUsername})`;
-
-        const acceptButton = document.createElement("button");
-        acceptButton.type = "button";
-        acceptButton.textContent = "承認";
-        acceptButton.addEventListener("click", async () => {
-            try {
-                await fetchJson(`/api/friends/requests/${request.id}/accept`, { method: "POST" });
-                friendMessage.style.color = "#087057";
-                friendMessage.textContent = "フレンド申請を承認しました。";
-                await loadFriendDashboard();
-                await loadSchedules(state.selectedDate);
-            } catch (error) {
-                friendMessage.style.color = "#be2f2f";
-                friendMessage.textContent = error.message;
-            }
-        });
-
-        li.appendChild(acceptButton);
-        incomingRequestList.appendChild(li);
-    });
-}
-
-function renderFriendList(targetElement, list, emptyText, itemTextBuilder) {
-    targetElement.innerHTML = "";
-    if (!Array.isArray(list) || list.length === 0) {
-        targetElement.innerHTML = `<li>${emptyText}</li>`;
-        return;
-    }
-
-    list.forEach((item) => {
-        const li = document.createElement("li");
-        li.textContent = itemTextBuilder(item);
-        targetElement.appendChild(li);
-    });
 }
 
 function fillFormForEdit(item) {
@@ -368,7 +279,8 @@ function fillFormForEdit(item) {
     descriptionInput.value = item.description ?? "";
     sharedWithFriendsInput.checked = item.sharedWithFriends === true;
     joinableInput.checked = item.joinable === true;
-    syncSharingForJoinable();
+    recruitmentLimitInput.value = item.recruitmentLimit ?? "";
+    syncJoinableOptions();
 }
 
 function resetFormForCreate() {
@@ -381,7 +293,8 @@ function resetFormForCreate() {
     descriptionInput.value = "";
     sharedWithFriendsInput.checked = false;
     joinableInput.checked = false;
-    syncSharingForJoinable();
+    recruitmentLimitInput.value = "";
+    syncJoinableOptions();
     formMessage.textContent = "";
 }
 
@@ -406,7 +319,15 @@ function timeText(startTime, endTime) {
 
 function scheduleParticipationBadgeText(item) {
     const participantCount = Number(item.participantCount ?? 0);
-    return `参加者 ${participantCount}人`;
+    const recruitmentLimit = item.recruitmentLimit;
+    const remainingSlots = item.remainingRecruitmentSlots;
+    if (recruitmentLimit == null) {
+        return `参加者 ${participantCount}人`;
+    }
+    if (item.recruitmentClosed) {
+        return `参加者 ${participantCount}/${recruitmentLimit}人（締切）`;
+    }
+    return `参加者 ${participantCount}/${recruitmentLimit}人（残り${remainingSlots}人）`;
 }
 
 function renderParticipants(participants) {
@@ -434,6 +355,14 @@ function renderJoinAction(item) {
         return actionArea;
     }
 
+    if (item.recruitmentClosed && !item.joinedByCurrentUser) {
+        const closedLabel = document.createElement("span");
+        closedLabel.className = "closed-label";
+        closedLabel.textContent = "募集は締め切られました";
+        actionArea.appendChild(closedLabel);
+        return actionArea;
+    }
+
     const joinButton = document.createElement("button");
     joinButton.type = "button";
     joinButton.className = item.joinedByCurrentUser ? "leave-btn" : "join-btn";
@@ -454,13 +383,29 @@ function renderJoinAction(item) {
     return actionArea;
 }
 
-function syncSharingForJoinable() {
+function syncJoinableOptions() {
     if (joinableInput.checked) {
         sharedWithFriendsInput.checked = true;
         sharedWithFriendsInput.disabled = true;
+        recruitmentLimitInput.disabled = false;
+        recruitmentLimitInput.required = true;
         return;
     }
     sharedWithFriendsInput.disabled = false;
+    recruitmentLimitInput.disabled = true;
+    recruitmentLimitInput.required = false;
+    recruitmentLimitInput.value = "";
+}
+
+function parseRecruitmentLimit() {
+    if (!joinableInput.checked) {
+        return null;
+    }
+    const value = recruitmentLimitInput.value;
+    if (value == null || value.trim() === "") {
+        return null;
+    }
+    return Number.parseInt(value, 10);
 }
 
 async function fetchJson(url, options = {}) {
@@ -782,6 +727,5 @@ function isSameDate(date, year, month, day) {
 }
 
 renderCalendar();
-loadFriendDashboard();
 loadSchedules(state.selectedDate);
 resetFormForCreate();

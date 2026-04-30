@@ -18,6 +18,7 @@ public interface ScheduleMapper {
     @Select("""
             SELECT s.id, s.owner_user_id, u.username AS owner_username, u.display_name AS owner_display_name,
                    s.schedule_date, s.title, s.start_time, s.end_time, s.description, s.shared_with_friends, s.joinable,
+                   s.recruitment_limit,
                    s.created_at, s.updated_at
             FROM schedule_item s
             LEFT JOIN app_user u ON u.id = s.owner_user_id
@@ -44,6 +45,7 @@ public interface ScheduleMapper {
     @Select("""
             SELECT s.id, s.owner_user_id, u.username AS owner_username, u.display_name AS owner_display_name,
                    s.schedule_date, s.title, s.start_time, s.end_time, s.description, s.shared_with_friends, s.joinable,
+                   s.recruitment_limit,
                    s.created_at, s.updated_at
             FROM schedule_item s
             LEFT JOIN app_user u ON u.id = s.owner_user_id
@@ -68,7 +70,7 @@ public interface ScheduleMapper {
 
     @Select("""
             SELECT s.id, s.owner_user_id, s.schedule_date, s.title, s.start_time, s.end_time, s.description,
-                   s.shared_with_friends, s.joinable, s.created_at, s.updated_at
+                   s.shared_with_friends, s.joinable, s.recruitment_limit, s.created_at, s.updated_at
             FROM schedule_item s
             WHERE s.id = #{id}
               AND s.owner_user_id = #{ownerUserId}
@@ -76,8 +78,8 @@ public interface ScheduleMapper {
     ScheduleItem findOwnedById(@Param("id") Long id, @Param("ownerUserId") Long ownerUserId);
 
     @Insert("""
-            INSERT INTO schedule_item (owner_user_id, schedule_date, title, start_time, end_time, description, shared_with_friends, joinable)
-            VALUES (#{ownerUserId}, #{scheduleDate}, #{title}, #{startTime}, #{endTime}, #{description}, #{sharedWithFriends}, #{joinable})
+            INSERT INTO schedule_item (owner_user_id, schedule_date, title, start_time, end_time, description, shared_with_friends, joinable, recruitment_limit)
+            VALUES (#{ownerUserId}, #{scheduleDate}, #{title}, #{startTime}, #{endTime}, #{description}, #{sharedWithFriends}, #{joinable}, #{recruitmentLimit})
             """)
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(ScheduleItem item);
@@ -91,6 +93,7 @@ public interface ScheduleMapper {
                 description = #{description},
                 shared_with_friends = #{sharedWithFriends},
                 joinable = #{joinable},
+                recruitment_limit = #{recruitmentLimit},
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = #{id}
               AND owner_user_id = #{ownerUserId}

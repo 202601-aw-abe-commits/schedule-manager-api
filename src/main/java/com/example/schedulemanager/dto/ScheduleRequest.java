@@ -8,6 +8,7 @@ public class ScheduleRequest {
     private String description;
     private Boolean sharedWithFriends;
     private Boolean joinable;
+    private Integer recruitmentLimit;
 
     public String getScheduleDate() {
         return scheduleDate;
@@ -63,5 +64,13 @@ public class ScheduleRequest {
 
     public void setJoinable(Boolean joinable) {
         this.joinable = joinable;
+    }
+
+    public Integer getRecruitmentLimit() {
+        return recruitmentLimit;
+    }
+
+    public void setRecruitmentLimit(Integer recruitmentLimit) {
+        this.recruitmentLimit = recruitmentLimit;
     }
 }

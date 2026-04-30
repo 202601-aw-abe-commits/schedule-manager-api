@@ -17,8 +17,11 @@ public class ScheduleItem {
     private String description;
     private Boolean sharedWithFriends;
     private Boolean joinable;
+    private Integer recruitmentLimit;
     private Boolean editable;
     private Integer participantCount;
+    private Integer remainingRecruitmentSlots;
+    private Boolean recruitmentClosed;
     private Boolean joinedByCurrentUser;
     private List<FriendUser> participants;
     private LocalDateTime createdAt;
@@ -112,6 +115,14 @@ public class ScheduleItem {
         this.joinable = joinable;
     }
 
+    public Integer getRecruitmentLimit() {
+        return recruitmentLimit;
+    }
+
+    public void setRecruitmentLimit(Integer recruitmentLimit) {
+        this.recruitmentLimit = recruitmentLimit;
+    }
+
     public Boolean getEditable() {
         return editable;
     }
@@ -126,6 +137,22 @@ public class ScheduleItem {
 
     public void setParticipantCount(Integer participantCount) {
         this.participantCount = participantCount;
+    }
+
+    public Integer getRemainingRecruitmentSlots() {
+        return remainingRecruitmentSlots;
+    }
+
+    public void setRemainingRecruitmentSlots(Integer remainingRecruitmentSlots) {
+        this.remainingRecruitmentSlots = remainingRecruitmentSlots;
+    }
+
+    public Boolean getRecruitmentClosed() {
+        return recruitmentClosed;
+    }
+
+    public void setRecruitmentClosed(Boolean recruitmentClosed) {
+        this.recruitmentClosed = recruitmentClosed;
     }
 
     public Boolean getJoinedByCurrentUser() {
