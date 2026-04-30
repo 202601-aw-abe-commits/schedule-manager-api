@@ -79,8 +79,14 @@ form.addEventListener("submit", async (event) => {
 
 function renderCalendar() {
     if (weekdaysContainer.children.length === 0) {
-        weekdays.forEach((day) => {
+        weekdays.forEach((day, index) => {
             const cell = document.createElement("div");
+            cell.classList.add("weekday-label");
+            if (index === 0) {
+                cell.classList.add("weekday-sunday");
+            } else if (index === 6) {
+                cell.classList.add("weekday-saturday");
+            }
             cell.textContent = day;
             weekdaysContainer.appendChild(cell);
         });
@@ -103,23 +109,35 @@ function renderCalendar() {
         button.className = "calendar-day";
 
         let cellDate;
+        let dayText;
         if (i < firstDayIndex) {
             const day = daysInPrevMonth - firstDayIndex + i + 1;
             cellDate = new Date(year, month - 1, day);
             button.classList.add("outside");
-            button.textContent = String(day);
+            dayText = String(day);
         } else if (i >= firstDayIndex + daysInMonth) {
             const day = i - firstDayIndex - daysInMonth + 1;
             cellDate = new Date(year, month + 1, day);
             button.classList.add("outside");
-            button.textContent = String(day);
+            dayText = String(day);
         } else {
             const day = i - firstDayIndex + 1;
             cellDate = new Date(year, month, day);
-            button.textContent = String(day);
+            dayText = String(day);
         }
 
         const dateKey = formatDate(cellDate);
+        const holidayName = getJapaneseHolidayName(cellDate);
+        setDayCellContent(button, dayText, holidayName);
+
+        const dayOfWeek = cellDate.getDay();
+        if (dayOfWeek === 6) {
+            button.classList.add("saturday");
+        }
+        if (dayOfWeek === 0 || holidayName !== null) {
+            button.classList.add("holiday");
+        }
+
         if (dateKey === state.selectedDate) {
             button.classList.add("selected");
         }
@@ -260,6 +278,303 @@ function formatDate(date) {
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
+}
+
+function setDayCellContent(button, dayText, holidayName) {
+    button.innerHTML = "";
+
+    const dayNumberElement = document.createElement("span");
+    dayNumberElement.className = "day-number";
+    dayNumberElement.textContent = dayText;
+    button.appendChild(dayNumberElement);
+
+    if (holidayName !== null) {
+        const holidayNameElement = document.createElement("span");
+        holidayNameElement.className = "holiday-name";
+        holidayNameElement.textContent = holidayName;
+        button.appendChild(holidayNameElement);
+    }
+}
+
+function isJapaneseHoliday(date) {
+    return getJapaneseHolidayName(date) !== null;
+}
+
+function getJapaneseHolidayName(date) {
+    const baseHolidayName = getBaseHolidayName(date);
+    if (baseHolidayName !== null) {
+        return baseHolidayName;
+    }
+
+    if (isCitizensHoliday(date)) {
+        return "国民の休日";
+    }
+
+    if (isSubstituteHoliday(date)) {
+        return "振替休日";
+    }
+
+    return null;
+}
+
+function isBaseHoliday(date) {
+    return getBaseHolidayName(date) !== null;
+}
+
+function getBaseHolidayName(date) {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+
+    if (year < 1948) {
+        return null;
+    }
+
+    // 祝日法に基づく一時的な特別休日
+    if (isSameDate(date, 1959, 4, 10)) {
+        return "皇太子明仁親王の結婚の儀";
+    }
+    if (isSameDate(date, 1989, 2, 24)) {
+        return "昭和天皇の大喪の礼";
+    }
+    if (isSameDate(date, 1990, 11, 12)) {
+        return "即位礼正殿の儀";
+    }
+    if (isSameDate(date, 1993, 6, 9)) {
+        return "皇太子徳仁親王の結婚の儀";
+    }
+    if (isSameDate(date, 2019, 5, 1)) {
+        return "即位の日";
+    }
+    if (isSameDate(date, 2019, 10, 22)) {
+        return "即位礼正殿の儀";
+    }
+
+    if (month === 1) {
+        if (day === 1) {
+            return "元日";
+        }
+        if (year >= 2000) {
+            if (day === nthWeekdayOfMonth(year, 1, 1, 2)) {
+                return "成人の日";
+            }
+            return null;
+        }
+        if (day === 15) {
+            return "成人の日";
+        }
+        return null;
+    }
+
+    if (month === 2) {
+        if (year >= 1967 && day === 11) {
+            return "建国記念の日";
+        }
+        if (year >= 2020 && day === 23) {
+            return "天皇誕生日";
+        }
+        return null;
+    }
+
+    if (month === 3 && day === vernalEquinoxDay(year)) {
+        return "春分の日";
+    }
+
+    if (month === 4 && day === 29) {
+        if (year >= 2007) {
+            return "昭和の日";
+        }
+        if (year >= 1989) {
+            return "みどりの日";
+        }
+        return "天皇誕生日";
+    }
+
+    if (month === 5) {
+        if (day === 3 || day === 5) {
+            return day === 3 ? "憲法記念日" : "こどもの日";
+        }
+        if (year >= 2007 && day === 4) {
+            return "みどりの日";
+        }
+        return null;
+    }
+
+    if (month === 7) {
+        if (year === 2020) {
+            if (day === 23) {
+                return "海の日";
+            }
+            return null;
+        }
+        if (year === 2021) {
+            if (day === 22) {
+                return "海の日";
+            }
+            return null;
+        }
+        if (year >= 2003) {
+            if (day === nthWeekdayOfMonth(year, 7, 1, 3)) {
+                return "海の日";
+            }
+            return null;
+        }
+        if (year >= 1996 && day === 20) {
+            return "海の日";
+        }
+        return null;
+    }
+
+    if (month === 8) {
+        if (year === 2020) {
+            if (day === 10) {
+                return "山の日";
+            }
+            return null;
+        }
+        if (year === 2021) {
+            if (day === 8) {
+                return "山の日";
+            }
+            return null;
+        }
+        if (year >= 2016 && day === 11) {
+            return "山の日";
+        }
+        return null;
+    }
+
+    if (month === 9) {
+        if (year >= 2003 && day === nthWeekdayOfMonth(year, 9, 1, 3)) {
+            return "敬老の日";
+        }
+        if (year >= 1966 && year <= 2002 && day === 15) {
+            return "敬老の日";
+        }
+        if (day === autumnalEquinoxDay(year)) {
+            return "秋分の日";
+        }
+        return null;
+    }
+
+    if (month === 10) {
+        if (year === 2020 && day === 24) {
+            return "スポーツの日";
+        }
+        if (year === 2021 && day === 23) {
+            return "スポーツの日";
+        }
+        if (year >= 2000) {
+            if (day === nthWeekdayOfMonth(year, 10, 1, 2)) {
+                if (year >= 2020) {
+                    return "スポーツの日";
+                }
+                return "体育の日";
+            }
+            return null;
+        }
+        if (year >= 1966 && day === 10) {
+            return "体育の日";
+        }
+        return null;
+    }
+
+    if (month === 11) {
+        if (day === 3) {
+            return "文化の日";
+        }
+        if (day === 23) {
+            return "勤労感謝の日";
+        }
+        return null;
+    }
+
+    if (month === 12) {
+        if (year >= 1989 && year <= 2018 && day === 23) {
+            return "天皇誕生日";
+        }
+        return null;
+    }
+
+    return null;
+}
+
+function isCitizensHoliday(date) {
+    if (date < new Date(1986, 0, 1)) {
+        return false;
+    }
+
+    if (isBaseHoliday(date)) {
+        return false;
+    }
+
+    const previousDate = addDays(date, -1);
+    const nextDate = addDays(date, 1);
+    return isBaseHoliday(previousDate) && isBaseHoliday(nextDate);
+}
+
+function isSubstituteHoliday(date) {
+    const ruleStartDate = new Date(1973, 3, 30);
+    if (date < ruleStartDate || isHolidayWithoutSubstitute(date)) {
+        return false;
+    }
+
+    const year = date.getFullYear();
+
+    if (year < 2007) {
+        const previousDate = addDays(date, -1);
+        return date.getDay() === 1
+            && previousDate.getDay() === 0
+            && isHolidayWithoutSubstitute(previousDate);
+    }
+
+    let cursor = addDays(date, -1);
+    let foundSundayHoliday = false;
+
+    while (isHolidayWithoutSubstitute(cursor)) {
+        if (cursor.getDay() === 0) {
+            foundSundayHoliday = true;
+        }
+        cursor = addDays(cursor, -1);
+    }
+
+    return foundSundayHoliday;
+}
+
+function isHolidayWithoutSubstitute(date) {
+    return isBaseHoliday(date) || isCitizensHoliday(date);
+}
+
+function vernalEquinoxDay(year) {
+    if (year <= 1979) {
+        return Math.floor(20.8357 + 0.242194 * (year - 1980) - Math.floor((year - 1983) / 4));
+    }
+    return Math.floor(20.8431 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
+}
+
+function autumnalEquinoxDay(year) {
+    if (year <= 1979) {
+        return Math.floor(23.2588 + 0.242194 * (year - 1980) - Math.floor((year - 1983) / 4));
+    }
+    return Math.floor(23.2488 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
+}
+
+function nthWeekdayOfMonth(year, month, weekday, nth) {
+    const firstDay = new Date(year, month - 1, 1).getDay();
+    const offset = (7 + weekday - firstDay) % 7;
+    return 1 + offset + (nth - 1) * 7;
+}
+
+function addDays(date, days) {
+    const copiedDate = new Date(date);
+    copiedDate.setDate(copiedDate.getDate() + days);
+    return copiedDate;
+}
+
+function isSameDate(date, year, month, day) {
+    return date.getFullYear() === year
+        && date.getMonth() + 1 === month
+        && date.getDate() === day;
 }
 
 renderCalendar();

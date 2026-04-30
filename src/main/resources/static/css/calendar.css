@@ -97,6 +97,16 @@ body {
     padding: 6px 0;
 }
 
+.weekdays .weekday-sunday {
+    color: #d83a3a;
+    font-weight: 700;
+}
+
+.weekdays .weekday-saturday {
+    color: #4b8ad8;
+    font-weight: 700;
+}
+
 .calendar-day {
     min-height: 74px;
     border: 1px solid var(--line);
@@ -104,8 +114,24 @@ body {
     background: #fff;
     text-align: left;
     padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
     cursor: pointer;
     transition: 0.2s ease;
+}
+
+.calendar-day .day-number {
+    font-size: 0.98rem;
+    line-height: 1;
+}
+
+.calendar-day .holiday-name {
+    font-size: 0.64rem;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+    white-space: normal;
 }
 
 .calendar-day:hover {
@@ -119,11 +145,23 @@ body {
 
 .calendar-day.selected {
     border: 2px solid var(--accent);
-    background: #f2fffc;
 }
 
 .calendar-day.today {
     box-shadow: inset 0 0 0 2px var(--highlight);
+}
+
+.calendar-day.saturday {
+    background: #eef5ff;
+    border-color: #bfd7ff;
+    color: #4b8ad8;
+}
+
+.calendar-day.holiday {
+    background: #fff1f1;
+    border-color: #f5c6c6;
+    color: #d83a3a;
+    font-weight: 700;
 }
 
 .schedule-pane header {
