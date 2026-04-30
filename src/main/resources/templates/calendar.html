@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schedule Manager</title>
+    <title>ゲーム予定</title>
     <link rel="stylesheet" href="/css/calendar.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
     <section class="calendar-pane">
         <header class="calendar-header">
             <div>
-                <h1>Schedule Manager</h1>
+                <h1>ゲーム予定</h1>
                 <p class="user-badge" th:text="${currentDisplayName + ' (@' + currentUsername + ')'}"></p>
             </div>
             <div class="month-switch">
@@ -68,7 +68,7 @@
             <label for="scheduleDate">日付</label>
             <input id="scheduleDate" name="scheduleDate" type="date" required>
 
-            <label for="title">タイトル</label>
+            <label for="title">ゲーム名</label>
             <input id="title" name="title" type="text" maxlength="200" required>
 
             <label for="startTime">開始時刻</label>
@@ -89,6 +89,9 @@
                 <input id="joinable" name="joinable" type="checkbox">
                 参加募集にする（フレンドが参加可能）
             </label>
+
+            <label for="recruitmentLimit">募集人数（あと何人参加できるか）</label>
+            <input id="recruitmentLimit" name="recruitmentLimit" type="number" min="1" step="1" placeholder="例: 3">
 
             <p id="formMessage" class="form-message" aria-live="polite"></p>
 
