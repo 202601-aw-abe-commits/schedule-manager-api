@@ -27,9 +27,7 @@ public class ScheduleService {
     public List<ScheduleItem> getByDate(LocalDate date, String currentUsername) {
         AppUser currentUser = getCurrentUser(currentUsername);
         List<ScheduleItem> items = scheduleMapper.findVisibleByDate(date, currentUser.getId());
-        for (ScheduleItem item : items) {
-            item.setEditable(currentUser.getId().equals(item.getOwnerUserId()));
-        }
+        decorateForViewer(items, currentUser.getId());
         return items;
     }
 
@@ -40,7 +38,7 @@ public class ScheduleService {
         item.setOwnerUserId(currentUser.getId());
         scheduleMapper.insert(item);
         ScheduleItem created = scheduleMapper.findVisibleById(item.getId(), currentUser.getId());
-        created.setEditable(true);
+        decorateForViewer(created, currentUser.getId());
         return created;
     }
 
@@ -59,18 +57,52 @@ public class ScheduleService {
         if (updatedCount == 0) {
             throw new NoSuchElementException("指定された予定が存在しないか、編集権限がありません。id=" + id);
         }
+        if (!Boolean.TRUE.equals(item.getJoinable())) {
+            scheduleMapper.deleteAllParticipantsBySchedule(id);
+        }
 
         ScheduleItem updated = scheduleMapper.findVisibleById(id, currentUser.getId());
-        updated.setEditable(true);
+        decorateForViewer(updated, currentUser.getId());
         return updated;
     }
 
     @Transactional
     public void delete(Long id, String currentUsername) {
         AppUser currentUser = getCurrentUser(currentUsername);
+        ScheduleItem existing = scheduleMapper.findOwnedById(id, currentUser.getId());
+        if (existing == null) {
+            throw new NoSuchElementException("指定された予定が存在しないか、削除権限がありません。id=" + id);
+        }
+
+        scheduleMapper.deleteAllParticipantsBySchedule(id);
         int deletedCount = scheduleMapper.delete(id, currentUser.getId());
         if (deletedCount == 0) {
             throw new NoSuchElementException("指定された予定が存在しないか、削除権限がありません。id=" + id);
+        }
+    }
+
+    @Transactional
+    public void join(Long id, String currentUsername) {
+        AppUser currentUser = getCurrentUser(currentUsername);
+        ScheduleItem target = scheduleMapper.findVisibleById(id, currentUser.getId());
+        validateJoinable(target, currentUser);
+
+        if (scheduleMapper.existsParticipant(id, currentUser.getId())) {
+            throw new IllegalArgumentException("すでに参加しています。");
+        }
+
+        scheduleMapper.insertParticipant(id, currentUser.getId());
+    }
+
+    @Transactional
+    public void cancelJoin(Long id, String currentUsername) {
+        AppUser currentUser = getCurrentUser(currentUsername);
+        ScheduleItem target = scheduleMapper.findVisibleById(id, currentUser.getId());
+        validateJoinable(target, currentUser);
+
+        int deletedCount = scheduleMapper.deleteParticipant(id, currentUser.getId());
+        if (deletedCount == 0) {
+            throw new NoSuchElementException("参加情報が見つかりません。");
         }
     }
 
@@ -93,9 +125,13 @@ public class ScheduleService {
 
         LocalTime startTime = parseTime(request.getStartTime(), "開始時刻");
         LocalTime endTime = parseTime(request.getEndTime(), "終了時刻");
+        boolean joinable = Boolean.TRUE.equals(request.getJoinable());
 
         if (startTime != null && endTime != null && endTime.isBefore(startTime)) {
             throw new IllegalArgumentException("終了時刻は開始時刻以降にしてください。");
+        }
+        if (joinable && startTime == null) {
+            throw new IllegalArgumentException("参加募集予定は開始時刻を入力してください。");
         }
 
         ScheduleItem item = new ScheduleItem();
@@ -104,7 +140,9 @@ public class ScheduleService {
         item.setStartTime(startTime);
         item.setEndTime(endTime);
         item.setDescription(normalize(request.getDescription()));
-        item.setSharedWithFriends(Boolean.TRUE.equals(request.getSharedWithFriends()));
+        boolean sharedWithFriends = Boolean.TRUE.equals(request.getSharedWithFriends()) || joinable;
+        item.setSharedWithFriends(sharedWithFriends);
+        item.setJoinable(joinable);
         return item;
     }
 
@@ -134,5 +172,43 @@ public class ScheduleService {
             return null;
         }
         return value.trim();
+    }
+
+    private void decorateForViewer(ScheduleItem item, Long viewerUserId) {
+        if (item == null) {
+            return;
+        }
+        item.setEditable(viewerUserId.equals(item.getOwnerUserId()));
+        attachParticipationInfo(item, viewerUserId);
+    }
+
+    private void decorateForViewer(List<ScheduleItem> items, Long viewerUserId) {
+        for (ScheduleItem item : items) {
+            decorateForViewer(item, viewerUserId);
+        }
+    }
+
+    private void attachParticipationInfo(ScheduleItem item, Long viewerUserId) {
+        if (!Boolean.TRUE.equals(item.getJoinable())) {
+            item.setParticipantCount(0);
+            item.setJoinedByCurrentUser(false);
+            item.setParticipants(List.of());
+            return;
+        }
+        item.setParticipantCount(scheduleMapper.countParticipants(item.getId()));
+        item.setJoinedByCurrentUser(scheduleMapper.existsParticipant(item.getId(), viewerUserId));
+        item.setParticipants(scheduleMapper.findParticipants(item.getId()));
+    }
+
+    private void validateJoinable(ScheduleItem target, AppUser currentUser) {
+        if (target == null) {
+            throw new NoSuchElementException("対象の予定が見つかりません。");
+        }
+        if (!Boolean.TRUE.equals(target.getJoinable())) {
+            throw new IllegalArgumentException("この予定は参加募集していません。");
+        }
+        if (currentUser.getId().equals(target.getOwnerUserId())) {
+            throw new IllegalArgumentException("作成者は自動的に参加者として扱われます。");
+        }
     }
 }

@@ -291,6 +291,50 @@ body {
     font-size: 0.9rem;
 }
 
+.schedule-participation {
+    margin: 8px 0 4px;
+    font-size: 0.86rem;
+    color: #1858a6;
+    font-weight: 700;
+}
+
+.schedule-participants {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+}
+
+.join-actions {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.join-actions span {
+    font-size: 0.82rem;
+    color: var(--muted);
+}
+
+.join-btn,
+.leave-btn {
+    border: 0;
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 0.84rem;
+}
+
+.join-btn {
+    background: #dff4ee;
+    color: #0d6d5f;
+}
+
+.leave-btn {
+    background: #fbe8e8;
+    color: #a63131;
+}
+
 .schedule-actions {
     margin-top: 8px;
     display: flex;
@@ -337,6 +381,10 @@ body {
 
 .inline-check input {
     width: auto;
+}
+
+.inline-check input:disabled {
+    opacity: 0.7;
 }
 
 .form-message {

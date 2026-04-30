@@ -25,6 +25,7 @@ const startTimeInput = document.getElementById("startTime");
 const endTimeInput = document.getElementById("endTime");
 const descriptionInput = document.getElementById("description");
 const sharedWithFriendsInput = document.getElementById("sharedWithFriends");
+const joinableInput = document.getElementById("joinable");
 const formMessage = document.getElementById("formMessage");
 
 const friendRequestForm = document.getElementById("friendRequestForm");
@@ -50,6 +51,10 @@ document.getElementById("newScheduleButton").addEventListener("click", () => {
 
 document.getElementById("cancelEditButton").addEventListener("click", () => {
     resetFormForCreate();
+});
+
+joinableInput.addEventListener("change", () => {
+    syncSharingForJoinable();
 });
 
 friendRequestForm.addEventListener("submit", async (event) => {
@@ -83,7 +88,8 @@ form.addEventListener("submit", async (event) => {
         startTime: startTimeInput.value || null,
         endTime: endTimeInput.value || null,
         description: descriptionInput.value,
-        sharedWithFriends: sharedWithFriendsInput.checked
+        sharedWithFriends: sharedWithFriendsInput.checked,
+        joinable: joinableInput.checked
     };
 
     const id = scheduleIdInput.value;
@@ -218,6 +224,16 @@ async function loadSchedules(dateKey) {
 
             li.append(owner, title, time, description);
 
+            if (item.joinable) {
+                const participationBadge = document.createElement("p");
+                participationBadge.className = "schedule-participation";
+                participationBadge.textContent = scheduleParticipationBadgeText(item);
+                li.appendChild(participationBadge);
+
+                li.appendChild(renderParticipants(item.participants));
+                li.appendChild(renderJoinAction(item));
+            }
+
             if (item.editable) {
                 const actions = document.createElement("div");
                 actions.className = "schedule-actions";
@@ -261,10 +277,16 @@ async function loadSchedules(dateKey) {
 function scheduleOwnerText(item) {
     const ownerName = item.ownerDisplayName || item.ownerUsername || "不明";
     if (item.ownerUsername === currentUsername) {
+        if (item.joinable) {
+            return "あなたの募集予定（参加受付中）";
+        }
         if (item.sharedWithFriends) {
             return "あなたの予定（フレンド共有中）";
         }
         return "あなたの予定";
+    }
+    if (item.joinable) {
+        return `募集予定: ${ownerName}`;
     }
     return `共有予定: ${ownerName}`;
 }
@@ -345,6 +367,8 @@ function fillFormForEdit(item) {
     endTimeInput.value = toTimeInput(item.endTime);
     descriptionInput.value = item.description ?? "";
     sharedWithFriendsInput.checked = item.sharedWithFriends === true;
+    joinableInput.checked = item.joinable === true;
+    syncSharingForJoinable();
 }
 
 function resetFormForCreate() {
@@ -356,6 +380,8 @@ function resetFormForCreate() {
     endTimeInput.value = "";
     descriptionInput.value = "";
     sharedWithFriendsInput.checked = false;
+    joinableInput.checked = false;
+    syncSharingForJoinable();
     formMessage.textContent = "";
 }
 
@@ -376,6 +402,65 @@ function timeText(startTime, endTime) {
         return `${start} - ${end}`;
     }
     return start || end;
+}
+
+function scheduleParticipationBadgeText(item) {
+    const participantCount = Number(item.participantCount ?? 0);
+    return `参加者 ${participantCount}人`;
+}
+
+function renderParticipants(participants) {
+    const wrapper = document.createElement("p");
+    wrapper.className = "schedule-participants";
+
+    if (!Array.isArray(participants) || participants.length === 0) {
+        wrapper.textContent = "まだ参加者はいません。";
+        return wrapper;
+    }
+
+    const names = participants.map((user) => user.displayName || user.username || "不明");
+    wrapper.textContent = `参加中: ${names.join(" / ")}`;
+    return wrapper;
+}
+
+function renderJoinAction(item) {
+    const actionArea = document.createElement("div");
+    actionArea.className = "join-actions";
+
+    if (item.editable) {
+        const ownerHint = document.createElement("span");
+        ownerHint.textContent = "あなたが募集主です";
+        actionArea.appendChild(ownerHint);
+        return actionArea;
+    }
+
+    const joinButton = document.createElement("button");
+    joinButton.type = "button";
+    joinButton.className = item.joinedByCurrentUser ? "leave-btn" : "join-btn";
+    joinButton.textContent = item.joinedByCurrentUser ? "参加を取り消す" : "この枠に参加する";
+    joinButton.addEventListener("click", async () => {
+        try {
+            if (item.joinedByCurrentUser) {
+                await fetchJson(`/api/schedules/${item.id}/join`, { method: "DELETE" });
+            } else {
+                await fetchJson(`/api/schedules/${item.id}/join`, { method: "POST" });
+            }
+            await loadSchedules(state.selectedDate);
+        } catch (error) {
+            formMessage.textContent = error.message;
+        }
+    });
+    actionArea.appendChild(joinButton);
+    return actionArea;
+}
+
+function syncSharingForJoinable() {
+    if (joinableInput.checked) {
+        sharedWithFriendsInput.checked = true;
+        sharedWithFriendsInput.disabled = true;
+        return;
+    }
+    sharedWithFriendsInput.disabled = false;
 }
 
 async function fetchJson(url, options = {}) {

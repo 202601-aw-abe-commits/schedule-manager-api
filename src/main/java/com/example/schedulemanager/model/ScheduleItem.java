@@ -3,6 +3,7 @@ package com.example.schedulemanager.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 public class ScheduleItem {
     private Long id;
@@ -15,7 +16,11 @@ public class ScheduleItem {
     private LocalTime endTime;
     private String description;
     private Boolean sharedWithFriends;
+    private Boolean joinable;
     private Boolean editable;
+    private Integer participantCount;
+    private Boolean joinedByCurrentUser;
+    private List<FriendUser> participants;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -99,12 +104,44 @@ public class ScheduleItem {
         this.sharedWithFriends = sharedWithFriends;
     }
 
+    public Boolean getJoinable() {
+        return joinable;
+    }
+
+    public void setJoinable(Boolean joinable) {
+        this.joinable = joinable;
+    }
+
     public Boolean getEditable() {
         return editable;
     }
 
     public void setEditable(Boolean editable) {
         this.editable = editable;
+    }
+
+    public Integer getParticipantCount() {
+        return participantCount;
+    }
+
+    public void setParticipantCount(Integer participantCount) {
+        this.participantCount = participantCount;
+    }
+
+    public Boolean getJoinedByCurrentUser() {
+        return joinedByCurrentUser;
+    }
+
+    public void setJoinedByCurrentUser(Boolean joinedByCurrentUser) {
+        this.joinedByCurrentUser = joinedByCurrentUser;
+    }
+
+    public List<FriendUser> getParticipants() {
+        return participants;
+    }
+
+    public void setParticipants(List<FriendUser> participants) {
+        this.participants = participants;
     }
 
     public LocalDateTime getCreatedAt() {

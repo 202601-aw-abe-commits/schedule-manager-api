@@ -58,4 +58,20 @@ public class ScheduleApiController {
         scheduleService.delete(id, userDetails.getUsername());
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/join")
+    public ResponseEntity<Void> join(
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        scheduleService.join(id, userDetails.getUsername());
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}/join")
+    public ResponseEntity<Void> cancelJoin(
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        scheduleService.cancelJoin(id, userDetails.getUsername());
+        return ResponseEntity.noContent().build();
+    }
 }

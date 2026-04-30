@@ -1,6 +1,7 @@
 package com.example.schedulemanager.mapper;
 
 import com.example.schedulemanager.model.ScheduleItem;
+import com.example.schedulemanager.model.FriendUser;
 import java.time.LocalDate;
 import java.util.List;
 import org.apache.ibatis.annotations.Delete;
@@ -16,7 +17,7 @@ public interface ScheduleMapper {
 
     @Select("""
             SELECT s.id, s.owner_user_id, u.username AS owner_username, u.display_name AS owner_display_name,
-                   s.schedule_date, s.title, s.start_time, s.end_time, s.description, s.shared_with_friends,
+                   s.schedule_date, s.title, s.start_time, s.end_time, s.description, s.shared_with_friends, s.joinable,
                    s.created_at, s.updated_at
             FROM schedule_item s
             LEFT JOIN app_user u ON u.id = s.owner_user_id
@@ -42,7 +43,7 @@ public interface ScheduleMapper {
 
     @Select("""
             SELECT s.id, s.owner_user_id, u.username AS owner_username, u.display_name AS owner_display_name,
-                   s.schedule_date, s.title, s.start_time, s.end_time, s.description, s.shared_with_friends,
+                   s.schedule_date, s.title, s.start_time, s.end_time, s.description, s.shared_with_friends, s.joinable,
                    s.created_at, s.updated_at
             FROM schedule_item s
             LEFT JOIN app_user u ON u.id = s.owner_user_id
@@ -67,7 +68,7 @@ public interface ScheduleMapper {
 
     @Select("""
             SELECT s.id, s.owner_user_id, s.schedule_date, s.title, s.start_time, s.end_time, s.description,
-                   s.shared_with_friends, s.created_at, s.updated_at
+                   s.shared_with_friends, s.joinable, s.created_at, s.updated_at
             FROM schedule_item s
             WHERE s.id = #{id}
               AND s.owner_user_id = #{ownerUserId}
@@ -75,8 +76,8 @@ public interface ScheduleMapper {
     ScheduleItem findOwnedById(@Param("id") Long id, @Param("ownerUserId") Long ownerUserId);
 
     @Insert("""
-            INSERT INTO schedule_item (owner_user_id, schedule_date, title, start_time, end_time, description, shared_with_friends)
-            VALUES (#{ownerUserId}, #{scheduleDate}, #{title}, #{startTime}, #{endTime}, #{description}, #{sharedWithFriends})
+            INSERT INTO schedule_item (owner_user_id, schedule_date, title, start_time, end_time, description, shared_with_friends, joinable)
+            VALUES (#{ownerUserId}, #{scheduleDate}, #{title}, #{startTime}, #{endTime}, #{description}, #{sharedWithFriends}, #{joinable})
             """)
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(ScheduleItem item);
@@ -89,6 +90,7 @@ public interface ScheduleMapper {
                 end_time = #{endTime},
                 description = #{description},
                 shared_with_friends = #{sharedWithFriends},
+                joinable = #{joinable},
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = #{id}
               AND owner_user_id = #{ownerUserId}
@@ -101,4 +103,47 @@ public interface ScheduleMapper {
               AND owner_user_id = #{ownerUserId}
             """)
     int delete(@Param("id") Long id, @Param("ownerUserId") Long ownerUserId);
+
+    @Select("""
+            SELECT COUNT(*)
+            FROM schedule_participant
+            WHERE schedule_item_id = #{scheduleId}
+            """)
+    int countParticipants(@Param("scheduleId") Long scheduleId);
+
+    @Select("""
+            SELECT COUNT(*) > 0
+            FROM schedule_participant
+            WHERE schedule_item_id = #{scheduleId}
+              AND participant_user_id = #{userId}
+            """)
+    boolean existsParticipant(@Param("scheduleId") Long scheduleId, @Param("userId") Long userId);
+
+    @Select("""
+            SELECT u.id, u.username, u.display_name
+            FROM schedule_participant sp
+            INNER JOIN app_user u ON u.id = sp.participant_user_id
+            WHERE sp.schedule_item_id = #{scheduleId}
+            ORDER BY sp.created_at, sp.id
+            """)
+    List<FriendUser> findParticipants(@Param("scheduleId") Long scheduleId);
+
+    @Insert("""
+            INSERT INTO schedule_participant (schedule_item_id, participant_user_id)
+            VALUES (#{scheduleId}, #{userId})
+            """)
+    int insertParticipant(@Param("scheduleId") Long scheduleId, @Param("userId") Long userId);
+
+    @Delete("""
+            DELETE FROM schedule_participant
+            WHERE schedule_item_id = #{scheduleId}
+            """)
+    int deleteAllParticipantsBySchedule(@Param("scheduleId") Long scheduleId);
+
+    @Delete("""
+            DELETE FROM schedule_participant
+            WHERE schedule_item_id = #{scheduleId}
+              AND participant_user_id = #{userId}
+            """)
+    int deleteParticipant(@Param("scheduleId") Long scheduleId, @Param("userId") Long userId);
 }
