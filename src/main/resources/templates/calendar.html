@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Manager</title>
+    <link rel="stylesheet" href="/css/calendar.css">
+</head>
+<body>
+<main class="app-shell" th:attr="data-today=${today}">
+    <section class="calendar-pane">
+        <header class="calendar-header">
+            <h1>Schedule Manager</h1>
+            <div class="month-switch">
+                <button id="prevMonth" type="button" aria-label="前の月">◀</button>
+                <h2 id="monthLabel"></h2>
+                <button id="nextMonth" type="button" aria-label="次の月">▶</button>
+            </div>
+        </header>
+        <div class="weekdays" id="weekdays"></div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+    </section>
+
+    <section class="schedule-pane">
+        <header>
+            <h2 id="selectedDateLabel"></h2>
+            <button id="newScheduleButton" type="button">+ 新しい予定</button>
+        </header>
+
+        <ul id="scheduleList" class="schedule-list"></ul>
+
+        <form id="scheduleForm" class="schedule-form">
+            <h3 id="formTitle">予定の追加</h3>
+            <input id="scheduleId" type="hidden">
+
+            <label for="scheduleDate">日付</label>
+            <input id="scheduleDate" name="scheduleDate" type="date" required>
+
+            <label for="title">タイトル</label>
+            <input id="title" name="title" type="text" maxlength="200" required>
+
+            <label for="startTime">開始時刻</label>
+            <input id="startTime" name="startTime" type="time">
+
+            <label for="endTime">終了時刻</label>
+            <input id="endTime" name="endTime" type="time">
+
+            <label for="description">メモ</label>
+            <textarea id="description" name="description" rows="4" maxlength="1000"></textarea>
+
+            <p id="formMessage" class="form-message" aria-live="polite"></p>
+
+            <div class="form-actions">
+                <button type="submit" class="primary">保存</button>
+                <button id="cancelEditButton" type="button" class="secondary">編集をキャンセル</button>
+            </div>
+        </form>
+    </section>
+</main>
+<script src="/js/calendar.js"></script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+const app = document.querySelector(".app-shell");
+const initialToday = app.dataset.today;
+
+const state = {
+    currentMonth: toDate(initialToday),
+    selectedDate: initialToday
+};
+
+const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+
+const monthLabel = document.getElementById("monthLabel");
+const weekdaysContainer = document.getElementById("weekdays");
+const calendarGrid = document.getElementById("calendarGrid");
+const selectedDateLabel = document.getElementById("selectedDateLabel");
+const scheduleList = document.getElementById("scheduleList");
+
+const form = document.getElementById("scheduleForm");
+const formTitle = document.getElementById("formTitle");
+const scheduleIdInput = document.getElementById("scheduleId");
+const scheduleDateInput = document.getElementById("scheduleDate");
+const titleInput = document.getElementById("title");
+const startTimeInput = document.getElementById("startTime");
+const endTimeInput = document.getElementById("endTime");
+const descriptionInput = document.getElementById("description");
+const formMessage = document.getElementById("formMessage");
+
+document.getElementById("prevMonth").addEventListener("click", () => {
+    state.currentMonth = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth() - 1, 1);
+    renderCalendar();
+});
+
+document.getElementById("nextMonth").addEventListener("click", () => {
+    state.currentMonth = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth() + 1, 1);
+    renderCalendar();
+});
+
+document.getElementById("newScheduleButton").addEventListener("click", () => {
+    resetFormForCreate();
+});
+
+document.getElementById("cancelEditButton").addEventListener("click", () => {
+    resetFormForCreate();
+});
+
+form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    formMessage.textContent = "";
+
+    const payload = {
+        scheduleDate: scheduleDateInput.value,
+        title: titleInput.value,
+        startTime: startTimeInput.value || null,
+        endTime: endTimeInput.value || null,
+        description: descriptionInput.value
+    };
+
+    const id = scheduleIdInput.value;
+    const endpoint = id ? `/api/schedules/${id}` : "/api/schedules";
+    const method = id ? "PUT" : "POST";
+
+    try {
+        const response = await fetch(endpoint, {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "保存に失敗しました。");
+        }
+
+        await loadSchedules(state.selectedDate);
+        resetFormForCreate();
+    } catch (error) {
+        formMessage.textContent = error.message;
+    }
+});
+
+function renderCalendar() {
+    if (weekdaysContainer.children.length === 0) {
+        weekdays.forEach((day) => {
+            const cell = document.createElement("div");
+            cell.textContent = day;
+            weekdaysContainer.appendChild(cell);
+        });
+    }
+
+    const year = state.currentMonth.getFullYear();
+    const month = state.currentMonth.getMonth();
+    monthLabel.textContent = `${year}年 ${month + 1}月`;
+    calendarGrid.innerHTML = "";
+
+    const firstDay = new Date(year, month, 1);
+    const firstDayIndex = firstDay.getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+    const cells = 42;
+    for (let i = 0; i < cells; i += 1) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "calendar-day";
+
+        let cellDate;
+        if (i < firstDayIndex) {
+            const day = daysInPrevMonth - firstDayIndex + i + 1;
+            cellDate = new Date(year, month - 1, day);
+            button.classList.add("outside");
+            button.textContent = String(day);
+        } else if (i >= firstDayIndex + daysInMonth) {
+            const day = i - firstDayIndex - daysInMonth + 1;
+            cellDate = new Date(year, month + 1, day);
+            button.classList.add("outside");
+            button.textContent = String(day);
+        } else {
+            const day = i - firstDayIndex + 1;
+            cellDate = new Date(year, month, day);
+            button.textContent = String(day);
+        }
+
+        const dateKey = formatDate(cellDate);
+        if (dateKey === state.selectedDate) {
+            button.classList.add("selected");
+        }
+        if (dateKey === initialToday) {
+            button.classList.add("today");
+        }
+
+        button.addEventListener("click", () => {
+            state.currentMonth = new Date(cellDate.getFullYear(), cellDate.getMonth(), 1);
+            state.selectedDate = dateKey;
+            scheduleDateInput.value = dateKey;
+            renderCalendar();
+            loadSchedules(dateKey);
+        });
+
+        calendarGrid.appendChild(button);
+    }
+}
+
+async function loadSchedules(dateKey) {
+    selectedDateLabel.textContent = `${dateKey} の予定`;
+    scheduleDateInput.value = dateKey;
+    scheduleList.innerHTML = "<li>読み込み中...</li>";
+
+    try {
+        const response = await fetch(`/api/schedules?date=${encodeURIComponent(dateKey)}`);
+        if (!response.ok) {
+            throw new Error("予定の読み込みに失敗しました。");
+        }
+
+        const schedules = await response.json();
+        scheduleList.innerHTML = "";
+
+        if (!Array.isArray(schedules) || schedules.length === 0) {
+            scheduleList.innerHTML = "<li>この日の予定はまだありません。</li>";
+            return;
+        }
+
+        schedules.forEach((item) => {
+            const li = document.createElement("li");
+            li.className = "schedule-card";
+
+            const title = document.createElement("h4");
+            title.textContent = item.title;
+
+            const time = document.createElement("div");
+            time.className = "schedule-time";
+            time.textContent = timeText(item.startTime, item.endTime);
+
+            const description = document.createElement("p");
+            description.textContent = item.description || "";
+
+            const actions = document.createElement("div");
+            actions.className = "schedule-actions";
+
+            const editButton = document.createElement("button");
+            editButton.type = "button";
+            editButton.className = "edit-btn";
+            editButton.textContent = "編集";
+            editButton.addEventListener("click", () => fillFormForEdit(item));
+
+            const deleteButton = document.createElement("button");
+            deleteButton.type = "button";
+            deleteButton.className = "delete-btn";
+            deleteButton.textContent = "削除";
+            deleteButton.addEventListener("click", async () => {
+                const confirmed = window.confirm("この予定を削除しますか？");
+                if (!confirmed) {
+                    return;
+                }
+
+                const deleteResponse = await fetch(`/api/schedules/${item.id}`, { method: "DELETE" });
+                if (!deleteResponse.ok) {
+                    formMessage.textContent = "削除に失敗しました。";
+                    return;
+                }
+
+                await loadSchedules(state.selectedDate);
+                resetFormForCreate();
+            });
+
+            actions.append(editButton, deleteButton);
+            li.append(title, time, description, actions);
+            scheduleList.appendChild(li);
+        });
+    } catch (error) {
+        scheduleList.innerHTML = "<li>予定の読み込みに失敗しました。</li>";
+    }
+}
+
+function fillFormForEdit(item) {
+    formTitle.textContent = "予定の編集";
+    scheduleIdInput.value = item.id;
+    scheduleDateInput.value = item.scheduleDate;
+    titleInput.value = item.title ?? "";
+    startTimeInput.value = toTimeInput(item.startTime);
+    endTimeInput.value = toTimeInput(item.endTime);
+    descriptionInput.value = item.description ?? "";
+}
+
+function resetFormForCreate() {
+    formTitle.textContent = "予定の追加";
+    scheduleIdInput.value = "";
+    scheduleDateInput.value = state.selectedDate;
+    titleInput.value = "";
+    startTimeInput.value = "";
+    endTimeInput.value = "";
+    descriptionInput.value = "";
+    formMessage.textContent = "";
+}
+
+function toTimeInput(value) {
+    if (!value) {
+        return "";
+    }
+    return String(value).slice(0, 5);
+}
+
+function timeText(startTime, endTime) {
+    const start = toTimeInput(startTime);
+    const end = toTimeInput(endTime);
+    if (!start && !end) {
+        return "時刻指定なし";
+    }
+    if (start && end) {
+        return `${start} - ${end}`;
+    }
+    return start || end;
+}
+
+function toDate(yyyyMmDd) {
+    const [year, month, day] = yyyyMmDd.split("-").map(Number);
+    return new Date(year, month - 1, day);
+}
+
+function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+renderCalendar();
+loadSchedules(state.selectedDate);
+resetFormForCreate();
