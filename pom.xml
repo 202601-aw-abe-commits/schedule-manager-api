@@ -79,6 +79,12 @@
 			<version>3.0.5</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+        <groupId>io.sentry</groupId>
+        <artifactId>sentry-spring-boot-starter</artifactId>
+        <version>7.10.0</version>
+    </dependency>
+
 	</dependencies>
 
 	<build>

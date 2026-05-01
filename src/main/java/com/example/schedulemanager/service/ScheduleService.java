@@ -68,6 +68,13 @@ public class ScheduleService {
         return markers;
     }
 
+    @Transactional(readOnly = true)
+    public List<String> getTitleSuggestions(String currentUsername, Integer limit) {
+        AppUser currentUser = getCurrentUser(currentUsername);
+        int safeLimit = limit == null ? 20 : Math.max(1, Math.min(limit, 100));
+        return scheduleMapper.findRecentDistinctTitles(currentUser.getId(), safeLimit);
+    }
+
     @Transactional
     public ScheduleItem create(ScheduleRequest request, String currentUsername) {
         AppUser currentUser = getCurrentUser(currentUsername);

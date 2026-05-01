@@ -63,7 +63,8 @@
                 <input id="scheduleDate" name="scheduleDate" type="date" required>
 
                 <label for="title">ゲーム名</label>
-                <input id="title" name="title" type="text" maxlength="200" required>
+                <input id="title" name="title" type="text" maxlength="200" list="titleSuggestions" required>
+                <datalist id="titleSuggestions"></datalist>
 
                 <label for="priority">優先度</label>
                 <select id="priority" name="priority">
@@ -91,6 +92,20 @@
                     参加募集にする（フレンドが参加可能）
                 </label>
 
+                <section id="friendShareScopeSection" class="friend-share-scope" hidden>
+                    <p class="friend-share-title">公開範囲</p>
+                    <label class="inline-check">
+                        <input id="friendShareScopeAll" name="friendShareScope" type="radio" value="ALL" checked>
+                        1. フレンド全員に公開
+                    </label>
+                    <label class="inline-check">
+                        <input id="friendShareScopeSelected" name="friendShareScope" type="radio" value="SELECTED">
+                        2. 公開するフレンドを選択
+                    </label>
+                    <button id="openFriendSharePickerButton" type="button" class="secondary" hidden>公開するフレンドを選ぶ</button>
+                    <p id="friendShareSelectionSummary" class="help-text" hidden></p>
+                </section>
+
                 <label class="inline-check">
                     <input id="messageShareable" name="messageShareable" type="checkbox">
                     この募集メッセージの再シェアを許可する
@@ -106,6 +121,16 @@
                     <button id="cancelEditButton" type="button" class="secondary">編集をキャンセル</button>
                 </div>
             </form>
+
+            <section id="friendSharePickerScreen" class="friend-section friend-share-picker-screen" hidden>
+                <h3>公開するフレンドを選択</h3>
+                <p class="help-text">複数人選択できます。</p>
+                <ul id="friendSharePickerList" class="mini-list"></ul>
+                <div class="form-actions">
+                    <button id="friendSharePickerApplyButton" type="button" class="primary">選択を反映</button>
+                    <button id="friendSharePickerCancelButton" type="button" class="secondary">戻る</button>
+                </div>
+            </section>
         </section>
     </main>
     <script src="/js/calendar.js"></script>

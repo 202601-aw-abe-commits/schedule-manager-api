@@ -7,7 +7,9 @@ const DEFAULT_PROFILE_ICON_COLOR = "#BFD6FF";
 const state = {
     currentMonth: toDate(initialToday),
     selectedDate: initialToday,
-    monthMarkersByDate: new Map()
+    monthMarkersByDate: new Map(),
+    friendShareCandidates: [],
+    selectedFriendShareUserIds: new Set()
 };
 
 const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
@@ -23,12 +25,22 @@ const formTitle = document.getElementById("formTitle");
 const scheduleIdInput = document.getElementById("scheduleId");
 const scheduleDateInput = document.getElementById("scheduleDate");
 const titleInput = document.getElementById("title");
+const titleSuggestions = document.getElementById("titleSuggestions");
 const priorityInput = document.getElementById("priority");
 const startTimeInput = document.getElementById("startTime");
 const endTimeInput = document.getElementById("endTime");
 const descriptionInput = document.getElementById("description");
 const sharedWithFriendsInput = document.getElementById("sharedWithFriends");
 const joinableInput = document.getElementById("joinable");
+const friendShareScopeSection = document.getElementById("friendShareScopeSection");
+const friendShareScopeAllInput = document.getElementById("friendShareScopeAll");
+const friendShareScopeSelectedInput = document.getElementById("friendShareScopeSelected");
+const openFriendSharePickerButton = document.getElementById("openFriendSharePickerButton");
+const friendShareSelectionSummary = document.getElementById("friendShareSelectionSummary");
+const friendSharePickerScreen = document.getElementById("friendSharePickerScreen");
+const friendSharePickerList = document.getElementById("friendSharePickerList");
+const friendSharePickerApplyButton = document.getElementById("friendSharePickerApplyButton");
+const friendSharePickerCancelButton = document.getElementById("friendSharePickerCancelButton");
 const messageShareableInput = document.getElementById("messageShareable");
 const recruitmentLimitInput = document.getElementById("recruitmentLimit");
 const formMessage = document.getElementById("formMessage");
@@ -52,6 +64,22 @@ document.getElementById("cancelEditButton").addEventListener("click", () => {
 joinableInput.addEventListener("change", () => {
     syncJoinableOptions();
 });
+friendShareScopeAllInput.addEventListener("change", () => {
+    syncFriendShareScopeOptions();
+});
+friendShareScopeSelectedInput.addEventListener("change", () => {
+    syncFriendShareScopeOptions();
+});
+openFriendSharePickerButton.addEventListener("click", async () => {
+    await openFriendSharePickerScreen();
+});
+friendSharePickerApplyButton.addEventListener("click", () => {
+    closeFriendSharePickerScreen();
+    syncFriendShareSelectionSummary();
+});
+friendSharePickerCancelButton.addEventListener("click", () => {
+    closeFriendSharePickerScreen();
+});
 
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -69,6 +97,11 @@ form.addEventListener("submit", async (event) => {
         messageShareable: joinableInput.checked && messageShareableInput.checked,
         recruitmentLimit: parseRecruitmentLimit()
     };
+    if (joinableInput.checked && friendShareScopeSelectedInput.checked && state.selectedFriendShareUserIds.size === 0) {
+        formMessage.style.color = "#be2f2f";
+        formMessage.textContent = "公開するフレンドを1人以上選択してください。";
+        return;
+    }
 
     const id = scheduleIdInput.value;
     const endpoint = id ? `/api/schedules/${id}` : "/api/schedules";
@@ -82,6 +115,7 @@ form.addEventListener("submit", async (event) => {
         });
 
         await loadSchedules(state.selectedDate);
+        await loadTitleSuggestions();
         try {
             await loadMonthMarkers();
         } catch (error) {
@@ -389,6 +423,23 @@ async function loadMonthMarkers() {
     const month = state.currentMonth.getMonth() + 1;
     const rows = await fetchJson(`/api/schedules/month?year=${year}&month=${month}`);
     state.monthMarkersByDate = buildMonthMarkerMap(rows);
+}
+
+async function loadTitleSuggestions() {
+    const titles = await fetchJson("/api/schedules/title-suggestions?limit=30");
+    if (!Array.isArray(titles)) {
+        return;
+    }
+
+    titleSuggestions.innerHTML = "";
+    titles
+        .map((title) => String(title || "").trim())
+        .filter((title, index, array) => title !== "" && array.indexOf(title) === index)
+        .forEach((title) => {
+            const option = document.createElement("option");
+            option.value = title;
+            titleSuggestions.appendChild(option);
+        });
 }
 
 function buildMonthMarkerMap(rows) {
@@ -987,6 +1038,11 @@ function isSameDate(date, year, month, day) {
 
 async function initializeCalendarPage() {
     resetFormForCreate();
+    try {
+        await loadTitleSuggestions();
+    } catch (error) {
+        // 候補取得失敗時も入力は可能にする。
+    }
     try {
         await loadMonthMarkers();
     } catch (error) {

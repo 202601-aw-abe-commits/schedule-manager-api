@@ -265,4 +265,16 @@ public interface ScheduleMapper {
     boolean existsSharedCopyBySource(
             @Param("ownerUserId") Long ownerUserId,
             @Param("sourceScheduleItemId") Long sourceScheduleItemId);
+
+    @Select("""
+            SELECT title
+            FROM schedule_item
+            WHERE owner_user_id = #{ownerUserId}
+              AND title IS NOT NULL
+              AND TRIM(title) <> ''
+            GROUP BY title
+            ORDER BY MAX(updated_at) DESC, title
+            LIMIT #{limit}
+            """)
+    List<String> findRecentDistinctTitles(@Param("ownerUserId") Long ownerUserId, @Param("limit") int limit);
 }

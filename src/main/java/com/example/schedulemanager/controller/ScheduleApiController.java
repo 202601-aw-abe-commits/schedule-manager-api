@@ -44,6 +44,13 @@ public class ScheduleApiController {
         return scheduleService.getByMonth(year, month, userDetails.getUsername());
     }
 
+    @GetMapping("/title-suggestions")
+    public List<String> titleSuggestions(
+            @RequestParam(value = "limit", required = false) Integer limit,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return scheduleService.getTitleSuggestions(userDetails.getUsername(), limit);
+    }
+
     @PostMapping
     public ResponseEntity<ScheduleItem> create(
             @RequestBody ScheduleRequest request,

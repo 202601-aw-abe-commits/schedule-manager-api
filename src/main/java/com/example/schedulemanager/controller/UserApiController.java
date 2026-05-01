@@ -55,6 +55,10 @@ public class UserApiController {
         AppUser user = userAccountService.getByUsername(userDetails.getUsername());
         return gamificationService.listPointHistories(user.getId());
     }
+    @GetMapping("/test-error")
+public String testError() {
+    throw new RuntimeException("テストエラー");
+}
 
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, Object> updateMeJson(
