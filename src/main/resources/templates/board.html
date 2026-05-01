@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>募集掲示板 | ゲーム予定</title>
+    <link rel="stylesheet" href="/css/calendar.css">
+</head>
+<body>
+<header class="page-hero">
+    <h1 th:text="${currentDisplayName + 'の募集掲示板'}"></h1>
+    <nav class="hero-nav" aria-label="メインメニュー">
+        <a href="/calendar">トップ</a>
+        <a href="/board">募集掲示板</a>
+        <a href="/friends">フレンド</a>
+        <a href="/profile">ユーザー編集</a>
+    </nav>
+</header>
+
+<main class="app-shell friends-shell"
+      th:attr="data-current-username=${currentUsername},data-current-display-name=${currentDisplayName}">
+    <section class="schedule-pane">
+        <header>
+            <h2>ゲーム募集掲示板</h2>
+            <form method="post" action="/logout">
+                <button type="submit" class="secondary">ログアウト</button>
+            </form>
+        </header>
+
+        <section class="friend-section">
+            <h3>新しいゲームスレッドを作成</h3>
+            <form id="threadForm" class="inline-form">
+                <input id="threadGameTitle" type="text" maxlength="200" placeholder="例: モンハンワイルズ" required>
+                <button type="submit" class="primary">スレッド作成</button>
+            </form>
+            <p id="boardMessage" class="form-message" aria-live="polite"></p>
+        </section>
+
+        <section class="friend-section">
+            <h3>スレッド一覧</h3>
+            <ul id="threadList" class="mini-list"></ul>
+        </section>
+
+        <section class="friend-section">
+            <h3 id="selectedThreadLabel">スレッドを選択してください</h3>
+            <form id="postForm" class="schedule-form">
+                <label for="postBody">募集内容</label>
+                <textarea id="postBody" rows="4" maxlength="1000" placeholder="例: 今夜21時から2人募集します" required></textarea>
+
+                <label for="postScheduleDate">予定日（任意）</label>
+                <input id="postScheduleDate" type="date">
+
+                <label for="postStartTime">開始時刻（任意）</label>
+                <input id="postStartTime" type="time">
+
+                <label for="postRecruitmentLimit">募集人数（任意）</label>
+                <input id="postRecruitmentLimit" type="number" min="1" step="1" placeholder="例: 2">
+
+                <div class="form-actions">
+                    <button type="submit" class="primary">募集を投稿</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="friend-section">
+            <h3>募集投稿</h3>
+            <ul id="postList" class="mini-list"></ul>
+        </section>
+    </section>
+</main>
+
+<script src="/js/board.js"></script>
+</body>
+</html>
