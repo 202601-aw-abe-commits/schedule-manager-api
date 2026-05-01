@@ -2,10 +2,12 @@ const app = document.querySelector(".app-shell");
 const initialToday = app.dataset.today;
 const currentUsername = app.dataset.currentUsername;
 const currentDisplayName = app.dataset.currentDisplayName;
+const DEFAULT_PROFILE_ICON_COLOR = "#BFD6FF";
 
 const state = {
     currentMonth: toDate(initialToday),
-    selectedDate: initialToday
+    selectedDate: initialToday,
+    monthMarkersByDate: new Map()
 };
 
 const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
@@ -21,22 +23,22 @@ const formTitle = document.getElementById("formTitle");
 const scheduleIdInput = document.getElementById("scheduleId");
 const scheduleDateInput = document.getElementById("scheduleDate");
 const titleInput = document.getElementById("title");
+const priorityInput = document.getElementById("priority");
 const startTimeInput = document.getElementById("startTime");
 const endTimeInput = document.getElementById("endTime");
 const descriptionInput = document.getElementById("description");
 const sharedWithFriendsInput = document.getElementById("sharedWithFriends");
 const joinableInput = document.getElementById("joinable");
+const messageShareableInput = document.getElementById("messageShareable");
 const recruitmentLimitInput = document.getElementById("recruitmentLimit");
 const formMessage = document.getElementById("formMessage");
 
-document.getElementById("prevMonth").addEventListener("click", () => {
-    state.currentMonth = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth() - 1, 1);
-    renderCalendar();
+document.getElementById("prevMonth").addEventListener("click", async () => {
+    await changeMonth(-1);
 });
 
-document.getElementById("nextMonth").addEventListener("click", () => {
-    state.currentMonth = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth() + 1, 1);
-    renderCalendar();
+document.getElementById("nextMonth").addEventListener("click", async () => {
+    await changeMonth(1);
 });
 
 document.getElementById("newScheduleButton").addEventListener("click", () => {
@@ -57,12 +59,14 @@ form.addEventListener("submit", async (event) => {
 
     const payload = {
         scheduleDate: scheduleDateInput.value,
+        priority: priorityInput.value,
         title: titleInput.value,
         startTime: startTimeInput.value || null,
         endTime: endTimeInput.value || null,
         description: descriptionInput.value,
         sharedWithFriends: sharedWithFriendsInput.checked,
         joinable: joinableInput.checked,
+        messageShareable: joinableInput.checked && messageShareableInput.checked,
         recruitmentLimit: parseRecruitmentLimit()
     };
 
@@ -78,11 +82,30 @@ form.addEventListener("submit", async (event) => {
         });
 
         await loadSchedules(state.selectedDate);
+        try {
+            await loadMonthMarkers();
+        } catch (error) {
+            formMessage.style.color = "#be2f2f";
+            formMessage.textContent = error.message;
+        }
+        renderCalendar();
         resetFormForCreate();
     } catch (error) {
         formMessage.textContent = error.message;
     }
 });
+
+async function changeMonth(offset) {
+    state.currentMonth = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth() + offset, 1);
+    try {
+        await loadMonthMarkers();
+    } catch (error) {
+        state.monthMarkersByDate = new Map();
+        formMessage.style.color = "#be2f2f";
+        formMessage.textContent = error.message;
+    }
+    renderCalendar();
+}
 
 function renderCalendar() {
     if (weekdaysContainer.children.length === 0) {
@@ -111,21 +134,22 @@ function renderCalendar() {
 
     const cells = 42;
     for (let i = 0; i < cells; i += 1) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "calendar-day";
+        const dayCell = document.createElement("div");
+        dayCell.className = "calendar-day";
+        dayCell.setAttribute("role", "button");
+        dayCell.tabIndex = 0;
 
         let cellDate;
         let dayText;
         if (i < firstDayIndex) {
             const day = daysInPrevMonth - firstDayIndex + i + 1;
             cellDate = new Date(year, month - 1, day);
-            button.classList.add("outside");
+            dayCell.classList.add("outside");
             dayText = String(day);
         } else if (i >= firstDayIndex + daysInMonth) {
             const day = i - firstDayIndex - daysInMonth + 1;
             cellDate = new Date(year, month + 1, day);
-            button.classList.add("outside");
+            dayCell.classList.add("outside");
             dayText = String(day);
         } else {
             const day = i - firstDayIndex + 1;
@@ -135,36 +159,61 @@ function renderCalendar() {
 
         const dateKey = formatDate(cellDate);
         const holidayName = getJapaneseHolidayName(cellDate);
-        setDayCellContent(button, dayText, holidayName);
+        setDayCellContent(dayCell, dayText, holidayName);
+        renderDayOwnerMarkers(dayCell, dateKey);
 
         const dayOfWeek = cellDate.getDay();
         if (dayOfWeek === 6) {
-            button.classList.add("saturday");
+            dayCell.classList.add("saturday");
         }
         if (dayOfWeek === 0 || holidayName !== null) {
-            button.classList.add("holiday");
+            dayCell.classList.add("holiday");
         }
 
         if (dateKey === state.selectedDate) {
-            button.classList.add("selected");
+            dayCell.classList.add("selected");
         }
         if (dateKey === initialToday) {
-            button.classList.add("today");
+            dayCell.classList.add("today");
         }
 
-        button.addEventListener("click", () => {
-            state.currentMonth = new Date(cellDate.getFullYear(), cellDate.getMonth(), 1);
-            state.selectedDate = dateKey;
-            scheduleDateInput.value = dateKey;
-            renderCalendar();
-            loadSchedules(dateKey);
+        dayCell.addEventListener("click", async () => {
+            await selectDate(dateKey, null);
+        });
+        dayCell.addEventListener("keydown", async (event) => {
+            if (event.key !== "Enter" && event.key !== " ") {
+                return;
+            }
+            event.preventDefault();
+            await selectDate(dateKey, null);
         });
 
-        calendarGrid.appendChild(button);
+        calendarGrid.appendChild(dayCell);
     }
 }
 
-async function loadSchedules(dateKey) {
+async function selectDate(dateKey, focusScheduleId) {
+    const selectedDate = toDate(dateKey);
+    const nextMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+    const monthChanged = state.currentMonth.getFullYear() !== nextMonth.getFullYear()
+        || state.currentMonth.getMonth() !== nextMonth.getMonth();
+    state.currentMonth = nextMonth;
+    state.selectedDate = dateKey;
+    scheduleDateInput.value = dateKey;
+    if (monthChanged) {
+        try {
+            await loadMonthMarkers();
+        } catch (error) {
+            state.monthMarkersByDate = new Map();
+            formMessage.style.color = "#be2f2f";
+            formMessage.textContent = error.message;
+        }
+    }
+    renderCalendar();
+    await loadSchedules(dateKey, focusScheduleId);
+}
+
+async function loadSchedules(dateKey, focusScheduleId = null) {
     selectedDateLabel.textContent = `${dateKey} の予定`;
     scheduleDateInput.value = dateKey;
     scheduleList.innerHTML = "<li>読み込み中...</li>";
@@ -181,6 +230,7 @@ async function loadSchedules(dateKey) {
         schedules.forEach((item) => {
             const li = document.createElement("li");
             li.className = "schedule-card";
+            li.dataset.scheduleId = String(item.id ?? "");
 
             const owner = document.createElement("p");
             owner.className = "schedule-owner";
@@ -196,7 +246,29 @@ async function loadSchedules(dateKey) {
             const description = document.createElement("p");
             description.textContent = item.description || "";
 
-            li.append(owner, title, time, description);
+            const priority = document.createElement("p");
+            priority.className = "schedule-priority";
+            priority.textContent = `優先度: ${priorityLabel(item.priority)}`;
+
+            const completed = document.createElement("p");
+            completed.className = item.completed ? "schedule-complete done" : "schedule-complete";
+            completed.textContent = item.completed ? "状態: 完了" : "状態: 未完了";
+
+            li.append(owner, title, priority, completed, time, description);
+
+            if (item.joinable && item.messageShareable) {
+                const shareable = document.createElement("p");
+                shareable.className = "schedule-priority";
+                shareable.textContent = "この募集メッセージは再シェア可能";
+                li.appendChild(shareable);
+            }
+            if (item.sourceOwnerUserId) {
+                const sourceOwner = item.sourceOwnerDisplayName || "フレンド";
+                const sourceMeta = document.createElement("p");
+                sourceMeta.className = "schedule-owner";
+                sourceMeta.textContent = `共有元: ${sourceOwner}`;
+                li.appendChild(sourceMeta);
+            }
 
             if (item.joinable) {
                 const participationBadge = document.createElement("p");
@@ -231,21 +303,176 @@ async function loadSchedules(dateKey) {
                     try {
                         await fetchJson(`/api/schedules/${item.id}`, { method: "DELETE" });
                         await loadSchedules(state.selectedDate);
+                        try {
+                            await loadMonthMarkers();
+                        } catch (error) {
+                            formMessage.style.color = "#be2f2f";
+                            formMessage.textContent = error.message;
+                        }
+                        renderCalendar();
                         resetFormForCreate();
                     } catch (error) {
                         formMessage.textContent = error.message;
                     }
                 });
 
-                actions.append(editButton, deleteButton);
+                const completeButton = document.createElement("button");
+                completeButton.type = "button";
+                completeButton.className = item.completed ? "uncomplete-btn" : "complete-btn";
+                completeButton.textContent = item.completed ? "未完了に戻す" : "完了";
+                completeButton.addEventListener("click", async () => {
+                    try {
+                        await fetchJson(`/api/schedules/${item.id}/complete`, {
+                            method: item.completed ? "DELETE" : "POST"
+                        });
+                        await loadSchedules(state.selectedDate);
+                    } catch (error) {
+                        formMessage.textContent = error.message;
+                    }
+                });
+
+                actions.append(editButton, completeButton, deleteButton);
                 li.appendChild(actions);
+            } else if (item.joinable && item.messageShareable) {
+                const shareActions = document.createElement("div");
+                shareActions.className = "schedule-actions";
+
+                const shareButton = document.createElement("button");
+                shareButton.type = "button";
+                shareButton.className = "share-btn";
+                shareButton.textContent = "この募集をシェア";
+                shareButton.addEventListener("click", async () => {
+                    try {
+                        await fetchJson(`/api/schedules/${item.id}/share`, { method: "POST" });
+                        formMessage.style.color = "#087057";
+                        formMessage.textContent = "募集メッセージをフレンドへシェアしました。";
+                        await loadSchedules(state.selectedDate);
+                        try {
+                            await loadMonthMarkers();
+                        } catch (error) {
+                            formMessage.style.color = "#be2f2f";
+                            formMessage.textContent = error.message;
+                        }
+                        renderCalendar();
+                    } catch (error) {
+                        formMessage.style.color = "#be2f2f";
+                        formMessage.textContent = error.message;
+                    }
+                });
+
+                shareActions.appendChild(shareButton);
+                li.appendChild(shareActions);
             }
 
             scheduleList.appendChild(li);
         });
+        if (focusScheduleId != null) {
+            focusScheduleCard(focusScheduleId);
+        }
     } catch (error) {
         scheduleList.innerHTML = `<li>${error.message}</li>`;
     }
+}
+
+function focusScheduleCard(scheduleId) {
+    const target = scheduleList.querySelector(`.schedule-card[data-schedule-id="${scheduleId}"]`);
+    if (!target) {
+        return;
+    }
+    target.classList.add("focused");
+    target.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    window.setTimeout(() => target.classList.remove("focused"), 1400);
+}
+
+async function loadMonthMarkers() {
+    const year = state.currentMonth.getFullYear();
+    const month = state.currentMonth.getMonth() + 1;
+    const rows = await fetchJson(`/api/schedules/month?year=${year}&month=${month}`);
+    state.monthMarkersByDate = buildMonthMarkerMap(rows);
+}
+
+function buildMonthMarkerMap(rows) {
+    const byDate = new Map();
+    if (!Array.isArray(rows)) {
+        return byDate;
+    }
+
+    rows.forEach((row) => {
+        if (!row || !row.scheduleDate) {
+            return;
+        }
+        const dateKey = row.scheduleDate;
+        let ownerMap = byDate.get(dateKey);
+        if (!ownerMap) {
+            ownerMap = new Map();
+            byDate.set(dateKey, ownerMap);
+        }
+
+        const ownerKey = String(row.ownerUserId ?? row.ownerUsername ?? "unknown");
+        if (!ownerMap.has(ownerKey)) {
+            ownerMap.set(ownerKey, {
+                ownerUserId: row.ownerUserId,
+                ownerDisplayName: row.ownerDisplayName || row.ownerUsername || "不明",
+                ownerProfileIconColor: normalizeColorValue(row.ownerProfileIconColor),
+                ownerHasProfileImage: Boolean(row.ownerHasProfileImage),
+                scheduleId: row.id,
+                count: 1
+            });
+            return;
+        }
+        const marker = ownerMap.get(ownerKey);
+        marker.count += 1;
+    });
+
+    const result = new Map();
+    byDate.forEach((ownerMap, dateKey) => {
+        result.set(dateKey, Array.from(ownerMap.values()));
+    });
+    return result;
+}
+
+function renderDayOwnerMarkers(dayCell, dateKey) {
+    const markers = state.monthMarkersByDate.get(dateKey) || [];
+    if (markers.length === 0) {
+        return;
+    }
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "day-owner-markers";
+
+    markers.slice(0, 4).forEach((marker) => {
+        const avatarButton = document.createElement("button");
+        avatarButton.type = "button";
+        avatarButton.className = "day-owner-avatar";
+        const countText = marker.count > 1 ? `（${marker.count}件）` : "";
+        avatarButton.title = `${marker.ownerDisplayName}${countText}`;
+        avatarButton.addEventListener("click", async (event) => {
+            event.stopPropagation();
+            await selectDate(dateKey, marker.scheduleId);
+        });
+
+        const image = document.createElement("img");
+        image.alt = `${marker.ownerDisplayName}のアイコン`;
+        image.loading = "lazy";
+        const fallbackDataUrl = buildDefaultProfileDataUrl(marker.ownerProfileIconColor);
+        image.src = marker.ownerHasProfileImage && marker.ownerUserId
+            ? `/api/users/${marker.ownerUserId}/profile-image`
+            : fallbackDataUrl;
+        image.addEventListener("error", () => {
+            image.src = fallbackDataUrl;
+        });
+        avatarButton.appendChild(image);
+        wrapper.appendChild(avatarButton);
+    });
+
+    if (markers.length > 4) {
+        const more = document.createElement("span");
+        more.className = "day-owner-more";
+        more.textContent = `+${markers.length - 4}`;
+        wrapper.appendChild(more);
+    }
+
+    dayCell.appendChild(wrapper);
 }
 
 function scheduleOwnerText(item) {
@@ -274,11 +501,13 @@ function fillFormForEdit(item) {
     scheduleIdInput.value = item.id;
     scheduleDateInput.value = item.scheduleDate;
     titleInput.value = item.title ?? "";
+    priorityInput.value = item.priority ?? "LOW";
     startTimeInput.value = toTimeInput(item.startTime);
     endTimeInput.value = toTimeInput(item.endTime);
     descriptionInput.value = item.description ?? "";
     sharedWithFriendsInput.checked = item.sharedWithFriends === true;
     joinableInput.checked = item.joinable === true;
+    messageShareableInput.checked = item.messageShareable === true;
     recruitmentLimitInput.value = item.recruitmentLimit ?? "";
     syncJoinableOptions();
 }
@@ -288,11 +517,13 @@ function resetFormForCreate() {
     scheduleIdInput.value = "";
     scheduleDateInput.value = state.selectedDate;
     titleInput.value = "";
+    priorityInput.value = "LOW";
     startTimeInput.value = "";
     endTimeInput.value = "";
     descriptionInput.value = "";
     sharedWithFriendsInput.checked = false;
     joinableInput.checked = false;
+    messageShareableInput.checked = false;
     recruitmentLimitInput.value = "";
     syncJoinableOptions();
     formMessage.textContent = "";
@@ -315,6 +546,17 @@ function timeText(startTime, endTime) {
         return `${start} - ${end}`;
     }
     return start || end;
+}
+
+function priorityLabel(priority) {
+    const normalized = String(priority || "LOW").toUpperCase();
+    if (normalized === "HIGH") {
+        return "HIGH";
+    }
+    if (normalized === "MEDIUM") {
+        return "MEDIUM";
+    }
+    return "LOW";
 }
 
 function scheduleParticipationBadgeText(item) {
@@ -387,11 +629,14 @@ function syncJoinableOptions() {
     if (joinableInput.checked) {
         sharedWithFriendsInput.checked = true;
         sharedWithFriendsInput.disabled = true;
+        messageShareableInput.disabled = false;
         recruitmentLimitInput.disabled = false;
         recruitmentLimitInput.required = true;
         return;
     }
     sharedWithFriendsInput.disabled = false;
+    messageShareableInput.checked = false;
+    messageShareableInput.disabled = true;
     recruitmentLimitInput.disabled = true;
     recruitmentLimitInput.required = false;
     recruitmentLimitInput.value = "";
@@ -406,6 +651,20 @@ function parseRecruitmentLimit() {
         return null;
     }
     return Number.parseInt(value, 10);
+}
+
+function normalizeColorValue(value) {
+    const normalized = String(value || "").trim().toUpperCase();
+    if (/^#[0-9A-F]{6}$/.test(normalized)) {
+        return normalized;
+    }
+    return DEFAULT_PROFILE_ICON_COLOR;
+}
+
+function buildDefaultProfileDataUrl(iconColor) {
+    const color = normalizeColorValue(iconColor);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 240 240" fill="none"><rect width="240" height="240" rx="28" fill="#ECF4FF"/><circle cx="120" cy="88" r="44" fill="${color}"/><path d="M36 201C40 160 73 130 120 130C167 130 200 160 204 201" fill="${color}"/></svg>`;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
 async function fetchJson(url, options = {}) {
@@ -726,6 +985,17 @@ function isSameDate(date, year, month, day) {
         && date.getDate() === day;
 }
 
-renderCalendar();
-loadSchedules(state.selectedDate);
-resetFormForCreate();
+async function initializeCalendarPage() {
+    resetFormForCreate();
+    try {
+        await loadMonthMarkers();
+    } catch (error) {
+        state.monthMarkersByDate = new Map();
+        formMessage.style.color = "#be2f2f";
+        formMessage.textContent = error.message;
+    }
+    renderCalendar();
+    await loadSchedules(state.selectedDate);
+}
+
+initializeCalendarPage();

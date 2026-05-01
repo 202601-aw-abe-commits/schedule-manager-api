@@ -10,7 +10,16 @@ public class ScheduleItem {
     private Long ownerUserId;
     private String ownerUsername;
     private String ownerDisplayName;
+    private String ownerProfileIconColor;
+    private Boolean ownerHasProfileImage;
     private LocalDate scheduleDate;
+    private String priority;
+    private Boolean completed;
+    private LocalDateTime completedAt;
+    private Boolean messageShareable;
+    private Long sourceScheduleItemId;
+    private Long sourceOwnerUserId;
+    private String sourceOwnerDisplayName;
     private String title;
     private LocalTime startTime;
     private LocalTime endTime;
@@ -59,12 +68,84 @@ public class ScheduleItem {
         this.ownerDisplayName = ownerDisplayName;
     }
 
+    public String getOwnerProfileIconColor() {
+        return ownerProfileIconColor;
+    }
+
+    public void setOwnerProfileIconColor(String ownerProfileIconColor) {
+        this.ownerProfileIconColor = ownerProfileIconColor;
+    }
+
+    public Boolean getOwnerHasProfileImage() {
+        return ownerHasProfileImage;
+    }
+
+    public void setOwnerHasProfileImage(Boolean ownerHasProfileImage) {
+        this.ownerHasProfileImage = ownerHasProfileImage;
+    }
+
     public LocalDate getScheduleDate() {
         return scheduleDate;
     }
 
     public void setScheduleDate(LocalDate scheduleDate) {
         this.scheduleDate = scheduleDate;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
+    }
+
+    public Boolean getCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(Boolean completed) {
+        this.completed = completed;
+    }
+
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
+    }
+
+    public Boolean getMessageShareable() {
+        return messageShareable;
+    }
+
+    public void setMessageShareable(Boolean messageShareable) {
+        this.messageShareable = messageShareable;
+    }
+
+    public Long getSourceScheduleItemId() {
+        return sourceScheduleItemId;
+    }
+
+    public void setSourceScheduleItemId(Long sourceScheduleItemId) {
+        this.sourceScheduleItemId = sourceScheduleItemId;
+    }
+
+    public Long getSourceOwnerUserId() {
+        return sourceOwnerUserId;
+    }
+
+    public void setSourceOwnerUserId(Long sourceOwnerUserId) {
+        this.sourceOwnerUserId = sourceOwnerUserId;
+    }
+
+    public String getSourceOwnerDisplayName() {
+        return sourceOwnerDisplayName;
+    }
+
+    public void setSourceOwnerDisplayName(String sourceOwnerDisplayName) {
+        this.sourceOwnerDisplayName = sourceOwnerDisplayName;
     }
 
     public String getTitle() {

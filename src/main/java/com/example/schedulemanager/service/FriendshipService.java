@@ -36,6 +36,17 @@ public class FriendshipService {
         return friendshipMapper.findOutgoingPending(userId);
     }
 
+    @Transactional(readOnly = true)
+    public boolean areFriendsOrSelf(Long userA, Long userB) {
+        if (userA == null || userB == null) {
+            return false;
+        }
+        if (userA.equals(userB)) {
+            return true;
+        }
+        return friendshipMapper.existsAcceptedFriendship(userA, userB);
+    }
+
     @Transactional
     public void createRequest(Long currentUserId, FriendRequestCreateRequest request) {
         if (request == null || normalize(request.getUsername()) == null) {

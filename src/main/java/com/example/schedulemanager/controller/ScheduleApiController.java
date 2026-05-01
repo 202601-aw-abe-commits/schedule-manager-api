@@ -36,6 +36,14 @@ public class ScheduleApiController {
         return scheduleService.getByDate(date, userDetails.getUsername());
     }
 
+    @GetMapping("/month")
+    public List<ScheduleItem> findByMonth(
+            @RequestParam("year") int year,
+            @RequestParam("month") int month,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return scheduleService.getByMonth(year, month, userDetails.getUsername());
+    }
+
     @PostMapping
     public ResponseEntity<ScheduleItem> create(
             @RequestBody ScheduleRequest request,
@@ -59,6 +67,20 @@ public class ScheduleApiController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{id}/complete")
+    public ScheduleItem complete(
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return scheduleService.complete(id, userDetails.getUsername());
+    }
+
+    @DeleteMapping("/{id}/complete")
+    public ScheduleItem uncomplete(
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return scheduleService.uncomplete(id, userDetails.getUsername());
+    }
+
     @PostMapping("/{id}/join")
     public ResponseEntity<Void> join(
             @PathVariable("id") Long id,
@@ -73,5 +95,13 @@ public class ScheduleApiController {
             @AuthenticationPrincipal UserDetails userDetails) {
         scheduleService.cancelJoin(id, userDetails.getUsername());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/share")
+    public ResponseEntity<ScheduleItem> share(
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(scheduleService.shareToFriends(id, userDetails.getUsername()));
     }
 }

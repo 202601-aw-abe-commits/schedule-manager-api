@@ -30,6 +30,17 @@ public interface FriendshipMapper {
     int countRelationship(@Param("userA") Long userA, @Param("userB") Long userB);
 
     @Select("""
+            SELECT COUNT(*) > 0
+            FROM friendship
+            WHERE status = 'ACCEPTED'
+              AND (
+                (requester_user_id = #{userA} AND addressee_user_id = #{userB})
+                OR (requester_user_id = #{userB} AND addressee_user_id = #{userA})
+              )
+            """)
+    boolean existsAcceptedFriendship(@Param("userA") Long userA, @Param("userB") Long userB);
+
+    @Select("""
             SELECT f.id, f.requester_user_id, u.username AS requester_username, u.display_name AS requester_display_name,
                    f.created_at
             FROM friendship f

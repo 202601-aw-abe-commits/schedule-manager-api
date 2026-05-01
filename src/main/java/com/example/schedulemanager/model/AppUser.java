@@ -6,9 +6,14 @@ public class AppUser {
     private Long id;
     private String username;
     private String passwordHash;
+    private String email;
+    private Integer totalPoints;
     private String displayName;
     private String profileBio;
     private String profileImageUrl;
+    private String profileIconColor;
+    private byte[] profileImageData;
+    private String profileImageContentType;
     private Boolean enabled;
     private LocalDateTime createdAt;
 
@@ -36,6 +41,22 @@ public class AppUser {
         this.passwordHash = passwordHash;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Integer getTotalPoints() {
+        return totalPoints;
+    }
+
+    public void setTotalPoints(Integer totalPoints) {
+        this.totalPoints = totalPoints;
+    }
+
     public String getDisplayName() {
         return displayName;
     }
@@ -58,6 +79,30 @@ public class AppUser {
 
     public void setProfileImageUrl(String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
+    }
+
+    public String getProfileIconColor() {
+        return profileIconColor;
+    }
+
+    public void setProfileIconColor(String profileIconColor) {
+        this.profileIconColor = profileIconColor;
+    }
+
+    public byte[] getProfileImageData() {
+        return profileImageData;
+    }
+
+    public void setProfileImageData(byte[] profileImageData) {
+        this.profileImageData = profileImageData;
+    }
+
+    public String getProfileImageContentType() {
+        return profileImageContentType;
+    }
+
+    public void setProfileImageContentType(String profileImageContentType) {
+        this.profileImageContentType = profileImageContentType;
     }
 
     public Boolean getEnabled() {

@@ -4,6 +4,8 @@ public class FriendUser {
     private Long id;
     private String username;
     private String displayName;
+    private Integer totalPoints;
+    private Integer level;
 
     public Long getId() {
         return id;
@@ -27,5 +29,21 @@ public class FriendUser {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public Integer getTotalPoints() {
+        return totalPoints;
+    }
+
+    public void setTotalPoints(Integer totalPoints) {
+        this.totalPoints = totalPoints;
+    }
+
+    public Integer getLevel() {
+        return level;
+    }
+
+    public void setLevel(Integer level) {
+        this.level = level;
     }
 }

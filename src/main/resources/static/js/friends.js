@@ -4,6 +4,7 @@ const friendMessage = document.getElementById("friendMessage");
 const friendList = document.getElementById("friendList");
 const incomingRequestList = document.getElementById("incomingRequestList");
 const outgoingRequestList = document.getElementById("outgoingRequestList");
+const levelRankingList = document.getElementById("levelRankingList");
 
 friendRequestForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -37,6 +38,7 @@ async function loadFriendDashboard() {
         renderFriendList(outgoingRequestList, data.outgoingRequests, "送信中の申請はありません。", (request) => {
             return `${request.requesterDisplayName} (@${request.requesterUsername})`;
         });
+        renderLevelRanking(data.levelRanking || []);
     } catch (error) {
         friendMessage.style.color = "#be2f2f";
         friendMessage.textContent = error.message;
@@ -85,6 +87,22 @@ function renderFriendList(targetElement, list, emptyText, itemTextBuilder) {
         const li = document.createElement("li");
         li.textContent = itemTextBuilder(item);
         targetElement.appendChild(li);
+    });
+}
+
+function renderLevelRanking(rankingRows) {
+    levelRankingList.innerHTML = "";
+    if (!Array.isArray(rankingRows) || rankingRows.length === 0) {
+        levelRankingList.innerHTML = "<li>ランキング対象がいません。</li>";
+        return;
+    }
+
+    rankingRows.forEach((row) => {
+        const li = document.createElement("li");
+        const name = row.displayName || row.username || "不明";
+        const current = row.currentUser ? "（あなた）" : "";
+        li.textContent = `${row.rank}位 ${name}${current} | Lv.${row.level} | ${row.totalPoints}pt`;
+        levelRankingList.appendChild(li);
     });
 }
 

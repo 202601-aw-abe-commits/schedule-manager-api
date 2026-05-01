@@ -2,8 +2,9 @@ package com.example.schedulemanager.dto;
 
 public class ProfileUpdateRequest {
     private String displayName;
+    private String email;
     private String profileBio;
-    private String profileImageUrl;
+    private String profileIconColor;
 
     public String getDisplayName() {
         return displayName;
@@ -11,6 +12,14 @@ public class ProfileUpdateRequest {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getProfileBio() {
@@ -21,11 +30,11 @@ public class ProfileUpdateRequest {
         this.profileBio = profileBio;
     }
 
-    public String getProfileImageUrl() {
-        return profileImageUrl;
+    public String getProfileIconColor() {
+        return profileIconColor;
     }
 
-    public void setProfileImageUrl(String profileImageUrl) {
-        this.profileImageUrl = profileImageUrl;
+    public void setProfileIconColor(String profileIconColor) {
+        this.profileIconColor = profileIconColor;
     }
 }

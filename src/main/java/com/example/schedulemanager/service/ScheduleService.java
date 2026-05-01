@@ -6,9 +6,12 @@ import com.example.schedulemanager.mapper.UserMapper;
 import com.example.schedulemanager.model.AppUser;
 import com.example.schedulemanager.model.ScheduleItem;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.NoSuchElementException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,10 +20,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class ScheduleService {
     private final ScheduleMapper scheduleMapper;
     private final UserMapper userMapper;
+    private final GamificationService gamificationService;
 
-    public ScheduleService(ScheduleMapper scheduleMapper, UserMapper userMapper) {
+    public ScheduleService(ScheduleMapper scheduleMapper, UserMapper userMapper, GamificationService gamificationService) {
         this.scheduleMapper = scheduleMapper;
         this.userMapper = userMapper;
+        this.gamificationService = gamificationService;
     }
 
     @Transactional(readOnly = true)
@@ -31,13 +36,48 @@ public class ScheduleService {
         return items;
     }
 
+    @Transactional(readOnly = true)
+    public List<ScheduleItem> getByMonth(int year, int month, String currentUsername) {
+        if (month < 1 || month > 12) {
+            throw new IllegalArgumentException("月は1〜12で指定してください。");
+        }
+        if (year < 1900 || year > 3000) {
+            throw new IllegalArgumentException("年の指定が不正です。");
+        }
+
+        AppUser currentUser = getCurrentUser(currentUsername);
+        LocalDate startDate = LocalDate.of(year, month, 1);
+        LocalDate endExclusiveDate = startDate.plusMonths(1);
+        List<ScheduleItem> rows = scheduleMapper.findVisibleInRange(startDate, endExclusiveDate, currentUser.getId());
+
+        // 日付セルに載せるマーカー用途なので、参加情報の重い付加処理は避ける。
+        List<ScheduleItem> markers = new ArrayList<>();
+        for (ScheduleItem row : rows) {
+            ScheduleItem marker = new ScheduleItem();
+            marker.setId(row.getId());
+            marker.setOwnerUserId(row.getOwnerUserId());
+            marker.setOwnerUsername(row.getOwnerUsername());
+            marker.setOwnerDisplayName(row.getOwnerDisplayName());
+            marker.setOwnerProfileIconColor(row.getOwnerProfileIconColor());
+            marker.setOwnerHasProfileImage(row.getOwnerHasProfileImage());
+            marker.setScheduleDate(row.getScheduleDate());
+            marker.setTitle(row.getTitle());
+            marker.setJoinable(row.getJoinable());
+            markers.add(marker);
+        }
+        return markers;
+    }
+
     @Transactional
     public ScheduleItem create(ScheduleRequest request, String currentUsername) {
         AppUser currentUser = getCurrentUser(currentUsername);
         ScheduleItem item = fromRequest(request);
         item.setOwnerUserId(currentUser.getId());
+        item.setCompleted(false);
+        item.setCompletedAt(null);
         scheduleMapper.insert(item);
         ScheduleItem created = scheduleMapper.findVisibleById(item.getId(), currentUser.getId());
+        gamificationService.awardScheduleCreated(currentUser.getId(), created.getTitle(), created.getId());
         decorateForViewer(created, currentUser.getId());
         return created;
     }
@@ -115,6 +155,91 @@ public class ScheduleService {
         }
     }
 
+    @Transactional
+    public ScheduleItem complete(Long id, String currentUsername) {
+        AppUser currentUser = getCurrentUser(currentUsername);
+        ScheduleItem existing = scheduleMapper.findOwnedById(id, currentUser.getId());
+        if (existing == null) {
+            throw new NoSuchElementException("指定された予定が存在しないか、編集権限がありません。id=" + id);
+        }
+        if (Boolean.TRUE.equals(existing.getCompleted())) {
+            ScheduleItem alreadyCompleted = scheduleMapper.findVisibleById(id, currentUser.getId());
+            decorateForViewer(alreadyCompleted, currentUser.getId());
+            return alreadyCompleted;
+        }
+
+        int updated = scheduleMapper.markCompleted(id, currentUser.getId(), LocalDateTime.now());
+        if (updated == 0) {
+            throw new NoSuchElementException("指定された予定が存在しないか、編集権限がありません。id=" + id);
+        }
+
+        ScheduleItem completed = scheduleMapper.findVisibleById(id, currentUser.getId());
+        gamificationService.awardScheduleCompleted(currentUser.getId(), completed);
+        decorateForViewer(completed, currentUser.getId());
+        return completed;
+    }
+
+    @Transactional
+    public ScheduleItem uncomplete(Long id, String currentUsername) {
+        AppUser currentUser = getCurrentUser(currentUsername);
+        ScheduleItem existing = scheduleMapper.findOwnedById(id, currentUser.getId());
+        if (existing == null) {
+            throw new NoSuchElementException("指定された予定が存在しないか、編集権限がありません。id=" + id);
+        }
+
+        int updated = scheduleMapper.markIncomplete(id, currentUser.getId());
+        if (updated == 0) {
+            throw new NoSuchElementException("指定された予定が存在しないか、編集権限がありません。id=" + id);
+        }
+        ScheduleItem uncompleted = scheduleMapper.findVisibleById(id, currentUser.getId());
+        decorateForViewer(uncompleted, currentUser.getId());
+        return uncompleted;
+    }
+
+    @Transactional
+    public ScheduleItem shareToFriends(Long sourceScheduleId, String currentUsername) {
+        AppUser currentUser = getCurrentUser(currentUsername);
+        ScheduleItem source = scheduleMapper.findVisibleById(sourceScheduleId, currentUser.getId());
+        if (source == null) {
+            throw new NoSuchElementException("共有対象の予定が見つかりません。");
+        }
+        if (currentUser.getId().equals(source.getOwnerUserId())) {
+            throw new IllegalArgumentException("自分の予定は再シェアできません。");
+        }
+        if (!Boolean.TRUE.equals(source.getJoinable())) {
+            throw new IllegalArgumentException("参加募集予定のみ再シェアできます。");
+        }
+        if (!Boolean.TRUE.equals(source.getMessageShareable())) {
+            throw new IllegalArgumentException("この募集メッセージは再シェア不可です。");
+        }
+        if (scheduleMapper.existsSharedCopyBySource(currentUser.getId(), source.getId())) {
+            throw new IllegalArgumentException("この募集はすでにシェア済みです。");
+        }
+
+        ScheduleItem copy = new ScheduleItem();
+        copy.setOwnerUserId(currentUser.getId());
+        copy.setScheduleDate(source.getScheduleDate());
+        copy.setPriority(source.getPriority());
+        copy.setCompleted(false);
+        copy.setCompletedAt(null);
+        copy.setMessageShareable(true);
+        copy.setSourceScheduleItemId(source.getId());
+        copy.setSourceOwnerUserId(source.getOwnerUserId());
+        copy.setTitle(source.getTitle());
+        copy.setStartTime(source.getStartTime());
+        copy.setEndTime(source.getEndTime());
+        copy.setDescription(source.getDescription());
+        copy.setSharedWithFriends(true);
+        copy.setJoinable(true);
+        copy.setRecruitmentLimit(source.getRecruitmentLimit());
+
+        scheduleMapper.insert(copy);
+        ScheduleItem created = scheduleMapper.findVisibleById(copy.getId(), currentUser.getId());
+        gamificationService.awardScheduleCreated(currentUser.getId(), created.getTitle(), created.getId());
+        decorateForViewer(created, currentUser.getId());
+        return created;
+    }
+
     private ScheduleItem fromRequest(ScheduleRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("リクエストが空です。");
@@ -132,9 +257,12 @@ public class ScheduleService {
             throw new IllegalArgumentException("日付は YYYY-MM-DD 形式で指定してください。");
         }
 
+        String priority = normalizePriority(request.getPriority());
+
         LocalTime startTime = parseTime(request.getStartTime(), "開始時刻");
         LocalTime endTime = parseTime(request.getEndTime(), "終了時刻");
         boolean joinable = Boolean.TRUE.equals(request.getJoinable());
+        boolean messageShareable = joinable && Boolean.TRUE.equals(request.getMessageShareable());
         Integer recruitmentLimit = request.getRecruitmentLimit();
 
         if (startTime != null && endTime != null && endTime.isBefore(startTime)) {
@@ -156,6 +284,7 @@ public class ScheduleService {
 
         ScheduleItem item = new ScheduleItem();
         item.setScheduleDate(scheduleDate);
+        item.setPriority(priority);
         item.setTitle(title);
         item.setStartTime(startTime);
         item.setEndTime(endTime);
@@ -163,6 +292,9 @@ public class ScheduleService {
         boolean sharedWithFriends = Boolean.TRUE.equals(request.getSharedWithFriends()) || joinable;
         item.setSharedWithFriends(sharedWithFriends);
         item.setJoinable(joinable);
+        item.setMessageShareable(messageShareable);
+        item.setSourceScheduleItemId(null);
+        item.setSourceOwnerUserId(null);
         item.setRecruitmentLimit(recruitmentLimit);
         return item;
     }
@@ -193,6 +325,18 @@ public class ScheduleService {
             return null;
         }
         return value.trim();
+    }
+
+    private String normalizePriority(String value) {
+        String normalized = normalize(value);
+        if (normalized == null || normalized.isBlank()) {
+            return "LOW";
+        }
+        String upper = normalized.toUpperCase(Locale.ROOT);
+        if ("HIGH".equals(upper) || "MEDIUM".equals(upper) || "LOW".equals(upper)) {
+            return upper;
+        }
+        throw new IllegalArgumentException("優先度は HIGH / MEDIUM / LOW で指定してください。");
     }
 
     private void decorateForViewer(ScheduleItem item, Long viewerUserId) {

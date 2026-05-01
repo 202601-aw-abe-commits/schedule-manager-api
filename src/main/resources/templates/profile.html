@@ -37,8 +37,20 @@
                 <label for="profileDisplayName">表示名</label>
                 <input id="profileDisplayName" type="text" maxlength="100" required>
 
-                <label for="profileImageUrl">アイコン画像URL</label>
-                <input id="profileImageUrl" type="url" maxlength="1000" placeholder="https://example.com/icon.png">
+                <label for="profileEmail">通知先メールアドレス</label>
+                <input id="profileEmail" type="email" maxlength="254" placeholder="example@gmail.com">
+
+                <label for="profileImageFile">アイコン画像を添付</label>
+                <input id="profileImageFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+                <p class="help-text">PNG/JPEG/WEBP/GIF（2MBまで）</p>
+
+                <label class="inline-check">
+                    <input id="removeProfileImage" type="checkbox">
+                    現在の画像を削除する
+                </label>
+
+                <label for="profileIconColor">人型アイコンの色（画像未設定時）</label>
+                <input id="profileIconColor" type="color" value="#BFD6FF">
 
                 <label for="profileBio">自己紹介</label>
                 <textarea id="profileBio" rows="5" maxlength="500" placeholder="好きなゲーム、プレイ時間帯など"></textarea>
@@ -49,6 +61,21 @@
                     <button type="submit" class="primary">保存</button>
                 </div>
             </form>
+        </section>
+
+        <section class="friend-section">
+            <h3>レベル & ポイント</h3>
+            <p id="profileLevelText" class="success-text"></p>
+            <p id="profilePointText" class="help-text"></p>
+            <div class="level-progress-track">
+                <div id="profileLevelProgressBar" class="level-progress-bar"></div>
+            </div>
+            <p id="profileLevelNextText" class="help-text"></p>
+        </section>
+
+        <section class="friend-section">
+            <h3>ポイント履歴</h3>
+            <ul id="pointHistoryList" class="mini-list"></ul>
         </section>
     </section>
 </main>

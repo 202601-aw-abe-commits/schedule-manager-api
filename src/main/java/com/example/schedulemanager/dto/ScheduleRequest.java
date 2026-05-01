@@ -2,12 +2,14 @@ package com.example.schedulemanager.dto;
 
 public class ScheduleRequest {
     private String scheduleDate;
+    private String priority;
     private String title;
     private String startTime;
     private String endTime;
     private String description;
     private Boolean sharedWithFriends;
     private Boolean joinable;
+    private Boolean messageShareable;
     private Integer recruitmentLimit;
 
     public String getScheduleDate() {
@@ -16,6 +18,14 @@ public class ScheduleRequest {
 
     public void setScheduleDate(String scheduleDate) {
         this.scheduleDate = scheduleDate;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
     }
 
     public String getTitle() {
@@ -64,6 +74,14 @@ public class ScheduleRequest {
 
     public void setJoinable(Boolean joinable) {
         this.joinable = joinable;
+    }
+
+    public Boolean getMessageShareable() {
+        return messageShareable;
+    }
+
+    public void setMessageShareable(Boolean messageShareable) {
+        this.messageShareable = messageShareable;
     }
 
     public Integer getRecruitmentLimit() {
