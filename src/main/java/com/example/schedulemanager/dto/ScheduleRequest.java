@@ -4,6 +4,7 @@ public class ScheduleRequest {
     private String scheduleDate;
     private String priority;
     private String deviceType;
+    private String rankBand;
     private String title;
     private String startTime;
     private String endTime;
@@ -35,6 +36,14 @@ public class ScheduleRequest {
 
     public void setDeviceType(String deviceType) {
         this.deviceType = deviceType;
+    }
+
+    public String getRankBand() {
+        return rankBand;
+    }
+
+    public void setRankBand(String rankBand) {
+        this.rankBand = rankBand;
     }
 
     public String getTitle() {

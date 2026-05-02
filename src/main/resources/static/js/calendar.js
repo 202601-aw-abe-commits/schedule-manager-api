@@ -28,6 +28,7 @@ const titleInput = document.getElementById("title");
 const titleSuggestions = document.getElementById("titleSuggestions");
 const priorityInput = document.getElementById("priority");
 const deviceTypeInput = document.getElementById("deviceType");
+const rankBandInput = document.getElementById("rankBand");
 const startTimeInput = document.getElementById("startTime");
 const endTimeInput = document.getElementById("endTime");
 const descriptionInput = document.getElementById("description");
@@ -100,6 +101,7 @@ form.addEventListener("submit", async (event) => {
         scheduleDate: scheduleDateInput.value,
         priority: priorityInput.value,
         deviceType: deviceTypeInput.value,
+        rankBand: rankBandInput.value || null,
         title: titleInput.value,
         startTime: startTimeInput.value || null,
         endTime: endTimeInput.value || null,
@@ -370,12 +372,15 @@ async function loadSchedules(dateKey, focusScheduleId = null) {
             const deviceType = document.createElement("p");
             deviceType.className = "schedule-priority";
             deviceType.textContent = `デバイス: ${deviceTypeLabel(item.deviceType)}`;
+            const rankBand = document.createElement("p");
+            rankBand.className = "schedule-priority";
+            rankBand.textContent = `ランク帯: ${item.rankBand || "未設定"}`;
 
             const completed = document.createElement("p");
             completed.className = item.completed ? "schedule-complete done" : "schedule-complete";
             completed.textContent = item.completed ? "状態: 完了" : "状態: 未完了";
 
-            li.append(owner, title, priority, deviceType, completed, time, description);
+            li.append(owner, title, priority, deviceType, rankBand, completed, time, description);
 
             if (item.joinable && item.messageShareable) {
                 const shareable = document.createElement("p");
@@ -641,6 +646,7 @@ function fillFormForEdit(item) {
     titleInput.value = item.title ?? "";
     priorityInput.value = item.priority ?? "LOW";
     deviceTypeInput.value = item.deviceType ?? "PC";
+    rankBandInput.value = item.rankBand ?? "";
     startTimeInput.value = toTimeInput(item.startTime);
     endTimeInput.value = toTimeInput(item.endTime);
     descriptionInput.value = item.description ?? "";
@@ -662,6 +668,7 @@ function resetFormForCreate() {
     titleInput.value = "";
     priorityInput.value = "LOW";
     deviceTypeInput.value = "PC";
+    rankBandInput.value = "";
     startTimeInput.value = "";
     endTimeInput.value = "";
     descriptionInput.value = "";

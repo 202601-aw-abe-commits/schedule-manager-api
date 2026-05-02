@@ -15,6 +15,7 @@ public class ScheduleItem {
     private LocalDate scheduleDate;
     private String priority;
     private String deviceType;
+    private String rankBand;
     private Boolean completed;
     private LocalDateTime completedAt;
     private Boolean messageShareable;
@@ -107,6 +108,14 @@ public class ScheduleItem {
 
     public void setDeviceType(String deviceType) {
         this.deviceType = deviceType;
+    }
+
+    public String getRankBand() {
+        return rankBand;
+    }
+
+    public void setRankBand(String rankBand) {
+        this.rankBand = rankBand;
     }
 
     public Boolean getCompleted() {

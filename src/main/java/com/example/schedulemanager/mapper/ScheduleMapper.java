@@ -21,7 +21,7 @@ public interface ScheduleMapper {
             SELECT s.id, s.owner_user_id, u.username AS owner_username, u.display_name AS owner_display_name,
                    u.profile_icon_color AS owner_profile_icon_color,
                    CASE WHEN u.profile_image_data IS NULL THEN FALSE ELSE TRUE END AS owner_has_profile_image,
-                   s.schedule_date, s.priority, s.device_type, s.completed, s.completed_at,
+                   s.schedule_date, s.priority, s.device_type, s.rank_band, s.completed, s.completed_at,
                    s.message_shareable, s.source_schedule_item_id, s.source_owner_user_id,
                    su.display_name AS source_owner_display_name,
                    s.title, s.start_time, s.end_time, s.description, s.shared_with_friends, s.joinable,
@@ -54,7 +54,7 @@ public interface ScheduleMapper {
             SELECT s.id, s.owner_user_id, u.username AS owner_username, u.display_name AS owner_display_name,
                    u.profile_icon_color AS owner_profile_icon_color,
                    CASE WHEN u.profile_image_data IS NULL THEN FALSE ELSE TRUE END AS owner_has_profile_image,
-                   s.schedule_date, s.priority, s.device_type, s.completed, s.completed_at,
+                   s.schedule_date, s.priority, s.device_type, s.rank_band, s.completed, s.completed_at,
                    s.message_shareable, s.source_schedule_item_id, s.source_owner_user_id,
                    su.display_name AS source_owner_display_name,
                    s.title, s.start_time, s.end_time, s.description, s.shared_with_friends, s.joinable,
@@ -73,7 +73,7 @@ public interface ScheduleMapper {
             SELECT s.id, s.owner_user_id, u.username AS owner_username, u.display_name AS owner_display_name,
                    u.profile_icon_color AS owner_profile_icon_color,
                    CASE WHEN u.profile_image_data IS NULL THEN FALSE ELSE TRUE END AS owner_has_profile_image,
-                   s.schedule_date, s.priority, s.device_type, s.completed, s.completed_at,
+                   s.schedule_date, s.priority, s.device_type, s.rank_band, s.completed, s.completed_at,
                    s.message_shareable, s.source_schedule_item_id, s.source_owner_user_id,
                    su.display_name AS source_owner_display_name,
                    s.title, s.start_time, s.end_time, s.description, s.shared_with_friends, s.joinable,
@@ -105,7 +105,7 @@ public interface ScheduleMapper {
             SELECT s.id, s.owner_user_id, u.username AS owner_username, u.display_name AS owner_display_name,
                    u.profile_icon_color AS owner_profile_icon_color,
                    CASE WHEN u.profile_image_data IS NULL THEN FALSE ELSE TRUE END AS owner_has_profile_image,
-                   s.schedule_date, s.priority, s.device_type, s.completed, s.completed_at,
+                   s.schedule_date, s.priority, s.device_type, s.rank_band, s.completed, s.completed_at,
                    s.message_shareable, s.source_schedule_item_id, s.source_owner_user_id,
                    su.display_name AS source_owner_display_name,
                    s.title, s.start_time, s.end_time, s.description,
@@ -122,7 +122,7 @@ public interface ScheduleMapper {
             SELECT s.id, s.owner_user_id, u.username AS owner_username, u.display_name AS owner_display_name,
                    u.profile_icon_color AS owner_profile_icon_color,
                    CASE WHEN u.profile_image_data IS NULL THEN FALSE ELSE TRUE END AS owner_has_profile_image,
-                   s.schedule_date, s.priority, s.device_type, s.completed, s.completed_at,
+                   s.schedule_date, s.priority, s.device_type, s.rank_band, s.completed, s.completed_at,
                    s.message_shareable, s.source_schedule_item_id, s.source_owner_user_id,
                    su.display_name AS source_owner_display_name,
                    s.title, s.start_time, s.end_time, s.description, s.shared_with_friends, s.joinable,
@@ -157,12 +157,12 @@ public interface ScheduleMapper {
 
     @Insert("""
             INSERT INTO schedule_item (
-                owner_user_id, schedule_date, priority, device_type, completed, completed_at, message_shareable,
+                owner_user_id, schedule_date, priority, device_type, rank_band, completed, completed_at, message_shareable,
                 source_schedule_item_id, source_owner_user_id,
                 title, start_time, end_time, description, shared_with_friends, joinable, recruitment_limit
             )
             VALUES (
-                #{ownerUserId}, #{scheduleDate}, #{priority}, #{deviceType}, #{completed}, #{completedAt}, #{messageShareable},
+                #{ownerUserId}, #{scheduleDate}, #{priority}, #{deviceType}, #{rankBand}, #{completed}, #{completedAt}, #{messageShareable},
                 #{sourceScheduleItemId}, #{sourceOwnerUserId},
                 #{title}, #{startTime}, #{endTime}, #{description}, #{sharedWithFriends}, #{joinable}, #{recruitmentLimit}
             )
@@ -173,13 +173,13 @@ public interface ScheduleMapper {
     @Insert({
             "<script>",
             "INSERT INTO schedule_item (",
-            "  owner_user_id, schedule_date, priority, device_type, completed, completed_at, message_shareable,",
+            "  owner_user_id, schedule_date, priority, device_type, rank_band, completed, completed_at, message_shareable,",
             "  source_schedule_item_id, source_owner_user_id,",
             "  title, start_time, end_time, description, shared_with_friends, joinable, recruitment_limit",
             ") VALUES ",
             "<foreach collection='items' item='item' separator=','>",
             "(",
-            "  #{item.ownerUserId}, #{item.scheduleDate}, #{item.priority}, #{item.deviceType}, #{item.completed}, #{item.completedAt}, #{item.messageShareable},",
+            "  #{item.ownerUserId}, #{item.scheduleDate}, #{item.priority}, #{item.deviceType}, #{item.rankBand}, #{item.completed}, #{item.completedAt}, #{item.messageShareable},",
             "  #{item.sourceScheduleItemId}, #{item.sourceOwnerUserId},",
             "  #{item.title}, #{item.startTime}, #{item.endTime}, #{item.description}, #{item.sharedWithFriends}, #{item.joinable}, #{item.recruitmentLimit}",
             ")",
@@ -193,6 +193,7 @@ public interface ScheduleMapper {
             SET schedule_date = #{scheduleDate},
                 priority = #{priority},
                 device_type = #{deviceType},
+                rank_band = #{rankBand},
                 title = #{title},
                 start_time = #{startTime},
                 end_time = #{endTime},
@@ -303,7 +304,7 @@ public interface ScheduleMapper {
             SELECT s.id, s.owner_user_id, u.username AS owner_username, u.display_name AS owner_display_name,
                    u.profile_icon_color AS owner_profile_icon_color,
                    CASE WHEN u.profile_image_data IS NULL THEN FALSE ELSE TRUE END AS owner_has_profile_image,
-                   s.schedule_date, s.priority, s.device_type, s.completed, s.completed_at,
+                   s.schedule_date, s.priority, s.device_type, s.rank_band, s.completed, s.completed_at,
                    s.message_shareable, s.source_schedule_item_id, s.source_owner_user_id,
                    su.display_name AS source_owner_display_name,
                    s.title, s.start_time, s.end_time, s.description, s.shared_with_friends, s.joinable,
