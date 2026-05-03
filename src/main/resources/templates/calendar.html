@@ -90,7 +90,11 @@
                 <input id="scheduleDate" name="scheduleDate" type="date" required>
 
                 <label for="title">ゲーム名</label>
-                <input id="title" name="title" type="text" maxlength="200" list="titleSuggestions" required>
+                <div class="title-voice-row">
+                    <input id="title" name="title" type="text" maxlength="200" list="titleSuggestions" required>
+                    <button id="voiceInputButton" type="button" class="secondary voice-mic-button" hidden aria-label="タイトルを音声入力" title="タイトルを音声入力">🎤</button>
+                </div>
+                <p id="voiceInterimPreview" class="help-text voice-preview"></p>
                 <datalist id="titleSuggestions"></datalist>
 
                 <label for="priority">優先度</label>
@@ -115,7 +119,11 @@
                 <input id="endTime" name="endTime" type="time">
 
                 <label for="description">メモ</label>
-                <textarea id="description" name="description" rows="4" maxlength="1000"></textarea>
+                <div class="title-voice-row">
+                    <textarea id="description" name="description" rows="4" maxlength="1000"></textarea>
+                    <button id="descriptionVoiceInputButton" type="button" class="secondary voice-mic-button" hidden aria-label="メモを音声入力" title="メモを音声入力">🎤</button>
+                </div>
+                <p id="descriptionVoiceInterimPreview" class="help-text voice-preview"></p>
 
                 <label class="inline-check">
                     <input id="sharedWithFriends" name="sharedWithFriends" type="checkbox">

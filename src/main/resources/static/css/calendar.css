@@ -227,7 +227,7 @@ body::after {
     top: 24px;
     align-self: stretch;
     z-index: 1;
-    min-height: calc(100vh - 48px);
+    min-height: calc(100vh - 148px);
     display: flex;
     flex-direction: column;
 }
@@ -868,6 +868,40 @@ a.auth-link-button:active,
 
 .inline-check input:disabled {
     opacity: 0.7;
+}
+
+.title-voice-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.title-voice-row input {
+    flex: 1;
+}
+
+.voice-preview {
+    min-height: 1.2em;
+    margin-top: -2px;
+}
+
+.voice-mic-button {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.voice-mic-button.is-recording {
+    background: #e83e5e;
+    color: #ffffff;
+    box-shadow: 0 0 0 3px #ffd5dd, 0 0 14px #ff5a7b99;
 }
 
 .form-message {

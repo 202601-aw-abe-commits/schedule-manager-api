@@ -34,6 +34,10 @@ const formTitle = document.getElementById("formTitle");
 const scheduleIdInput = document.getElementById("scheduleId");
 const scheduleDateInput = document.getElementById("scheduleDate");
 const titleInput = document.getElementById("title");
+const voiceInputButton = document.getElementById("voiceInputButton");
+const voiceInterimPreview = document.getElementById("voiceInterimPreview");
+const descriptionVoiceInputButton = document.getElementById("descriptionVoiceInputButton");
+const descriptionVoiceInterimPreview = document.getElementById("descriptionVoiceInterimPreview");
 const titleSuggestions = document.getElementById("titleSuggestions");
 const priorityInput = document.getElementById("priority");
 const deviceTypeInput = document.getElementById("deviceType");
@@ -65,6 +69,10 @@ const notificationStatus = document.getElementById("notificationStatus");
 
 const NOTIFICATION_SETTINGS_KEY = "schedule_notification_settings";
 let reminderTimerId = null;
+let titleSpeechRecognition = null;
+let descriptionSpeechRecognition = null;
+let titleSpeechRecognitionRunning = false;
+let descriptionSpeechRecognitionRunning = false;
 
 document.getElementById("prevMonth").addEventListener("click", async () => {
     await changeMonth(-1);
@@ -827,6 +835,123 @@ function parseRecruitmentLimit() {
     return Number.parseInt(value, 10);
 }
 
+function initializeVoiceInput() {
+    const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognitionCtor) {
+        if (voiceInputButton) {
+            voiceInputButton.hidden = true;
+        }
+        if (descriptionVoiceInputButton) {
+            descriptionVoiceInputButton.hidden = true;
+        }
+        return;
+    }
+    initializeSingleVoiceInput({
+        recognitionRefName: "title",
+        SpeechRecognitionCtor,
+        button: voiceInputButton,
+        preview: voiceInterimPreview,
+        targetInput: titleInput
+    });
+    initializeSingleVoiceInput({
+        recognitionRefName: "description",
+        SpeechRecognitionCtor,
+        button: descriptionVoiceInputButton,
+        preview: descriptionVoiceInterimPreview,
+        targetInput: descriptionInput
+    });
+}
+
+function initializeSingleVoiceInput({ recognitionRefName, SpeechRecognitionCtor, button, preview, targetInput }) {
+    if (!button || !preview || !targetInput) {
+        return;
+    }
+
+    const recognition = new SpeechRecognitionCtor();
+    recognition.lang = "ja-JP";
+    recognition.interimResults = true;
+    recognition.continuous = true;
+    recognition.maxAlternatives = 1;
+
+    if (recognitionRefName === "title") {
+        titleSpeechRecognition = recognition;
+    } else {
+        descriptionSpeechRecognition = recognition;
+    }
+
+    button.hidden = false;
+    preview.textContent = "";
+
+    button.addEventListener("click", () => {
+        const running = recognitionRefName === "title" ? titleSpeechRecognitionRunning : descriptionSpeechRecognitionRunning;
+        if (running) {
+            recognition.stop();
+            return;
+        }
+        preview.textContent = "";
+        recognition.start();
+    });
+
+    recognition.onstart = () => {
+        if (recognitionRefName === "title") {
+            titleSpeechRecognitionRunning = true;
+        } else {
+            descriptionSpeechRecognitionRunning = true;
+        }
+        button.classList.add("is-recording");
+        preview.textContent = "音声認識中...";
+    };
+
+    recognition.onresult = (event) => {
+        let finalTranscript = "";
+        let interimTranscript = "";
+        for (let i = event.resultIndex; i < event.results.length; i += 1) {
+            const result = event.results[i];
+            const text = String(result[0] && result[0].transcript ? result[0].transcript : "");
+            if (result.isFinal) {
+                finalTranscript += text;
+            } else {
+                interimTranscript += text;
+            }
+        }
+
+        const normalizedFinal = finalTranscript.trim();
+        if (normalizedFinal) {
+            targetInput.value = mergeRecognizedTitle(targetInput.value, normalizedFinal);
+            targetInput.dispatchEvent(new Event("input"));
+        }
+
+        preview.textContent = interimTranscript.trim()
+            ? `認識中: ${interimTranscript.trim()}`
+            : "";
+    };
+
+    recognition.onerror = () => {
+        preview.textContent = "音声認識に失敗しました。";
+    };
+
+    recognition.onend = () => {
+        if (recognitionRefName === "title") {
+            titleSpeechRecognitionRunning = false;
+        } else {
+            descriptionSpeechRecognitionRunning = false;
+        }
+        button.classList.remove("is-recording");
+    };
+}
+
+function mergeRecognizedTitle(currentValue, recognizedValue) {
+    const current = String(currentValue || "").trim();
+    const recognized = String(recognizedValue || "").trim();
+    if (!current) {
+        return recognized;
+    }
+    if (!recognized) {
+        return current;
+    }
+    return `${current} ${recognized}`;
+}
+
 function normalizeColorValue(value) {
     const normalized = String(value || "").trim().toUpperCase();
     if (/^#[0-9A-F]{6}$/.test(normalized)) {
@@ -1278,6 +1403,7 @@ function isSameDate(date, year, month, day) {
 }
 
 async function initializeCalendarPage() {
+    initializeVoiceInput();
     applyNotificationSettings();
     syncReminderTimer();
     resetFormForCreate();
