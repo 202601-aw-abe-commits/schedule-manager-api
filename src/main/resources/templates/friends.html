@@ -15,7 +15,6 @@
         <a href="/friends">フレンド</a>
         <a href="/profile">ユーザー編集</a>
         <a href="/dm">✉ DM</a>
-        <a href="#messageSection">メッセージ</a>
     </nav>
 </header>
 
@@ -64,21 +63,6 @@
             <ul id="levelRankingList" class="mini-list ranking-list"></ul>
         </section>
 
-        <section id="messageSection" class="friend-section message-section">
-            <h3>メッセージ</h3>
-            <form id="directMessageForm" class="schedule-form">
-                <label for="messageRecipient">送信先フレンド</label>
-                <select id="messageRecipient" required></select>
-
-                <label for="messageBody">本文</label>
-                <textarea id="messageBody" rows="3" maxlength="1000" placeholder="メッセージを入力"></textarea>
-
-                <div class="form-actions">
-                    <button type="submit" class="primary">送信</button>
-                </div>
-            </form>
-            <ul id="directMessageList" class="mini-list"></ul>
-        </section>
     </section>
 </main>
 <script src="/js/theme.js"></script>
