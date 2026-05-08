@@ -30,20 +30,26 @@
 
         <section class="friend-section" th:unless="${editMode}">
             <div class="profile-layout">
-                <div class="profile-preview">
+                <div class="profile-preview profile-showcase-card">
+                    <div class="profile-badge-row">
+                        <span class="profile-chip profile-chip-cyan">PROFILE</span>
+                        <span class="profile-chip profile-chip-pink">PUBLIC</span>
+                    </div>
                     <img th:if="${hasProfileImage}" class="profile-image" alt="プロフィール画像" src="/api/me/profile-image">
                     <img th:unless="${hasProfileImage}" class="profile-image" alt="デフォルトプロフィール画像" src="/img/default-profile.svg">
                     <p class="profile-preview-name" th:text="'@' + ${currentUsername}"></p>
                     <p class="profile-preview-bio" th:text="${#strings.isEmpty(currentProfileBio) ? '自己紹介はまだありません。' : currentProfileBio}"></p>
                 </div>
-                <div class="friend-section">
+                <div class="friend-section profile-info-card">
                     <h3>プロフィール情報</h3>
                     <p class="help-text" th:text="'ユーザー名: @' + ${currentUsername}"></p>
                     <p class="help-text" th:if="${!#strings.isEmpty(currentXUrl)}">
+                        <span class="profile-chip profile-chip-violet">X</span>
                         X URL:
                         <a th:href="${currentXUrl}" th:text="${currentXUrl}" target="_blank" rel="noopener noreferrer"></a>
                     </p>
                     <p class="help-text" th:if="${!#strings.isEmpty(currentStreamUrl)}">
+                        <span class="profile-chip profile-chip-orange">STREAM</span>
                         配信先URL:
                         <a th:href="${currentStreamUrl}" th:text="${currentStreamUrl}" target="_blank" rel="noopener noreferrer"></a>
                     </p>

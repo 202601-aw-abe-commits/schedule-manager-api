@@ -21,15 +21,22 @@
     <button type="submit">ログアウト</button>
 </form>
 
-<main class="app-shell friends-shell"
+<main class="app-shell friends-shell vivid-shell"
       th:attr="data-current-username=${currentUsername},data-current-display-name=${currentDisplayName},data-search-keyword=${keyword}">
     <section class="schedule-pane">
         <header>
             <h2>ゲーム募集掲示板</h2>
+            <div class="top-page-badge-row">
+                <span class="profile-chip profile-chip-cyan">BOARD</span>
+                <span class="profile-chip profile-chip-pink">RECRUIT</span>
+            </div>
         </header>
 
         <section class="friend-section board-entry-section">
             <h3>進みたい項目を選択</h3>
+            <div class="top-page-badge-row">
+                <span class="profile-chip profile-chip-violet">MENU</span>
+            </div>
             <div class="board-entry-cards">
                 <button id="openCreateThreadCard" type="button" class="board-entry-card">
                     <span class="board-entry-title">スレッド作成</span>
@@ -44,6 +51,9 @@
 
         <section id="createThreadSection" class="friend-section">
             <h3>新しいゲームスレッドを作成</h3>
+            <div class="top-page-badge-row">
+                <span class="profile-chip profile-chip-orange">CREATE</span>
+            </div>
             <form id="threadForm" class="schedule-form">
                 <label for="threadGameTitle">ゲームタイトル</label>
                 <input id="threadGameTitle" type="text" maxlength="200" placeholder="例: モンハンワイルズ" list="threadGameTitleSuggestions" autocomplete="off" required>
@@ -73,6 +83,10 @@
 
         <section id="threadListSection" class="friend-section" hidden>
             <h3>ゲーム一覧</h3>
+            <div class="top-page-badge-row">
+                <span class="profile-chip profile-chip-cyan">LIST</span>
+                <span class="profile-chip profile-chip-violet">SEARCH</span>
+            </div>
             <form method="get" action="/board" class="inline-form" style="margin-bottom:10px;">
                 <input id="threadSearchKeyword" type="text" name="keyword" placeholder="タイトルで検索" list="threadSearchSuggestions" autocomplete="off" th:value="${keyword}">
                 <datalist id="threadSearchSuggestions"></datalist>
@@ -90,6 +104,9 @@
 
         <section id="postListSection" class="friend-section" hidden>
             <h3>投稿詳細</h3>
+            <div class="top-page-badge-row">
+                <span class="profile-chip profile-chip-pink">DETAIL</span>
+            </div>
             <div id="postDetailEmpty" class="help-text">投稿を選択すると詳細が表示されます。</div>
             <div id="postDetailPanel" hidden>
                 <p id="postDetailMeta" class="help-text"></p>

@@ -23,6 +23,10 @@
 <main class="app-shell" th:attr="data-today=${today},data-current-username=${currentUsername},data-current-display-name=${currentDisplayName}">
     <section class="friend-section top-search-shell">
         <h3>フィルター</h3>
+        <div class="top-page-badge-row">
+            <span class="profile-chip profile-chip-cyan">FILTER</span>
+            <span class="profile-chip profile-chip-violet">SEARCH</span>
+        </div>
         <div class="inline-form">
             <select id="topScheduleFilterType" style="max-width:220px;">
                 <option value="game">ゲーム名で検索</option>
@@ -47,6 +51,10 @@
         <header class="calendar-header">
             <div>
                 <h1>ゲーム予定</h1>
+                <div class="top-page-badge-row">
+                    <span class="profile-chip profile-chip-pink">CALENDAR</span>
+                    <span class="profile-chip profile-chip-orange">ACTIVE</span>
+                </div>
                 <p class="user-badge" th:text="${currentDisplayName + ' (@' + currentUsername + ')'}"></p>
             </div>
             <div class="month-switch">
@@ -62,6 +70,10 @@
     <section class="schedule-pane">
         <header>
             <h2 id="selectedDateLabel"></h2>
+            <div class="top-page-badge-row">
+                <span class="profile-chip profile-chip-cyan">TODAY</span>
+                <span class="profile-chip profile-chip-violet">SCHEDULE</span>
+            </div>
             <div class="header-actions">
                 <button id="newScheduleButton" type="button">+ 新しい予定</button>
             </div>
@@ -72,6 +84,10 @@
         <div class="schedule-editor-scroll">
         <form id="scheduleForm" class="schedule-form">
             <h3 id="formTitle">予定を登録</h3>
+            <div class="top-page-badge-row">
+                <span class="profile-chip profile-chip-orange">ENTRY</span>
+                <span class="profile-chip profile-chip-pink">FORM</span>
+            </div>
             <input id="scheduleId" type="hidden">
 
             <label for="scheduleDate">日付</label>
@@ -158,6 +174,9 @@
 
         <section class="friend-section" style="margin-top: 20px;">
             <h3>通知設定</h3>
+            <div class="top-page-badge-row">
+                <span class="profile-chip profile-chip-cyan">NOTIFY</span>
+            </div>
             <div class="form-actions">
                 <button id="notificationPermissionButton" type="button" class="secondary">通知を許可</button>
             </div>

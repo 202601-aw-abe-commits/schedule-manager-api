@@ -21,14 +21,21 @@
     <button type="submit">ログアウト</button>
 </form>
 
-<main class="app-shell friends-shell"
+<main class="app-shell friends-shell vivid-shell"
       th:attr="data-current-username=${currentUsername},data-current-display-name=${currentDisplayName}">
     <section class="schedule-pane">
         <header>
             <h2>ダイレクトメッセージ</h2>
+            <div class="top-page-badge-row">
+                <span class="profile-chip profile-chip-cyan">DM</span>
+                <span class="profile-chip profile-chip-pink">CHAT</span>
+            </div>
         </header>
 
         <section class="friend-section dm-search-section">
+            <div class="top-page-badge-row">
+                <span class="profile-chip profile-chip-violet">SEARCH</span>
+            </div>
             <form id="dmSearchForm" class="inline-form">
                 <input id="dmSearchInput" type="text" placeholder="🔍 ユーザー名で検索" maxlength="120">
                 <button type="submit" class="secondary">検索</button>
@@ -36,6 +43,9 @@
         </section>
 
         <section class="friend-section">
+            <div class="top-page-badge-row">
+                <span class="profile-chip profile-chip-orange">INBOX</span>
+            </div>
             <ul id="dmConversationCards" class="dm-conversation-cards"></ul>
             <p id="dmMessage" class="form-message" aria-live="polite"></p>
         </section>

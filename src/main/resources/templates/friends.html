@@ -21,14 +21,21 @@
     <button type="submit">ログアウト</button>
 </form>
 
-<main class="app-shell friends-shell" th:attr="data-current-username=${currentUsername},data-current-display-name=${currentDisplayName}">
+<main class="app-shell friends-shell vivid-shell" th:attr="data-current-username=${currentUsername},data-current-display-name=${currentDisplayName}">
     <section class="schedule-pane">
         <header>
             <h2>フレンド管理</h2>
+            <div class="top-page-badge-row">
+                <span class="profile-chip profile-chip-cyan">FRIEND</span>
+                <span class="profile-chip profile-chip-violet">SOCIAL</span>
+            </div>
         </header>
 
         <section class="friend-section">
             <h3>メニュー</h3>
+            <div class="top-page-badge-row">
+                <span class="profile-chip profile-chip-pink">MENU</span>
+            </div>
             <div class="board-entry-cards">
                 <a href="/friends/search" class="board-entry-card">
                     <span class="board-entry-title">フレンド検索</span>
@@ -47,6 +54,9 @@
 
         <section class="friend-section">
             <h3>フレンドレベルランキング</h3>
+            <div class="top-page-badge-row">
+                <span class="profile-chip profile-chip-orange">RANKING</span>
+            </div>
             <div class="ranking-tabs" role="tablist" aria-label="ランキング期間">
                 <button type="button" class="ranking-tab active" data-period="week">週間</button>
                 <button type="button" class="ranking-tab" data-period="month">月間</button>

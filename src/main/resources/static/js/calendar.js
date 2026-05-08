@@ -520,6 +520,13 @@ function renderScheduleList(schedules) {
                 participationBadge.textContent = scheduleParticipationBadgeText(item);
                 li.appendChild(participationBadge);
 
+                if (shouldPromptCompleteForEndedRecruitment(item)) {
+                    const completePrompt = document.createElement("p");
+                    completePrompt.className = "schedule-complete-prompt";
+                    completePrompt.textContent = "募集予定の終了時刻を過ぎています。完了ボタンを押して「終了」タグへ変更してください。";
+                    li.appendChild(completePrompt);
+                }
+
                 li.appendChild(renderParticipants(item.participants));
                 li.appendChild(renderJoinAction(item));
             }
@@ -988,6 +995,26 @@ function isEnded(item) {
     }
     // 終了時刻未設定でも、日付が過去なら終了扱いにする
     return scheduleDateKey < todayKey;
+}
+
+function shouldPromptCompleteForEndedRecruitment(item) {
+    if (!item || !item.joinable) {
+        return false;
+    }
+    if (item.completed) {
+        return false;
+    }
+    if (!item.editable) {
+        return false;
+    }
+    if (!item.endTime) {
+        return false;
+    }
+    const end = toDateTime(item.scheduleDate, item.endTime);
+    if (!end) {
+        return false;
+    }
+    return new Date() >= end;
 }
 
 function isNowPlaying(item) {

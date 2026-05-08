@@ -21,19 +21,28 @@
     <button type="submit">ログアウト</button>
 </form>
 
-<main class="app-shell friends-shell"
+<main class="app-shell friends-shell vivid-shell"
       th:attr="data-current-username=${currentUsername},data-conversation-id=${conversationId}">
     <section class="schedule-pane">
         <header class="dm-chat-header">
             <a href="/dm" class="secondary auth-link-button">← DM一覧へ</a>
             <h2 id="dmChatTitle" th:text="${partnerDisplayName + ' (@' + partnerUsername + ')'}">DM</h2>
+            <div class="top-page-badge-row">
+                <span class="profile-chip profile-chip-cyan">LIVE CHAT</span>
+            </div>
         </header>
 
         <section class="friend-section dm-chat-section">
+            <div class="top-page-badge-row">
+                <span class="profile-chip profile-chip-violet">THREAD</span>
+            </div>
             <ul id="dmMessageThread" class="dm-message-thread"></ul>
         </section>
 
         <section class="friend-section">
+            <div class="top-page-badge-row">
+                <span class="profile-chip profile-chip-orange">SEND</span>
+            </div>
             <form id="dmSendForm" class="schedule-form">
                 <label for="dmBodyInput">メッセージ</label>
                 <div class="dm-input-toolbar">

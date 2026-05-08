@@ -291,6 +291,78 @@ body::after {
     padding: 12px;
 }
 
+.profile-showcase-card {
+    background:
+        radial-gradient(circle at 12% 14%, #dff5ff 0%, transparent 34%),
+        radial-gradient(circle at 86% 18%, #ffe8ff 0%, transparent 32%),
+        linear-gradient(145deg, #f7fcff 0%, #eef6ff 48%, #f9f2ff 100%);
+    border: 1px solid #9fd7ff;
+    box-shadow: inset 0 0 0 1px #d7f0ff, 0 10px 24px #84cfff5e;
+}
+
+.profile-info-card {
+    border: 1px solid #ffc889;
+    background:
+        radial-gradient(circle at 90% 12%, #fff1dc 0%, transparent 32%),
+        radial-gradient(circle at 16% 90%, #e8ecff 0%, transparent 36%),
+        #fffdf8;
+    box-shadow: inset 0 0 0 1px #ffe2bd, 0 10px 22px #ffbc7052;
+}
+
+.profile-badge-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.profile-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.73rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    border: 1px solid transparent;
+    text-transform: uppercase;
+}
+
+.profile-chip-cyan {
+    color: #0f4f7c;
+    background: #dbf2ff;
+    border-color: #9ed8ff;
+}
+
+.profile-chip-pink {
+    color: #7f2d67;
+    background: #ffe1f6;
+    border-color: #ffb9ea;
+}
+
+.profile-chip-violet {
+    color: #453087;
+    background: #ece6ff;
+    border-color: #cfc1ff;
+    margin-right: 6px;
+}
+
+.profile-chip-orange {
+    color: #8b4a14;
+    background: #ffe9d3;
+    border-color: #ffc98f;
+    margin-right: 6px;
+}
+
+.top-page-badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 4px 0 6px;
+}
+
 .profile-image {
     width: 100%;
     aspect-ratio: 1 / 1;
@@ -337,6 +409,33 @@ body::after {
     z-index: 2;
     max-height: none;
     overflow-y: visible;
+}
+
+.app-shell:not(.friends-shell) .top-search-shell {
+    background:
+        radial-gradient(circle at 10% 10%, #e5f6ff 0%, transparent 32%),
+        radial-gradient(circle at 90% 20%, #efe7ff 0%, transparent 34%),
+        #f9fcff;
+    border-color: #96d7ff;
+    box-shadow: inset 0 0 0 1px #d8f1ff, 0 10px 24px #8fd6ff4d;
+}
+
+.app-shell:not(.friends-shell) .calendar-pane {
+    background:
+        radial-gradient(circle at 12% 16%, #e3f3ff 0%, transparent 36%),
+        radial-gradient(circle at 86% 20%, #ffe6f6 0%, transparent 35%),
+        linear-gradient(150deg, #f8fcff 0%, #eef7ff 52%, #f8f0ff 100%);
+    border: 1px solid #8acfff;
+    box-shadow: inset 0 0 0 1px #d7eeff, 0 16px 34px #7ecbff52;
+}
+
+.app-shell:not(.friends-shell) .schedule-pane {
+    background:
+        radial-gradient(circle at 88% 12%, #ffeed6 0%, transparent 34%),
+        radial-gradient(circle at 12% 84%, #e4f1ff 0%, transparent 34%),
+        linear-gradient(150deg, #fffdf8 0%, #fff7ed 48%, #f3f7ff 100%);
+    border: 1px solid #ffc58a;
+    box-shadow: inset 0 0 0 1px #ffe5c6, 0 16px 34px #ffbd7052;
 }
 
 .calendar-header {
@@ -1141,6 +1240,54 @@ a.board-entry-card[href="/friends/requests"] {
     background: #ffffff;
 }
 
+.app-shell:not(.friends-shell) .schedule-card {
+    background:
+        linear-gradient(145deg, #ffffff 0%, #f5fbff 52%, #fff7ee 100%);
+    border-color: #a8d7ff;
+    box-shadow: inset 0 0 0 1px #e3f2ff, 0 8px 18px #a4d7ff40;
+}
+
+.friends-shell.vivid-shell .schedule-pane {
+    background:
+        radial-gradient(circle at 10% 14%, #e4f4ff 0%, transparent 34%),
+        radial-gradient(circle at 88% 18%, #ffe8f7 0%, transparent 34%),
+        linear-gradient(150deg, #f7fcff 0%, #eef6ff 52%, #f8f0ff 100%);
+    border: 1px solid #90d3ff;
+    box-shadow: inset 0 0 0 1px #d9efff, 0 16px 34px #86ccff52;
+}
+
+.friends-shell.vivid-shell .friend-section {
+    background:
+        radial-gradient(circle at 86% 14%, #fff0dc 0%, transparent 30%),
+        radial-gradient(circle at 14% 86%, #e9f5ff 0%, transparent 32%),
+        #fffdf9;
+    border-color: #ffc88f;
+    box-shadow: inset 0 0 0 1px #ffe3c0, 0 10px 24px #ffbf6b40;
+}
+
+.friends-shell.vivid-shell .board-entry-card {
+    border-width: 2px;
+    box-shadow: inset 0 0 0 1px #ffffff, 0 10px 22px #95cfff55;
+}
+
+.friends-shell.vivid-shell .board-game-card {
+    border: 1px solid #a7d6ff;
+    background: linear-gradient(145deg, #ffffff 0%, #f2f9ff 100%);
+    box-shadow: inset 0 0 0 1px #e0f1ff, 0 8px 18px #9fd3ff44;
+}
+
+.friends-shell.vivid-shell .dm-conversation-link {
+    border: 2px solid #a8d7ff;
+    background:
+        linear-gradient(140deg, #ffffff 0%, #f1f8ff 52%, #fff3e5 100%);
+    box-shadow: inset 0 0 0 1px #e3f2ff, 0 8px 18px #9dcfff44;
+}
+
+.friends-shell.vivid-shell .dm-chat-section {
+    border: 2px solid #b6d6a4;
+    box-shadow: inset 0 0 0 1px #e8f3dd, 0 10px 22px #9fca7c44;
+}
+
 .schedule-card.focused {
     border-color: #42d9ff;
     box-shadow: 0 0 0 2px #b7f0ff;
@@ -1187,6 +1334,17 @@ a.board-entry-card[href="/friends/requests"] {
     color: #85d9ff;
     font-weight: 700;
     text-shadow: 0 0 4px #d7f2ff;
+}
+
+.schedule-complete-prompt {
+    margin: 6px 0 2px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid #ffb46a;
+    background: #fff3e4;
+    color: #8a4b16;
+    font-size: 0.78rem;
+    font-weight: 700;
 }
 
 .schedule-participants {
@@ -1791,6 +1949,42 @@ body.dark-mode .schedule-priority,
 body.dark-mode .schedule-participants,
 body.dark-mode .join-actions span {
     color: #a9bde4;
+}
+
+body.dark-mode .profile-showcase-card {
+    background:
+        radial-gradient(circle at 12% 14%, #1d4360 0%, transparent 40%),
+        radial-gradient(circle at 86% 18%, #4f2e56 0%, transparent 38%),
+        linear-gradient(145deg, #18243d 0%, #1a2843 48%, #2a1f3b 100%);
+    border-color: #4fa3d4;
+    box-shadow: inset 0 0 0 1px #2f6288, 0 10px 24px #132338;
+}
+
+body.dark-mode .profile-info-card {
+    border-color: #b18655;
+    background:
+        radial-gradient(circle at 90% 12%, #4d3621 0%, transparent 38%),
+        radial-gradient(circle at 16% 90%, #252e53 0%, transparent 42%),
+        #1f2436;
+    box-shadow: inset 0 0 0 1px #6f5a3a, 0 10px 22px #121a2e;
+}
+
+body.dark-mode .friends-shell.vivid-shell .schedule-pane {
+    background:
+        radial-gradient(circle at 10% 14%, #1d425d 0%, transparent 40%),
+        radial-gradient(circle at 88% 18%, #4a2747 0%, transparent 40%),
+        linear-gradient(150deg, #16213a 0%, #1a2742 52%, #2a1e39 100%);
+    border-color: #4e9bc9;
+    box-shadow: inset 0 0 0 1px #2f5d7e, 0 16px 34px #071121;
+}
+
+body.dark-mode .friends-shell.vivid-shell .friend-section {
+    background:
+        radial-gradient(circle at 86% 14%, #4d3522 0%, transparent 36%),
+        radial-gradient(circle at 14% 86%, #253252 0%, transparent 38%),
+        #1c2437;
+    border-color: #8a6a42;
+    box-shadow: inset 0 0 0 1px #5a472d, 0 10px 24px #0b1322;
 }
 
 body.dark-mode .form-message {
