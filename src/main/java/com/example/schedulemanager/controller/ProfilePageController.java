@@ -20,10 +20,20 @@ public class ProfilePageController {
     }
 
     @GetMapping("/profile")
-    public String profile(Model model, @AuthenticationPrincipal UserDetails userDetails) {
+    public String profile(
+            Model model,
+            @AuthenticationPrincipal UserDetails userDetails,
+            @org.springframework.web.bind.annotation.RequestParam(value = "mode", required = false) String mode) {
         AppUser user = userAccountService.getByUsername(userDetails.getUsername());
+        boolean editMode = "edit".equalsIgnoreCase(mode);
         model.addAttribute("currentUsername", user.getUsername());
         model.addAttribute("currentDisplayName", user.getDisplayName());
+        model.addAttribute("currentEmail", user.getEmail());
+        model.addAttribute("currentProfileBio", user.getProfileBio());
+        model.addAttribute("currentXUrl", user.getXUrl());
+        model.addAttribute("currentStreamUrl", user.getStreamUrl());
+        model.addAttribute("hasProfileImage", user.getProfileImageData() != null && user.getProfileImageData().length > 0);
+        model.addAttribute("editMode", editMode);
         model.addAttribute("labelColorStyle", labelColorService.toInlineStyle(user.getId()));
         return "profile";
     }
