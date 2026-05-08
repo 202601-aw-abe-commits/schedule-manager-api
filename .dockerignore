@@ -1,0 +1,12 @@
+.git
+.idea
+.vscode
+target
+build
+out
+
+# local runtime artifacts
+data
+
+# macOS
+.DS_Store
