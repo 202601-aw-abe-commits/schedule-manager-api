@@ -67,9 +67,10 @@ public class DmService {
         return dmConversationMapper.findByUser(currentUserId);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<DirectMessage> listMessages(Long currentUserId, Long conversationId) {
         DmConversation conversation = requireAccessibleConversation(currentUserId, conversationId);
+        directMessageMapper.markConversationAsRead(currentUserId, conversation.getId());
         return directMessageMapper.findByConversationId(conversation.getId());
     }
 

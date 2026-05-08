@@ -55,6 +55,15 @@ public interface DirectMessageMapper {
             UPDATE direct_message
             SET is_read = TRUE
             WHERE recipient_user_id = #{userId}
+              AND conversation_id = #{conversationId}
+              AND is_read = FALSE
+            """)
+    int markConversationAsRead(@Param("userId") Long userId, @Param("conversationId") Long conversationId);
+
+    @Update("""
+            UPDATE direct_message
+            SET is_read = TRUE
+            WHERE recipient_user_id = #{userId}
               AND is_read = FALSE
             """)
     int markAllReceivedAsRead(@Param("userId") Long userId);

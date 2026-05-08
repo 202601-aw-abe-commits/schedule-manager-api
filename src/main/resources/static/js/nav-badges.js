@@ -18,20 +18,23 @@ function setNavBadge(key, count) {
     if (!node) {
         return;
     }
-    const label = node.dataset.navLabel || node.textContent;
-    node.textContent = count > 0 ? `${label}${toCircledCount(count)}` : label;
-}
+    const label = node.dataset.navLabel || node.textContent.trim();
+    node.textContent = label;
 
-function toCircledCount(count) {
-    const n = Number(count || 0);
+    const n = Math.max(0, Number(count || 0));
+    const existing = node.querySelector(".nav-badge");
+    if (existing) {
+        existing.remove();
+    }
     if (n <= 0) {
-        return "";
+        return;
     }
-    const map = ["", "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩", "⑪", "⑫", "⑬", "⑭", "⑮", "⑯", "⑰", "⑱", "⑲", "⑳"];
-    if (n <= 20) {
-        return map[n];
-    }
-    return `(${n})`;
+    const badge = document.createElement("span");
+    badge.className = "nav-badge";
+    badge.textContent = n > 99 ? "99+" : String(n);
+    badge.setAttribute("aria-label", `未読 ${n} 件`);
+    node.appendChild(badge);
 }
 
 loadNavBadges();
+window.setInterval(loadNavBadges, 15000);

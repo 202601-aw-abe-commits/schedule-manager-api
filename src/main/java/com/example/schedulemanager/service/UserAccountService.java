@@ -183,8 +183,8 @@ public class UserAccountService {
         if (username == null || username.isBlank()) {
             throw new IllegalArgumentException("ユーザー名は必須です。");
         }
-        if (!username.matches("^[a-zA-Z0-9_]{4,30}$")) {
-            throw new IllegalArgumentException("ユーザー名は4〜30文字の英数字/アンダースコアで入力してください。");
+        if (!username.matches("^[\\p{L}\\p{N}_]{2,30}$")) {
+            throw new IllegalArgumentException("ユーザー名は2〜30文字で、日本語・英数字・アンダースコアを使用できます。");
         }
     }
 

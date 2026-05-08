@@ -7,8 +7,8 @@ import jakarta.validation.constraints.Size;
 
 public class RegisterRequest {
     @NotBlank(message = "{validation.username.required}")
-    @Size(min = 4, max = 30, message = "{validation.username.length}")
-    @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "{validation.username.pattern}")
+    @Size(min = 2, max = 30, message = "{validation.username.length}")
+    @Pattern(regexp = "^[\\p{L}\\p{N}_]+$", message = "{validation.username.pattern}")
     private String username;
 
     @NotBlank(message = "{validation.password.required}")
