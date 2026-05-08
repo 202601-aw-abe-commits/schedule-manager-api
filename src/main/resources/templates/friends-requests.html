@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>フレンド申請 | ゲーム予定</title>
+    <link rel="stylesheet" href="/css/calendar.css">
+</head>
+<body th:style="${labelColorStyle}">
+<header class="page-hero">
+    <h1 th:text="${currentDisplayName + 'のフレンド'}"></h1>
+    <nav class="hero-nav" aria-label="メインメニュー">
+        <a href="/calendar" data-nav-badge="calendar" data-nav-label="トップ">トップ</a>
+        <a href="/board">募集掲示板</a>
+        <a href="/friends" data-nav-badge="friends" data-nav-label="フレンド">フレンド</a>
+        <a href="/profile">ユーザー編集</a>
+        <a href="/dm" data-nav-badge="dm" data-nav-label="✉ DM">✉ DM</a>
+    </nav>
+</header>
+<form method="post" action="/logout" class="logout-floating">
+    <button type="submit">ログアウト</button>
+</form>
+
+<main class="app-shell friends-shell">
+    <section class="schedule-pane">
+        <header>
+            <h2>フレンド申請</h2>
+        </header>
+        <section class="friend-section">
+            <div class="friend-columns">
+                <div>
+                    <h4>受信申請</h4>
+                    <ul id="incomingRequestList" class="mini-list"></ul>
+                </div>
+                <div>
+                    <h4>送信中申請</h4>
+                    <ul id="outgoingRequestList" class="mini-list"></ul>
+                </div>
+            </div>
+            <p id="friendMessage" class="form-message" aria-live="polite"></p>
+        </section>
+    </section>
+</main>
+<script src="/js/theme.js"></script>
+<script src="/js/nav-badges.js"></script>
+<script src="/js/friends-requests.js"></script>
+</body>
+</html>

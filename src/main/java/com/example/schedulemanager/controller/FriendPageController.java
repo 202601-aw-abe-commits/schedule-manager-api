@@ -30,11 +30,33 @@ public class FriendPageController {
 
     @GetMapping("/friends")
     public String friends(Model model, @AuthenticationPrincipal UserDetails userDetails) {
+        applyCommonModel(model, userDetails);
+        return "friends";
+    }
+
+    @GetMapping("/friends/search")
+    public String friendSearch(Model model, @AuthenticationPrincipal UserDetails userDetails) {
+        applyCommonModel(model, userDetails);
+        return "friends-search";
+    }
+
+    @GetMapping("/friends/list")
+    public String friendList(Model model, @AuthenticationPrincipal UserDetails userDetails) {
+        applyCommonModel(model, userDetails);
+        return "friends-list";
+    }
+
+    @GetMapping("/friends/requests")
+    public String friendRequests(Model model, @AuthenticationPrincipal UserDetails userDetails) {
+        applyCommonModel(model, userDetails);
+        return "friends-requests";
+    }
+
+    private void applyCommonModel(Model model, UserDetails userDetails) {
         AppUser user = userAccountService.getByUsername(userDetails.getUsername());
         model.addAttribute("currentUsername", user.getUsername());
         model.addAttribute("currentDisplayName", user.getDisplayName());
         model.addAttribute("labelColorStyle", labelColorService.toInlineStyle(user.getId()));
-        return "friends";
     }
 
     @GetMapping("/friends/profile/{username}")

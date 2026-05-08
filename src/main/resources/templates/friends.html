@@ -28,28 +28,20 @@
         </header>
 
         <section class="friend-section">
-            <h3>フレンド検索・申請</h3>
-            <form id="friendRequestForm" class="inline-form">
-                <input id="friendUsername" type="text" placeholder="ユーザー名で検索して申請" required>
-                <button type="submit" class="primary">申請</button>
-            </form>
-            <p id="friendMessage" class="form-message" aria-live="polite"></p>
-        </section>
-
-        <section class="friend-section">
-            <div class="friend-columns">
-                <div>
-                    <h4>フレンド一覧</h4>
-                    <ul id="friendList" class="mini-list"></ul>
-                </div>
-                <div>
-                    <h4>受信申請</h4>
-                    <ul id="incomingRequestList" class="mini-list"></ul>
-                </div>
-                <div>
-                    <h4>送信中申請</h4>
-                    <ul id="outgoingRequestList" class="mini-list"></ul>
-                </div>
+            <h3>メニュー</h3>
+            <div class="board-entry-cards">
+                <a href="/friends/search" class="board-entry-card">
+                    <span class="board-entry-title">フレンド検索</span>
+                    <span class="board-entry-text">ユーザー名で検索して申請を送る</span>
+                </a>
+                <a href="/friends/list" class="board-entry-card">
+                    <span class="board-entry-title">フレンド一覧</span>
+                    <span class="board-entry-text">現在のフレンドを確認・通知設定</span>
+                </a>
+                <a href="/friends/requests" class="board-entry-card">
+                    <span class="board-entry-title">フレンド申請</span>
+                    <span class="board-entry-text">受信申請の承認と送信中申請の確認</span>
+                </a>
             </div>
         </section>
 
@@ -67,6 +59,6 @@
 </main>
 <script src="/js/theme.js"></script>
 <script src="/js/nav-badges.js"></script>
-<script src="/js/friends.js"></script>
+<script src="/js/friends-home.js"></script>
 </body>
 </html>
