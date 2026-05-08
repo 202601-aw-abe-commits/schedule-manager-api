@@ -533,6 +533,7 @@ body::after {
 
 .calendar-day:hover {
     transform: translateY(-1px);
+    background: #e8f4ff;
     border-color: #5fd9ff;
     box-shadow: inset 0 0 0 1px #42d9ff, 0 0 12px #42d9ff66;
 }
@@ -661,6 +662,26 @@ body::after {
     transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
 }
 
+#openCreateThreadCard {
+    background: #e8f6ff;
+}
+
+#openThreadListCard {
+    background: #fff0df;
+}
+
+a.board-entry-card[href="/friends/search"] {
+    background: #e9f5ff;
+}
+
+a.board-entry-card[href="/friends/list"] {
+    background: #fff4e8;
+}
+
+a.board-entry-card[href="/friends/requests"] {
+    background: #f0f9ec;
+}
+
 .board-entry-card:link,
 .board-entry-card:visited {
     color: inherit;
@@ -749,6 +770,7 @@ body::after {
 
 .dm-conversation-link:hover {
     border-color: #72c8ff;
+    background: #e8f4ff;
     box-shadow: 0 8px 18px #8bcfff44;
     transform: translateY(-1px);
 }
