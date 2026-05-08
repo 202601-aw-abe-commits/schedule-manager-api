@@ -36,6 +36,7 @@ public class ScheduleItem {
     private Boolean joinedByCurrentUser;
     private String joinRequestStatusForCurrentUser;
     private String joinRequestCommentForCurrentUser;
+    private Boolean hasPendingJoinRequest;
     private java.util.List<ScheduleJoinRequest> pendingJoinRequests;
     private List<FriendUser> participants;
     private LocalDateTime createdAt;
@@ -287,6 +288,14 @@ public class ScheduleItem {
 
     public void setJoinRequestCommentForCurrentUser(String joinRequestCommentForCurrentUser) {
         this.joinRequestCommentForCurrentUser = joinRequestCommentForCurrentUser;
+    }
+
+    public Boolean getHasPendingJoinRequest() {
+        return hasPendingJoinRequest;
+    }
+
+    public void setHasPendingJoinRequest(Boolean hasPendingJoinRequest) {
+        this.hasPendingJoinRequest = hasPendingJoinRequest;
     }
 
     public java.util.List<ScheduleJoinRequest> getPendingJoinRequests() {

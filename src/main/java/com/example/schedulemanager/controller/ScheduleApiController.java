@@ -50,6 +50,13 @@ public class ScheduleApiController {
         return scheduleService.getByMonth(year, month, userDetails.getUsername());
     }
 
+    @GetMapping("/{id}")
+    public ScheduleItem findById(
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return scheduleService.getById(id, userDetails.getUsername());
+    }
+
     @GetMapping("/title-suggestions")
     public List<String> titleSuggestions(
             @RequestParam(value = "limit", required = false) Integer limit,

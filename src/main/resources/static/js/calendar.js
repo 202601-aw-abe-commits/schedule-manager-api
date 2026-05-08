@@ -447,9 +447,32 @@ function renderScheduleList(schedules) {
             li.className = "schedule-card";
             li.dataset.scheduleId = String(item.id ?? "");
 
-            const owner = document.createElement("p");
-            owner.className = "schedule-owner";
-            owner.textContent = scheduleOwnerText(item);
+            const owner = document.createElement("div");
+            owner.className = "schedule-owner-row";
+
+            const ownerAvatar = document.createElement("img");
+            ownerAvatar.className = "schedule-owner-avatar";
+            ownerAvatar.alt = `${item.ownerDisplayName || item.ownerUsername || "予定作成者"}のアイコン`;
+            const fallbackDataUrl = buildDefaultProfileDataUrl(item.ownerProfileIconColor);
+            ownerAvatar.src = item.ownerHasProfileImage && item.ownerUserId
+                ? `/api/users/${item.ownerUserId}/profile-image`
+                : fallbackDataUrl;
+            ownerAvatar.addEventListener("error", () => {
+                ownerAvatar.src = fallbackDataUrl;
+            });
+            owner.appendChild(ownerAvatar);
+
+            if (item.ownerUsername === currentUsername && item.hasPendingJoinRequest) {
+                const ownerPendingBadge = document.createElement("span");
+                ownerPendingBadge.className = "schedule-owner-pending-badge";
+                ownerPendingBadge.textContent = "①";
+                owner.appendChild(ownerPendingBadge);
+            }
+
+            const ownerText = document.createElement("p");
+            ownerText.className = "schedule-owner";
+            ownerText.textContent = scheduleOwnerText(item);
+            owner.appendChild(ownerText);
 
             const title = document.createElement("h4");
             title.textContent = item.title;
@@ -774,6 +797,7 @@ function buildMonthMarkerMap(rows) {
                 ownerDisplayName: row.ownerDisplayName || row.ownerUsername || "不明",
                 ownerProfileIconColor: normalizeColorValue(row.ownerProfileIconColor),
                 ownerHasProfileImage: Boolean(row.ownerHasProfileImage),
+                hasPendingJoinRequest: Boolean(row.hasPendingJoinRequest),
                 scheduleId: row.id,
                 count: 1
             });
@@ -781,6 +805,7 @@ function buildMonthMarkerMap(rows) {
         }
         const marker = ownerMap.get(ownerKey);
         marker.count += 1;
+        marker.hasPendingJoinRequest = marker.hasPendingJoinRequest || Boolean(row.hasPendingJoinRequest);
     });
 
     const result = new Map();
@@ -792,6 +817,12 @@ function buildMonthMarkerMap(rows) {
 
 function renderDayOwnerMarkers(dayCell, dateKey) {
     const markers = state.monthMarkersByDate.get(dateKey) || [];
+    if (hasPendingJoinRequestOnDate(dateKey)) {
+        const dayPendingDot = document.createElement("span");
+        dayPendingDot.className = "calendar-day-pending-dot";
+        dayPendingDot.setAttribute("aria-label", "参加希望あり");
+        dayCell.appendChild(dayPendingDot);
+    }
     if (markers.length === 0) {
         return;
     }
@@ -821,6 +852,12 @@ function renderDayOwnerMarkers(dayCell, dateKey) {
             image.src = fallbackDataUrl;
         });
         avatarButton.appendChild(image);
+        if (marker.hasPendingJoinRequest) {
+            const pendingBadge = document.createElement("span");
+            pendingBadge.className = "day-owner-pending-badge";
+            pendingBadge.textContent = "①";
+            avatarButton.appendChild(pendingBadge);
+        }
         wrapper.appendChild(avatarButton);
     });
 
@@ -832,6 +869,15 @@ function renderDayOwnerMarkers(dayCell, dateKey) {
     }
 
     dayCell.appendChild(wrapper);
+}
+
+function hasPendingJoinRequestOnDate(dateKey) {
+    const rows = Array.isArray(state.rawMonthMarkerRows) ? state.rawMonthMarkerRows : [];
+    return rows.some((row) =>
+        row &&
+        row.scheduleDate === dateKey &&
+        row.ownerUsername === currentUsername &&
+        Boolean(row.hasPendingJoinRequest));
 }
 
 function scheduleOwnerText(item) {
@@ -1005,7 +1051,12 @@ function renderJoinAction(item) {
                 const row = document.createElement("div");
                 row.className = "schedule-participant-item";
                 const name = document.createElement("span");
-                name.textContent = `${request.requesterDisplayName || request.requesterUsername || "不明"}: ${request.comment || ""}`;
+                const profileLink = document.createElement("a");
+                const requesterUsername = request.requesterUsername || "";
+                profileLink.href = `/friends/profile/${encodeURIComponent(requesterUsername)}`;
+                profileLink.textContent = `${request.requesterDisplayName || requesterUsername || "不明"}`;
+                name.appendChild(profileLink);
+                name.appendChild(document.createTextNode(`: ${request.comment || ""}`));
                 const approveButton = document.createElement("button");
                 approveButton.type = "button";
                 approveButton.className = "primary";
@@ -1063,19 +1114,16 @@ function renderJoinAction(item) {
         try {
             if (item.joinedByCurrentUser) {
                 await fetchJson(`/api/schedules/${item.id}/join`, { method: "DELETE" });
+                formMessage.style.color = "#087057";
+                formMessage.textContent = "参加を取り消しました。";
             } else {
-                const comment = window.prompt("参加希望コメントを入力してください（例: 21:00から参加できます）", item.joinRequestCommentForCurrentUser || "");
-                if (!comment) {
-                    return;
-                }
-                await fetchJson(`/api/schedules/${item.id}/join`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ comment })
-                });
+                const targetScheduleId = item.sourceScheduleItemId || item.id;
+                window.location.href = `/schedules/${targetScheduleId}/join`;
+                return;
             }
             await loadSchedules(state.selectedDate);
         } catch (error) {
+            formMessage.style.color = "#be2f2f";
             formMessage.textContent = error.message;
         }
     });

@@ -27,17 +27,29 @@ function renderFriendListWithNotification(list) {
 
     list.forEach((friend) => {
         const li = document.createElement("li");
+        li.className = "friend-list-item";
+
         const profileLink = document.createElement("a");
         profileLink.href = `/friends/profile/${encodeURIComponent(friend.username || "")}`;
-        profileLink.textContent = `${friend.displayName} (@${friend.username})`;
+        profileLink.className = "friend-list-link";
+
+        const avatar = document.createElement("div");
+        avatar.className = "dm-avatar";
+        avatar.textContent = extractInitial(friend.displayName, friend.username);
+
+        const label = document.createElement("div");
+        label.className = "friend-list-label";
+        label.textContent = `${friend.displayName} (@${friend.username})`;
+
+        profileLink.appendChild(avatar);
+        profileLink.appendChild(label);
         li.appendChild(profileLink);
-        li.appendChild(document.createTextNode(" "));
 
         const notifyButton = document.createElement("button");
         notifyButton.type = "button";
         const friendId = Number(friend.id);
         const isEnabled = enabledFriendNotificationUserIds.has(friendId);
-        notifyButton.textContent = isEnabled ? "通知ON" : "通知OFF";
+        notifyButton.textContent = isEnabled ? "🔔 ON" : "🔕 OFF";
         notifyButton.className = isEnabled ? "primary" : "secondary";
         notifyButton.addEventListener("click", async () => {
             try {
@@ -61,6 +73,11 @@ function renderFriendListWithNotification(list) {
         li.appendChild(notifyButton);
         friendList.appendChild(li);
     });
+}
+
+function extractInitial(displayName, username) {
+    const source = String(displayName || username || "?").trim();
+    return source ? source.slice(0, 1) : "?";
 }
 
 async function fetchJson(url, options = {}) {

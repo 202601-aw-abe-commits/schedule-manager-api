@@ -24,8 +24,12 @@
     <section class="schedule-pane friend-section">
         <div class="dm-chat-header">
             <h2 th:text="${friend.displayName + ' (@' + friend.username + ')'}"></h2>
-            <button id="startDmFromProfileButton" type="button" class="primary" title="DMを開始">✉</button>
+            <button id="startDmFromProfileButton" type="button" class="primary friend-profile-dm-button" title="DMを開始">✉ DM</button>
         </div>
+        <img class="profile-image friend-profile-image"
+             th:src="@{'/api/users/' + ${friend.id} + '/profile-image'}"
+             onerror="this.onerror=null;this.src='/img/default-profile.svg';"
+             alt="プロフィールアイコン">
         <p id="friendProfileMessage" class="form-message" aria-live="polite"></p>
         <p th:text="${friend.profileBio != null && !friend.profileBio.isBlank() ? friend.profileBio : '自己紹介は未設定です。'}"></p>
         <p><strong>配信URL:</strong> <span th:text="${friend.streamUrl != null ? friend.streamUrl : '未設定'}"></span></p>

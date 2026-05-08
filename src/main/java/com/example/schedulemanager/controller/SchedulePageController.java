@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @Controller
 public class SchedulePageController {
@@ -28,5 +29,18 @@ public class SchedulePageController {
         model.addAttribute("currentDisplayName", user.getDisplayName());
         model.addAttribute("labelColorStyle", labelColorService.toInlineStyle(user.getId()));
         return "calendar";
+    }
+
+    @GetMapping("/schedules/{id}/join")
+    public String joinDetail(
+            @PathVariable("id") Long id,
+            Model model,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        AppUser user = userAccountService.getByUsername(userDetails.getUsername());
+        model.addAttribute("scheduleId", id);
+        model.addAttribute("currentUsername", user.getUsername());
+        model.addAttribute("currentDisplayName", user.getDisplayName());
+        model.addAttribute("labelColorStyle", labelColorService.toInlineStyle(user.getId()));
+        return "schedule-join";
     }
 }

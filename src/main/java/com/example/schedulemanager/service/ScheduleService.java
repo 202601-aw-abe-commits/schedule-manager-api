@@ -145,9 +145,21 @@ public class ScheduleService {
             marker.setScheduleDate(row.getScheduleDate());
             marker.setTitle(row.getTitle());
             marker.setJoinable(row.getJoinable());
+            marker.setHasPendingJoinRequest(Boolean.TRUE.equals(row.getHasPendingJoinRequest()));
             markers.add(marker);
         }
         return markers;
+    }
+
+    @Transactional(readOnly = true)
+    public ScheduleItem getById(Long id, String currentUsername) {
+        AppUser currentUser = getCurrentUser(currentUsername);
+        ScheduleItem item = scheduleMapper.findVisibleById(id, currentUser.getId());
+        if (item == null) {
+            throw new NoSuchElementException("対象の予定が見つかりません。");
+        }
+        decorateForViewer(item, currentUser.getId());
+        return item;
     }
 
     @Transactional(readOnly = true)
@@ -254,27 +266,28 @@ public class ScheduleService {
     public void join(Long id, String currentUsername, ScheduleJoinRequestCreateRequest request) {
         AppUser currentUser = getCurrentUser(currentUsername);
         ScheduleItem target = scheduleMapper.findVisibleById(id, currentUser.getId());
-        validateJoinable(target, currentUser);
+        ScheduleItem joinTarget = resolveJoinTarget(target);
+        validateJoinable(joinTarget, currentUser);
 
-        if (scheduleMapper.existsParticipant(id, currentUser.getId())) {
+        if (scheduleMapper.existsParticipant(joinTarget.getId(), currentUser.getId())) {
             throw new IllegalArgumentException("すでに参加しています。");
         }
-        if (isRecruitmentClosed(target, scheduleMapper.countParticipants(id))) {
+        if (isRecruitmentClosed(joinTarget, scheduleMapper.countParticipants(joinTarget.getId()))) {
             throw new IllegalArgumentException("この募集は締め切られています。");
         }
 
         String comment = normalizeJoinRequestComment(request == null ? null : request.getComment());
-        ScheduleJoinRequest existing = scheduleMapper.findJoinRequestByScheduleAndRequester(id, currentUser.getId());
+        ScheduleJoinRequest existing = scheduleMapper.findJoinRequestByScheduleAndRequester(joinTarget.getId(), currentUser.getId());
         if (existing == null) {
-            scheduleMapper.insertJoinRequest(id, currentUser.getId(), comment, "PENDING");
+            scheduleMapper.insertJoinRequest(joinTarget.getId(), currentUser.getId(), comment, "PENDING");
         } else {
             scheduleMapper.updateJoinRequest(existing.getId(), comment, "PENDING");
         }
-        if (target.getOwnerUserId() != null && !target.getOwnerUserId().equals(currentUser.getId())) {
+        if (joinTarget.getOwnerUserId() != null && !joinTarget.getOwnerUserId().equals(currentUser.getId())) {
             String actorName = currentUser.getDisplayName() == null ? currentUser.getUsername() : currentUser.getDisplayName();
-            String scheduleTitle = target.getTitle() == null ? "予定" : target.getTitle();
+            String scheduleTitle = joinTarget.getTitle() == null ? "予定" : joinTarget.getTitle();
             notificationEventService.publish(
-                    target.getOwnerUserId(),
+                    joinTarget.getOwnerUserId(),
                     currentUser.getId(),
                     "SCHEDULE_JOIN_REQUEST",
                     "参加希望通知",
@@ -286,11 +299,12 @@ public class ScheduleService {
     public void cancelJoin(Long id, String currentUsername) {
         AppUser currentUser = getCurrentUser(currentUsername);
         ScheduleItem target = scheduleMapper.findVisibleById(id, currentUser.getId());
-        validateJoinable(target, currentUser);
+        ScheduleItem joinTarget = resolveJoinTarget(target);
+        validateJoinable(joinTarget, currentUser);
 
-        int deletedCount = scheduleMapper.deleteParticipant(id, currentUser.getId());
+        int deletedCount = scheduleMapper.deleteParticipant(joinTarget.getId(), currentUser.getId());
         if (deletedCount == 0) {
-            ScheduleJoinRequest existing = scheduleMapper.findJoinRequestByScheduleAndRequester(id, currentUser.getId());
+            ScheduleJoinRequest existing = scheduleMapper.findJoinRequestByScheduleAndRequester(joinTarget.getId(), currentUser.getId());
             if (existing == null || !"PENDING".equalsIgnoreCase(existing.getStatus())) {
                 throw new NoSuchElementException("参加情報が見つかりません。");
             }
@@ -832,20 +846,33 @@ public class ScheduleService {
             item.setParticipants(List.of());
             return;
         }
-        int participantCount = scheduleMapper.countParticipants(item.getId());
+        ScheduleItem participationTarget = resolveJoinTarget(item);
+        Long participationScheduleId = participationTarget.getId();
+        int participantCount = scheduleMapper.countParticipants(participationScheduleId);
         item.setParticipantCount(participantCount);
-        item.setRemainingRecruitmentSlots(calcRemainingRecruitmentSlots(item.getRecruitmentLimit(), participantCount));
-        item.setRecruitmentClosed(isRecruitmentClosed(item, participantCount));
-        item.setJoinedByCurrentUser(scheduleMapper.existsParticipant(item.getId(), viewerUserId));
-        item.setParticipants(scheduleMapper.findParticipants(item.getId()));
-        ScheduleJoinRequest ownRequest = scheduleMapper.findJoinRequestByScheduleAndRequester(item.getId(), viewerUserId);
+        item.setRemainingRecruitmentSlots(calcRemainingRecruitmentSlots(participationTarget.getRecruitmentLimit(), participantCount));
+        item.setRecruitmentClosed(isRecruitmentClosed(participationTarget, participantCount));
+        item.setJoinedByCurrentUser(scheduleMapper.existsParticipant(participationScheduleId, viewerUserId));
+        item.setParticipants(scheduleMapper.findParticipants(participationScheduleId));
+        ScheduleJoinRequest ownRequest = scheduleMapper.findJoinRequestByScheduleAndRequester(participationScheduleId, viewerUserId);
         item.setJoinRequestStatusForCurrentUser(ownRequest == null ? null : ownRequest.getStatus());
         item.setJoinRequestCommentForCurrentUser(ownRequest == null ? null : ownRequest.getComment());
-        if (viewerUserId.equals(item.getOwnerUserId())) {
-            item.setPendingJoinRequests(scheduleMapper.findPendingJoinRequestsBySchedule(item.getId()));
+        if (viewerUserId.equals(participationTarget.getOwnerUserId())) {
+            item.setPendingJoinRequests(scheduleMapper.findPendingJoinRequestsBySchedule(participationScheduleId));
         } else {
             item.setPendingJoinRequests(List.of());
         }
+    }
+
+    private ScheduleItem resolveJoinTarget(ScheduleItem item) {
+        if (item == null) {
+            throw new NoSuchElementException("対象の予定が見つかりません。");
+        }
+        if (item.getSourceScheduleItemId() == null || item.getSourceOwnerUserId() == null) {
+            return item;
+        }
+        ScheduleItem source = scheduleMapper.findOwnedById(item.getSourceScheduleItemId(), item.getSourceOwnerUserId());
+        return source == null ? item : source;
     }
 
     private String normalizeJoinRequestComment(String value) {

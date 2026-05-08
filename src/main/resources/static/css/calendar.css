@@ -436,6 +436,7 @@ body::after {
 }
 
 .calendar-day {
+    position: relative;
     min-height: 74px;
     border: 1px solid var(--line);
     border-radius: 10px;
@@ -451,6 +452,17 @@ body::after {
     box-shadow: inset 0 0 0 1px #dbe7ff, 0 0 10px #d6e5ff;
 }
 
+.calendar-day-pending-dot {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: #d92c2c;
+    box-shadow: 0 0 0 2px #fff, 0 2px 6px #d92c2c88;
+}
+
 .day-owner-markers {
     margin-top: auto;
     width: 100%;
@@ -461,6 +473,7 @@ body::after {
 }
 
 .day-owner-avatar {
+    position: relative;
     border: 0;
     padding: 0;
     width: 22px;
@@ -477,6 +490,26 @@ body::after {
     height: 100%;
     object-fit: cover;
     display: block;
+}
+
+.day-owner-pending-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #d92c2c;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 7px #d92c2c66;
+    pointer-events: none;
 }
 
 .day-owner-more {
@@ -535,6 +568,37 @@ body::after {
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+}
+
+.schedule-owner-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.schedule-owner-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    object-fit: cover;
+    border: 1px solid #c8d9f8;
+    background: #f4f8ff;
+}
+
+.schedule-owner-pending-badge {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #d92c2c;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 7px #d92c2c66;
 }
 
 #selectedDateLabel {
@@ -838,6 +902,70 @@ body::after {
 .dm-attach-button:hover {
     border-color: #72c8ff;
     box-shadow: 0 6px 14px #8bcfff44;
+}
+
+.join-page-header {
+    justify-content: center !important;
+    min-height: 46px;
+}
+
+.join-page-title {
+    margin: 0;
+    text-align: center;
+    color: #21439a;
+    text-shadow: 0 0 6px #d8f3ff, 0 0 14px #5dd6ff, 0 0 24px #8b7bff99;
+    animation: hero-neon-flicker 4.2s linear infinite;
+}
+
+.join-top-link {
+    align-self: flex-end;
+    display: inline-flex;
+    width: fit-content;
+    margin-bottom: 8px;
+    min-width: auto;
+    padding: 4px 0;
+    font-size: 0.78rem;
+    line-height: 1.1;
+}
+
+.friend-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.friend-list-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: inherit;
+    text-decoration: none;
+    min-width: 0;
+}
+
+.friend-list-label {
+    color: #21439a;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.friend-profile-image {
+    width: 120px;
+    max-width: 40vw;
+    height: auto;
+    margin: 4px 0 10px;
+}
+
+.friend-profile-dm-button {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    padding: 6px 10px;
+    min-width: auto;
+    line-height: 1.1;
 }
 
 .inline-form {

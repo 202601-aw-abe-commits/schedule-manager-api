@@ -25,6 +25,17 @@ public interface ScheduleMapper {
                    s.schedule_date, s.priority, s.device_type, s.rank_band, s.completed, s.completed_at,
                    s.message_shareable, s.source_schedule_item_id, s.source_owner_user_id,
                    su.display_name AS source_owner_display_name,
+                   CASE
+                       WHEN s.owner_user_id = #{viewerUserId}
+                            AND EXISTS (
+                                SELECT 1
+                                FROM schedule_join_request jr
+                                WHERE jr.schedule_item_id = s.id
+                                  AND jr.status = 'PENDING'
+                            )
+                       THEN TRUE
+                       ELSE FALSE
+                   END AS has_pending_join_request,
                    s.title, s.start_time, s.end_time, s.description, s.shared_with_friends, s.joinable,
                    s.recruitment_limit,
                    s.created_at, s.updated_at
@@ -58,6 +69,17 @@ public interface ScheduleMapper {
                    s.schedule_date, s.priority, s.device_type, s.rank_band, s.completed, s.completed_at,
                    s.message_shareable, s.source_schedule_item_id, s.source_owner_user_id,
                    su.display_name AS source_owner_display_name,
+                   CASE
+                       WHEN s.owner_user_id = #{viewerUserId}
+                            AND EXISTS (
+                                SELECT 1
+                                FROM schedule_join_request jr
+                                WHERE jr.schedule_item_id = s.id
+                                  AND jr.status = 'PENDING'
+                            )
+                       THEN TRUE
+                       ELSE FALSE
+                   END AS has_pending_join_request,
                    s.title, s.start_time, s.end_time, s.description, s.shared_with_friends, s.joinable,
                    s.recruitment_limit,
                    s.created_at, s.updated_at
@@ -77,6 +99,17 @@ public interface ScheduleMapper {
                    s.schedule_date, s.priority, s.device_type, s.rank_band, s.completed, s.completed_at,
                    s.message_shareable, s.source_schedule_item_id, s.source_owner_user_id,
                    su.display_name AS source_owner_display_name,
+                   CASE
+                       WHEN s.owner_user_id = #{viewerUserId}
+                            AND EXISTS (
+                                SELECT 1
+                                FROM schedule_join_request jr
+                                WHERE jr.schedule_item_id = s.id
+                                  AND jr.status = 'PENDING'
+                            )
+                       THEN TRUE
+                       ELSE FALSE
+                   END AS has_pending_join_request,
                    s.title, s.start_time, s.end_time, s.description, s.shared_with_friends, s.joinable,
                    s.recruitment_limit,
                    s.created_at, s.updated_at
@@ -319,7 +352,6 @@ public interface ScheduleMapper {
             INSERT INTO schedule_join_request (schedule_item_id, requester_user_id, comment, status)
             VALUES (#{scheduleId}, #{requesterUserId}, #{comment}, #{status})
             """)
-    @Options(useGeneratedKeys = true, keyProperty = "id")
     int insertJoinRequest(
             @Param("scheduleId") Long scheduleId,
             @Param("requesterUserId") Long requesterUserId,
