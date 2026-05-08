@@ -2,7 +2,6 @@ package com.example.schedulemanager.dto;
 
 public class ScheduleRequest {
     private String scheduleDate;
-    private String priority;
     private String deviceType;
     private String rankBand;
     private String title;
@@ -20,14 +19,6 @@ public class ScheduleRequest {
 
     public void setScheduleDate(String scheduleDate) {
         this.scheduleDate = scheduleDate;
-    }
-
-    public String getPriority() {
-        return priority;
-    }
-
-    public void setPriority(String priority) {
-        this.priority = priority;
     }
 
     public String getDeviceType() {

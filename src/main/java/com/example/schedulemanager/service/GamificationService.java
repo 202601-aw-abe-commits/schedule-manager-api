@@ -33,8 +33,6 @@ public class GamificationService {
     public static final int POINT_DAILY_LOGIN = 3;
     public static final int POINT_SCHEDULE_CREATE = 5;
     public static final int POINT_SCHEDULE_COMPLETE_BASE = 10;
-    public static final int POINT_PRIORITY_HIGH_BONUS = 10;
-    public static final int POINT_PRIORITY_MEDIUM_BONUS = 5;
     public static final int POINT_ON_TIME_BONUS = 5;
 
     private final UserMapper userMapper;
@@ -88,7 +86,6 @@ public class GamificationService {
             return 0;
         }
         int points = POINT_SCHEDULE_COMPLETE_BASE
-                + priorityBonus(item.getPriority())
                 + onTimeBonus(item);
         String actionKey = "SCHEDULE_COMPLETE:" + item.getId();
         String label = "予定完了: " + safeTitle(item.getTitle());
@@ -259,17 +256,6 @@ public class GamificationService {
         return points;
     }
 
-    private int priorityBonus(String priority) {
-        String normalized = normalizePriority(priority);
-        if ("HIGH".equals(normalized)) {
-            return POINT_PRIORITY_HIGH_BONUS;
-        }
-        if ("MEDIUM".equals(normalized)) {
-            return POINT_PRIORITY_MEDIUM_BONUS;
-        }
-        return 0;
-    }
-
     private int onTimeBonus(ScheduleItem item) {
         if (item.getCompletedAt() == null || item.getScheduleDate() == null) {
             return 0;
@@ -280,17 +266,6 @@ public class GamificationService {
     private String safeTitle(String title) {
         String normalized = normalizeText(title);
         return normalized.isBlank() ? "(タイトルなし)" : normalized;
-    }
-
-    private String normalizePriority(String value) {
-        if (value == null || value.isBlank()) {
-            return "LOW";
-        }
-        String normalized = value.trim().toUpperCase(Locale.ROOT);
-        if ("HIGH".equals(normalized) || "MEDIUM".equals(normalized)) {
-            return normalized;
-        }
-        return "LOW";
     }
 
     private String normalizeText(String value) {

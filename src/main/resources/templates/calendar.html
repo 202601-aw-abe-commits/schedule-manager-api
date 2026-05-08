@@ -69,6 +69,7 @@
 
         <ul id="scheduleList" class="schedule-list"></ul>
 
+        <div class="schedule-editor-scroll">
         <form id="scheduleForm" class="schedule-form">
             <h3 id="formTitle">予定を登録</h3>
             <input id="scheduleId" type="hidden">
@@ -83,13 +84,6 @@
             </div>
             <p id="voiceInterimPreview" class="help-text voice-preview"></p>
             <datalist id="titleSuggestions"></datalist>
-
-            <label for="priority">優先度</label>
-            <select id="priority" name="priority">
-                <option value="LOW">LOW（通常）</option>
-                <option value="MEDIUM">MEDIUM（やや高）</option>
-                <option value="HIGH">HIGH（高）</option>
-            </select>
 
             <label for="deviceType">デバイス</label>
             <select id="deviceType" name="deviceType">
@@ -175,19 +169,8 @@
             <input id="notificationIntervalMinutes" type="number" min="1" max="60" step="1" value="5">
             <p id="notificationStatus" class="help-text"></p>
         </section>
+        </div>
 
-        <section class="friend-section">
-            <h3>CSV Import</h3>
-            <form id="csvImportForm" class="schedule-form" enctype="multipart/form-data">
-                <label for="csvImportFile">CSV file</label>
-                <input id="csvImportFile" name="file" type="file" accept=".csv,text/csv" required>
-                <div class="form-actions">
-                    <button type="submit" class="primary">Import</button>
-                    <a href="/api/schedules/template" class="secondary auth-link-button csv-template-link">Template CSV</a>
-                </div>
-            </form>
-            <p id="csvImportMessage" class="form-message" aria-live="polite"></p>
-        </section>
     </section>
 </main>
 <script src="/js/theme.js"></script>

@@ -335,8 +335,8 @@ body::after {
 .schedule-pane {
     position: relative;
     z-index: 2;
-    max-height: calc(100vh - 48px);
-    overflow-y: auto;
+    max-height: none;
+    overflow-y: visible;
 }
 
 .calendar-header {
@@ -629,8 +629,8 @@ body::after {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    max-height: 260px;
-    overflow-y: auto;
+    max-height: none;
+    overflow-y: visible;
 }
 
 .friend-section {
@@ -1149,9 +1149,14 @@ body::after {
     color: #2b4e93;
 }
 
-.schedule-complete.done {
-    color: #087057;
-    font-weight: 700;
+.schedule-complete.playing {
+    color: #56ff8f;
+    font-weight: 800;
+}
+
+.schedule-complete.ended {
+    color: #d93939;
+    font-weight: 800;
 }
 
 .schedule-participation {
@@ -1324,6 +1329,12 @@ a.auth-link-button:active,
 .schedule-form {
     display: grid;
     gap: 8px;
+}
+
+.schedule-editor-scroll {
+    max-height: 48vh;
+    overflow-y: auto;
+    padding-right: 4px;
 }
 
 .schedule-form label {
@@ -1564,7 +1575,11 @@ a.auth-link-button:active,
     }
 
     .schedule-list {
-        max-height: 180px;
+        max-height: none;
+    }
+
+    .schedule-editor-scroll {
+        max-height: 52vh;
     }
 
     .friend-columns {

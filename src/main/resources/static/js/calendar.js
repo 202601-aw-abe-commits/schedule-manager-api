@@ -49,7 +49,6 @@ const voiceInterimPreview = document.getElementById("voiceInterimPreview");
 const descriptionVoiceInputButton = document.getElementById("descriptionVoiceInputButton");
 const descriptionVoiceInterimPreview = document.getElementById("descriptionVoiceInterimPreview");
 const titleSuggestions = document.getElementById("titleSuggestions");
-const priorityInput = document.getElementById("priority");
 const deviceTypeInput = document.getElementById("deviceType");
 const rankBandInput = document.getElementById("rankBand");
 const startTimeInput = document.getElementById("startTime");
@@ -161,7 +160,6 @@ form.addEventListener("submit", async (event) => {
 
     const payload = {
         scheduleDate: scheduleDateInput.value,
-        priority: priorityInput.value,
         deviceType: deviceTypeInput.value,
         rankBand: rankBandInput.value || null,
         title: titleInput.value,
@@ -484,9 +482,6 @@ function renderScheduleList(schedules) {
             const description = document.createElement("p");
             description.textContent = item.description || "";
 
-            const priority = document.createElement("p");
-            priority.className = "schedule-priority";
-            priority.textContent = `優先度: ${priorityLabel(item.priority)}`;
             const deviceType = document.createElement("p");
             deviceType.className = "schedule-priority";
             deviceType.textContent = `デバイス: ${deviceTypeLabel(item.deviceType)}`;
@@ -495,10 +490,15 @@ function renderScheduleList(schedules) {
             rankBand.textContent = `ランク帯: ${item.rankBand || "未設定"}`;
 
             const completed = document.createElement("p");
-            completed.className = item.completed ? "schedule-complete done" : "schedule-complete";
-            completed.textContent = item.completed ? "状態: 完了" : "状態: 未完了";
+            completed.className = "schedule-complete";
+            completed.textContent = scheduleStatusText(item);
+            if (isEnded(item)) {
+                completed.classList.add("ended");
+            } else if (isNowPlaying(item)) {
+                completed.classList.add("playing");
+            }
 
-            li.append(owner, title, priority, deviceType, rankBand, completed, time, description);
+            li.append(owner, title, deviceType, rankBand, completed, time, description);
 
             if (item.joinable && item.messageShareable) {
                 const shareable = document.createElement("p");
@@ -906,7 +906,6 @@ function fillFormForEdit(item) {
     scheduleIdInput.value = item.id;
     scheduleDateInput.value = item.scheduleDate;
     titleInput.value = item.title ?? "";
-    priorityInput.value = item.priority ?? "LOW";
     deviceTypeInput.value = item.deviceType ?? "PC";
     rankBandInput.value = item.rankBand ?? "";
     startTimeInput.value = toTimeInput(item.startTime);
@@ -928,7 +927,6 @@ function resetFormForCreate() {
     scheduleIdInput.value = "";
     scheduleDateInput.value = state.selectedDate;
     titleInput.value = "";
-    priorityInput.value = "LOW";
     deviceTypeInput.value = "PC";
     rankBandInput.value = "";
     startTimeInput.value = "";
@@ -961,15 +959,73 @@ function timeText(startTime, endTime) {
     return start || end;
 }
 
-function priorityLabel(priority) {
-    const normalized = String(priority || "LOW").toUpperCase();
-    if (normalized === "HIGH") {
-        return "HIGH";
+function scheduleStatusText(item) {
+    if (isEnded(item)) {
+        return "状態: 終了";
     }
-    if (normalized === "MEDIUM") {
-        return "MEDIUM";
+    if (isNowPlaying(item)) {
+        return "状態: プレー中";
     }
-    return "LOW";
+    return "状態: 未完了";
+}
+
+function isEnded(item) {
+    if (!item) {
+        return false;
+    }
+    if (item.completed) {
+        return true;
+    }
+    const now = new Date();
+    const todayKey = formatDate(now);
+    const scheduleDateKey = String(item.scheduleDate || "");
+    if (!scheduleDateKey) {
+        return false;
+    }
+    if (item.endTime) {
+        const end = toDateTime(scheduleDateKey, item.endTime);
+        return end ? now >= end : false;
+    }
+    // 終了時刻未設定でも、日付が過去なら終了扱いにする
+    return scheduleDateKey < todayKey;
+}
+
+function isNowPlaying(item) {
+    if (!item || !item.scheduleDate || !item.startTime) {
+        return false;
+    }
+    if (isEnded(item)) {
+        return false;
+    }
+    const start = toDateTime(item.scheduleDate, item.startTime);
+    if (!start) {
+        return false;
+    }
+    const now = new Date();
+    if (now < start) {
+        return false;
+    }
+    if (!item.endTime) {
+        return true;
+    }
+    const end = toDateTime(item.scheduleDate, item.endTime);
+    if (!end) {
+        return true;
+    }
+    return now < end;
+}
+
+function toDateTime(dateText, timeTextValue) {
+    const date = String(dateText || "");
+    const time = toTimeInput(timeTextValue);
+    if (!date || !time) {
+        return null;
+    }
+    const parsed = new Date(`${date}T${time}:00`);
+    if (Number.isNaN(parsed.getTime())) {
+        return null;
+    }
+    return parsed;
 }
 
 function deviceTypeLabel(deviceType) {

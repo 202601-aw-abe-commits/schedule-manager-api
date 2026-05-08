@@ -31,7 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class ScheduleService {
     private static final List<String> CSV_TEMPLATE_HEADERS = List.of(
-            "scheduleDate", "title", "priority", "deviceType", "rankBand", "startTime", "endTime",
+            "scheduleDate", "title", "deviceType", "rankBand", "startTime", "endTime",
             "description", "sharedWithFriends", "joinable", "messageShareable", "recruitmentLimit");
 
     private final ScheduleMapper scheduleMapper;
@@ -106,7 +106,7 @@ public class ScheduleService {
 
     public String buildCsvTemplate() {
         String header = String.join(",", CSV_TEMPLATE_HEADERS);
-        String sample = "2026-05-02,Sample Task,MEDIUM,PC,,10:00,11:00,\"Sample description\",false,false,false,";
+        String sample = "2026-05-02,Sample Task,PC,,10:00,11:00,\"Sample description\",false,false,false,";
         return header + System.lineSeparator() + sample + System.lineSeparator();
     }
 
@@ -413,7 +413,7 @@ public class ScheduleService {
         ScheduleItem copy = new ScheduleItem();
         copy.setOwnerUserId(currentUser.getId());
         copy.setScheduleDate(source.getScheduleDate());
-        copy.setPriority(source.getPriority());
+        copy.setPriority("LOW");
         copy.setDeviceType(source.getDeviceType());
         copy.setRankBand(source.getRankBand());
         copy.setCompleted(false);
@@ -536,7 +536,6 @@ public class ScheduleService {
     private ScheduleItem parseCsvRow(List<String> row, Map<String, Integer> headerIndex, int rowNumber) {
         String scheduleDateRaw = getCsvValue(row, headerIndex, "scheduledate");
         String titleRaw = getCsvValue(row, headerIndex, "title");
-        String priorityRaw = getCsvValue(row, headerIndex, "priority");
         String deviceTypeRaw = getCsvValue(row, headerIndex, "devicetype");
         String rankBandRaw = getCsvValue(row, headerIndex, "rankband");
         String startTimeRaw = getCsvValue(row, headerIndex, "starttime");
@@ -556,7 +555,6 @@ public class ScheduleService {
             throw new IllegalArgumentException("row " + rowNumber + ": title must be <= 200 chars.");
         }
 
-        String priority = normalizePriority(priorityRaw);
         String deviceType = normalizeDeviceType(deviceTypeRaw);
         String rankBand = normalizeRankBand(rankBandRaw);
         LocalTime startTime = parseOptionalTime(startTimeRaw, rowNumber, "startTime");
@@ -593,7 +591,7 @@ public class ScheduleService {
         ScheduleItem item = new ScheduleItem();
         item.setScheduleDate(scheduleDate);
         item.setTitle(title);
-        item.setPriority(priority);
+        item.setPriority("LOW");
         item.setDeviceType(deviceType);
         item.setRankBand(rankBand);
         item.setStartTime(startTime);
@@ -682,7 +680,6 @@ public class ScheduleService {
             throw new IllegalArgumentException("日付は YYYY-MM-DD 形式で指定してください。");
         }
 
-        String priority = normalizePriority(request.getPriority());
         String deviceType = normalizeDeviceType(request.getDeviceType());
         String rankBand = normalizeRankBand(request.getRankBand());
 
@@ -711,7 +708,7 @@ public class ScheduleService {
 
         ScheduleItem item = new ScheduleItem();
         item.setScheduleDate(scheduleDate);
-        item.setPriority(priority);
+        item.setPriority("LOW");
         item.setDeviceType(deviceType);
         item.setRankBand(rankBand);
         item.setTitle(title);
@@ -774,18 +771,6 @@ public class ScheduleService {
             return null;
         }
         return value.trim();
-    }
-
-    private String normalizePriority(String value) {
-        String normalized = normalize(value);
-        if (normalized == null || normalized.isBlank()) {
-            return "LOW";
-        }
-        String upper = normalized.toUpperCase(Locale.ROOT);
-        if ("HIGH".equals(upper) || "MEDIUM".equals(upper) || "LOW".equals(upper)) {
-            return upper;
-        }
-        throw new IllegalArgumentException("優先度は HIGH / MEDIUM / LOW で指定してください。");
     }
 
     private String normalizeDeviceType(String value) {
