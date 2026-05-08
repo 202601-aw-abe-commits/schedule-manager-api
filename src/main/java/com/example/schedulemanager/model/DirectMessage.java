@@ -13,6 +13,11 @@ public class DirectMessage {
     private String recipientDisplayName;
     private String body;
     private Long relatedScheduleItemId;
+    private Boolean hasAttachment;
+    private String attachmentContentType;
+    private String attachmentFileName;
+    private Long attachmentSize;
+    private byte[] attachmentData;
     private Boolean read;
     private LocalDateTime createdAt;
 
@@ -94,6 +99,46 @@ public class DirectMessage {
 
     public void setRelatedScheduleItemId(Long relatedScheduleItemId) {
         this.relatedScheduleItemId = relatedScheduleItemId;
+    }
+
+    public Boolean getHasAttachment() {
+        return hasAttachment;
+    }
+
+    public void setHasAttachment(Boolean hasAttachment) {
+        this.hasAttachment = hasAttachment;
+    }
+
+    public String getAttachmentContentType() {
+        return attachmentContentType;
+    }
+
+    public void setAttachmentContentType(String attachmentContentType) {
+        this.attachmentContentType = attachmentContentType;
+    }
+
+    public String getAttachmentFileName() {
+        return attachmentFileName;
+    }
+
+    public void setAttachmentFileName(String attachmentFileName) {
+        this.attachmentFileName = attachmentFileName;
+    }
+
+    public Long getAttachmentSize() {
+        return attachmentSize;
+    }
+
+    public void setAttachmentSize(Long attachmentSize) {
+        this.attachmentSize = attachmentSize;
+    }
+
+    public byte[] getAttachmentData() {
+        return attachmentData;
+    }
+
+    public void setAttachmentData(byte[] attachmentData) {
+        this.attachmentData = attachmentData;
     }
 
     public Boolean getRead() {

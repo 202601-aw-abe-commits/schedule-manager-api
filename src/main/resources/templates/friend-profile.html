@@ -20,9 +20,13 @@
 <form method="post" action="/logout" class="logout-floating">
     <button type="submit">ログアウト</button>
 </form>
-<main class="app-shell friends-shell">
+<main class="app-shell friends-shell" th:attr="data-friend-user-id=${friend.id}">
     <section class="schedule-pane friend-section">
-        <h2 th:text="${friend.displayName + ' (@' + friend.username + ')'}"></h2>
+        <div class="dm-chat-header">
+            <h2 th:text="${friend.displayName + ' (@' + friend.username + ')'}"></h2>
+            <button id="startDmFromProfileButton" type="button" class="primary" title="DMを開始">✉</button>
+        </div>
+        <p id="friendProfileMessage" class="form-message" aria-live="polite"></p>
         <p th:text="${friend.profileBio != null && !friend.profileBio.isBlank() ? friend.profileBio : '自己紹介は未設定です。'}"></p>
         <p><strong>配信URL:</strong> <span th:text="${friend.streamUrl != null ? friend.streamUrl : '未設定'}"></span></p>
         <p><strong>X URL:</strong> <span th:text="${friend.xUrl != null ? friend.xUrl : '未設定'}"></span></p>
@@ -31,5 +35,6 @@
 </main>
 <script src="/js/theme.js"></script>
 <script src="/js/nav-badges.js"></script>
+<script src="/js/friend-profile.js"></script>
 </body>
 </html>

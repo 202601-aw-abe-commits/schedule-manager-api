@@ -6,12 +6,24 @@ if (friendRequestForm) {
     friendRequestForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         friendMessage.textContent = "";
+        const action = event.submitter && event.submitter.value ? event.submitter.value : "search";
+        const username = String(friendUsernameInput.value || "").trim();
+        if (!username) {
+            friendMessage.style.color = "#be2f2f";
+            friendMessage.textContent = "ユーザー名を入力してください。";
+            return;
+        }
+
+        if (action === "search") {
+            window.location.href = `/friends/profile/${encodeURIComponent(username)}`;
+            return;
+        }
 
         try {
             await fetchJson("/api/friends/requests", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username: friendUsernameInput.value })
+                body: JSON.stringify({ username })
             });
             friendMessage.style.color = "#087057";
             friendMessage.textContent = "フレンド申請を送信しました。";

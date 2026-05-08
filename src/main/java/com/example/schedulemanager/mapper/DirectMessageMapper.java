@@ -14,10 +14,12 @@ public interface DirectMessageMapper {
 
     @Insert("""
             INSERT INTO direct_message (
-                conversation_id, sender_user_id, recipient_user_id, body, related_schedule_item_id, is_read
+                conversation_id, sender_user_id, recipient_user_id, body, related_schedule_item_id,
+                attachment_data, attachment_content_type, attachment_file_name, attachment_size, is_read
             )
             VALUES (
-                #{conversationId}, #{senderUserId}, #{recipientUserId}, #{body}, #{relatedScheduleItemId}, FALSE
+                #{conversationId}, #{senderUserId}, #{recipientUserId}, #{body}, #{relatedScheduleItemId},
+                #{attachmentData}, #{attachmentContentType}, #{attachmentFileName}, #{attachmentSize}, FALSE
             )
             """)
     @Options(useGeneratedKeys = true, keyProperty = "id")
@@ -27,7 +29,10 @@ public interface DirectMessageMapper {
             SELECT dm.id, dm.conversation_id, dm.sender_user_id, dm.recipient_user_id,
                    su.username AS sender_username, su.display_name AS sender_display_name,
                    ru.username AS recipient_username, ru.display_name AS recipient_display_name,
-                   dm.body, dm.related_schedule_item_id, dm.is_read AS read, dm.created_at
+                   dm.body, dm.related_schedule_item_id,
+                   CASE WHEN dm.attachment_data IS NOT NULL THEN TRUE ELSE FALSE END AS has_attachment,
+                   dm.attachment_content_type, dm.attachment_file_name, dm.attachment_size,
+                   dm.is_read AS read, dm.created_at
             FROM direct_message dm
             JOIN app_user su ON su.id = dm.sender_user_id
             JOIN app_user ru ON ru.id = dm.recipient_user_id
@@ -42,7 +47,10 @@ public interface DirectMessageMapper {
             SELECT dm.id, dm.conversation_id, dm.sender_user_id, dm.recipient_user_id,
                    su.username AS sender_username, su.display_name AS sender_display_name,
                    ru.username AS recipient_username, ru.display_name AS recipient_display_name,
-                   dm.body, dm.related_schedule_item_id, dm.is_read AS read, dm.created_at
+                   dm.body, dm.related_schedule_item_id,
+                   CASE WHEN dm.attachment_data IS NOT NULL THEN TRUE ELSE FALSE END AS has_attachment,
+                   dm.attachment_content_type, dm.attachment_file_name, dm.attachment_size,
+                   dm.is_read AS read, dm.created_at
             FROM direct_message dm
             JOIN app_user su ON su.id = dm.sender_user_id
             JOIN app_user ru ON ru.id = dm.recipient_user_id
@@ -75,4 +83,19 @@ public interface DirectMessageMapper {
               AND is_read = FALSE
             """)
     int countUnreadByRecipient(@Param("userId") Long userId);
+
+    @Select("""
+            SELECT dm.id, dm.conversation_id, dm.sender_user_id, dm.recipient_user_id,
+                   su.username AS sender_username, su.display_name AS sender_display_name,
+                   ru.username AS recipient_username, ru.display_name AS recipient_display_name,
+                   dm.body, dm.related_schedule_item_id,
+                   CASE WHEN dm.attachment_data IS NOT NULL THEN TRUE ELSE FALSE END AS has_attachment,
+                   dm.attachment_content_type, dm.attachment_file_name, dm.attachment_size, dm.attachment_data,
+                   dm.is_read AS read, dm.created_at
+            FROM direct_message dm
+            JOIN app_user su ON su.id = dm.sender_user_id
+            JOIN app_user ru ON ru.id = dm.recipient_user_id
+            WHERE dm.id = #{id}
+            """)
+    DirectMessage findById(@Param("id") Long id);
 }

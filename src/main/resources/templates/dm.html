@@ -28,36 +28,22 @@
             <h2>ダイレクトメッセージ</h2>
         </header>
 
-        <section class="friend-section">
-            <h3>会話開始</h3>
-            <form id="startConversationForm" class="inline-form">
-                <select id="partnerUserId" required></select>
-                <button type="submit" class="primary">会話を開く</button>
+        <section class="friend-section dm-search-section">
+            <form id="dmSearchForm" class="inline-form">
+                <input id="dmSearchInput" type="text" placeholder="🔍 ユーザー名で検索" maxlength="120">
+                <button type="submit" class="secondary">検索</button>
             </form>
+        </section>
+
+        <section class="friend-section">
+            <ul id="dmConversationCards" class="dm-conversation-cards"></ul>
             <p id="dmMessage" class="form-message" aria-live="polite"></p>
-        </section>
-
-        <section class="friend-section">
-            <h3>受信・送信一覧</h3>
-            <ul id="conversationList" class="mini-list"></ul>
-        </section>
-
-        <section class="friend-section">
-            <h3 id="conversationTitle">会話を選択してください</h3>
-            <form id="sendMessageForm" class="schedule-form">
-                <label for="messageBody">本文</label>
-                <textarea id="messageBody" rows="4" maxlength="1000" placeholder="メッセージを入力" required></textarea>
-                <div class="form-actions">
-                    <button id="sendButton" type="submit" class="primary" disabled>送信</button>
-                </div>
-            </form>
-            <ul id="messageList" class="mini-list"></ul>
         </section>
     </section>
 </main>
 
 <script src="/js/theme.js"></script>
 <script src="/js/nav-badges.js"></script>
-<script src="/js/dm.js"></script>
+<script src="/js/dm-list.js"></script>
 </body>
 </html>

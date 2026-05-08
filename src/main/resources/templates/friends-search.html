@@ -28,8 +28,9 @@
         </header>
         <section class="friend-section">
             <form id="friendRequestForm" class="inline-form">
-                <input id="friendUsername" type="text" placeholder="ユーザー名で検索して申請" required>
-                <button type="submit" class="primary">申請</button>
+                <input id="friendUsername" type="text" placeholder="🔍 ユーザー名で検索して申請" required>
+                <button type="submit" class="secondary" name="action" value="search">検索</button>
+                <button type="submit" class="primary" name="action" value="request">申請</button>
             </form>
             <p id="friendMessage" class="form-message" aria-live="polite"></p>
         </section>

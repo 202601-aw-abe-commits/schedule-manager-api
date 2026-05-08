@@ -234,6 +234,10 @@ ALTER TABLE app_user ADD COLUMN IF NOT EXISTS profile_icon_color VARCHAR(7);
 ALTER TABLE app_user ADD COLUMN IF NOT EXISTS profile_image_data BLOB;
 ALTER TABLE app_user ADD COLUMN IF NOT EXISTS profile_image_content_type VARCHAR(100);
 ALTER TABLE direct_message ADD COLUMN IF NOT EXISTS conversation_id BIGINT;
+ALTER TABLE direct_message ADD COLUMN IF NOT EXISTS attachment_data BLOB;
+ALTER TABLE direct_message ADD COLUMN IF NOT EXISTS attachment_content_type VARCHAR(120);
+ALTER TABLE direct_message ADD COLUMN IF NOT EXISTS attachment_file_name VARCHAR(300);
+ALTER TABLE direct_message ADD COLUMN IF NOT EXISTS attachment_size BIGINT;
 ALTER TABLE board_post ADD COLUMN IF NOT EXISTS rank_band VARCHAR(100);
 
 CREATE INDEX IF NOT EXISTS idx_user_username ON app_user(username);
