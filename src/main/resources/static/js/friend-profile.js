@@ -1,23 +1,26 @@
 const app = document.querySelector(".app-shell");
-const friendUserId = Number(app?.dataset?.friendUserId || 0);
-const startDmFromProfileButton = document.getElementById("startDmFromProfileButton");
+const friendUsername = String(app?.dataset?.friendUsername || "").trim();
+const canSendRequest = String(app?.dataset?.canSendRequest || "false") === "true";
+const sendFriendRequestButton = document.getElementById("sendFriendRequestButton");
 const friendProfileMessage = document.getElementById("friendProfileMessage");
 
-if (startDmFromProfileButton) {
-    startDmFromProfileButton.addEventListener("click", async () => {
+if (sendFriendRequestButton && canSendRequest) {
+    sendFriendRequestButton.addEventListener("click", async () => {
         friendProfileMessage.textContent = "";
-        if (!friendUserId) {
+        if (!friendUsername) {
             friendProfileMessage.style.color = "#be2f2f";
-            friendProfileMessage.textContent = "DM開始に必要なユーザーIDが取得できません。";
+            friendProfileMessage.textContent = "申請先ユーザー名が取得できません。";
             return;
         }
         try {
-            const conversation = await fetchJson("/dm/start", {
+            await fetchJson("/api/friends/requests", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ partnerUserId: friendUserId })
+                body: JSON.stringify({ username: friendUsername })
             });
-            window.location.href = `/dm/conversations/${conversation.id}`;
+            friendProfileMessage.style.color = "#087057";
+            friendProfileMessage.textContent = "フレンド申請を送信しました。";
+            sendFriendRequestButton.disabled = true;
         } catch (error) {
             friendProfileMessage.style.color = "#be2f2f";
             friendProfileMessage.textContent = error.message;

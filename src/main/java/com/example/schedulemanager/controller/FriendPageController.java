@@ -4,7 +4,7 @@ import com.example.schedulemanager.model.AppUser;
 import com.example.schedulemanager.service.FriendshipService;
 import com.example.schedulemanager.service.LabelColorService;
 import com.example.schedulemanager.service.UserAccountService;
-import org.springframework.http.HttpStatus;
+import java.util.NoSuchElementException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -12,6 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 @Controller
 public class FriendPageController {
@@ -65,14 +66,24 @@ public class FriendPageController {
             Model model,
             @AuthenticationPrincipal UserDetails userDetails) {
         AppUser viewer = userAccountService.getByUsername(userDetails.getUsername());
-        AppUser target = userAccountService.getByUsername(username);
-        if (!friendshipService.areFriendsOrSelf(viewer.getId(), target.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "フレンドのみ閲覧できます。");
+        AppUser target;
+        try {
+            target = userAccountService.getByUsername(username);
+        } catch (IllegalArgumentException | NoSuchElementException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "指定したユーザーが見つかりません。");
         }
+
+        boolean isSelf = viewer.getId().equals(target.getId());
+        boolean isFriend = friendshipService.areFriendsOrSelf(viewer.getId(), target.getId()) && !isSelf;
+        boolean canSendRequest = !isSelf && !isFriend && !friendshipService.hasAnyRelationship(viewer.getId(), target.getId());
+
         model.addAttribute("currentUsername", viewer.getUsername());
         model.addAttribute("currentDisplayName", viewer.getDisplayName());
         model.addAttribute("labelColorStyle", labelColorService.toInlineStyle(viewer.getId()));
         model.addAttribute("friend", target);
+        model.addAttribute("isSelf", isSelf);
+        model.addAttribute("isFriend", isFriend);
+        model.addAttribute("canSendRequest", canSendRequest);
         return "friend-profile";
     }
 }

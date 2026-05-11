@@ -47,6 +47,17 @@ public class FriendshipService {
         return friendshipMapper.existsAcceptedFriendship(userA, userB);
     }
 
+    @Transactional(readOnly = true)
+    public boolean hasAnyRelationship(Long userA, Long userB) {
+        if (userA == null || userB == null) {
+            return false;
+        }
+        if (userA.equals(userB)) {
+            return true;
+        }
+        return friendshipMapper.countRelationship(userA, userB) > 0;
+    }
+
     @Transactional
     public void createRequest(Long currentUserId, FriendRequestCreateRequest request) {
         if (request == null || normalize(request.getUsername()) == null) {
