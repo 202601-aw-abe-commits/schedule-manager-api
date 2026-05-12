@@ -3,6 +3,7 @@ package com.example.schedulemanager.controller;
 import com.example.schedulemanager.model.BoardPost;
 import com.example.schedulemanager.model.BoardPostInterest;
 import com.example.schedulemanager.model.DirectMessage;
+import com.example.schedulemanager.model.ScheduleItem;
 import com.example.schedulemanager.model.AppUser;
 import com.example.schedulemanager.service.AdminModerationService;
 import com.example.schedulemanager.service.PlayerReportService;
@@ -57,6 +58,14 @@ public class AdminModerationApiController {
         return adminModerationService.listDirectMessages(userDetails.getUsername(), keyword, targetUserId);
     }
 
+    @GetMapping("/schedules")
+    public List<ScheduleItem> schedules(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "targetUserId", required = false) Long targetUserId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return adminModerationService.listSchedules(userDetails.getUsername(), keyword, targetUserId);
+    }
+
     @GetMapping("/users")
     public List<Map<String, Object>> users(@AuthenticationPrincipal UserDetails userDetails) {
         List<AppUser> users = adminModerationService.listUsers(userDetails.getUsername());
@@ -90,6 +99,12 @@ public class AdminModerationApiController {
     @DeleteMapping("/direct-messages/{id}")
     public ResponseEntity<Void> deleteDirectMessage(@PathVariable("id") Long id, @AuthenticationPrincipal UserDetails userDetails) {
         adminModerationService.deleteDirectMessage(userDetails.getUsername(), id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/schedules/{id}")
+    public ResponseEntity<Void> deleteSchedule(@PathVariable("id") Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        adminModerationService.deleteSchedule(userDetails.getUsername(), id);
         return ResponseEntity.noContent().build();
     }
 

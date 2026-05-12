@@ -4,6 +4,7 @@ import com.example.schedulemanager.model.AppUser;
 import com.example.schedulemanager.model.BoardPost;
 import com.example.schedulemanager.model.BoardPostInterest;
 import com.example.schedulemanager.model.DirectMessage;
+import com.example.schedulemanager.model.ScheduleItem;
 import java.util.List;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
@@ -88,6 +89,26 @@ public interface AdminModerationMapper {
             """)
     List<DirectMessage> findDirectMessages(@Param("keyword") String keyword, @Param("targetUserId") Long targetUserId);
 
+    @Select("""
+            <script>
+            SELECT s.id, s.owner_user_id, u.username AS owner_username, u.display_name AS owner_display_name,
+                   s.schedule_date, s.title, s.start_time, s.end_time, s.description, s.completed, s.created_at
+            FROM schedule_item s
+            JOIN app_user u ON u.id = s.owner_user_id
+            <where>
+              <if test='targetUserId != null'>s.owner_user_id = #{targetUserId}</if>
+              <if test='keyword != null and keyword != ""'>
+                <if test='targetUserId != null'> AND </if>
+                (s.title LIKE CONCAT('%', #{keyword}, '%') OR s.description LIKE CONCAT('%', #{keyword}, '%')
+                 OR u.username LIKE CONCAT('%', #{keyword}, '%') OR u.display_name LIKE CONCAT('%', #{keyword}, '%'))
+              </if>
+            </where>
+            ORDER BY s.schedule_date DESC, s.start_time DESC, s.id DESC
+            LIMIT 300
+            </script>
+            """)
+    List<ScheduleItem> findSchedules(@Param("keyword") String keyword, @Param("targetUserId") Long targetUserId);
+
     @Delete("DELETE FROM board_post_interest WHERE id = #{id}")
     int deleteBoardInterest(@Param("id") Long id);
 
@@ -99,4 +120,13 @@ public interface AdminModerationMapper {
 
     @Delete("DELETE FROM direct_message WHERE id = #{id}")
     int deleteDirectMessage(@Param("id") Long id);
+
+    @Delete("DELETE FROM schedule_participant WHERE schedule_item_id = #{scheduleId}")
+    int deleteScheduleParticipantsByScheduleId(@Param("scheduleId") Long scheduleId);
+
+    @Delete("DELETE FROM schedule_join_request WHERE schedule_item_id = #{scheduleId}")
+    int deleteScheduleJoinRequestsByScheduleId(@Param("scheduleId") Long scheduleId);
+
+    @Delete("DELETE FROM schedule_item WHERE id = #{id}")
+    int deleteScheduleById(@Param("id") Long id);
 }

@@ -6,6 +6,7 @@ import com.example.schedulemanager.model.AppUser;
 import com.example.schedulemanager.model.BoardPost;
 import com.example.schedulemanager.model.BoardPostInterest;
 import com.example.schedulemanager.model.DirectMessage;
+import com.example.schedulemanager.model.ScheduleItem;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +50,12 @@ public class AdminModerationService {
         return adminModerationMapper.findDirectMessages(normalize(keyword), targetUserId);
     }
 
+    @Transactional(readOnly = true)
+    public List<ScheduleItem> listSchedules(String adminUsername, String keyword, Long targetUserId) {
+        adminGuardService.requireAdmin(adminUsername);
+        return adminModerationMapper.findSchedules(normalize(keyword), targetUserId);
+    }
+
     @Transactional
     public void deleteBoardPost(String adminUsername, Long id) {
         adminGuardService.requireAdmin(adminUsername);
@@ -66,6 +73,14 @@ public class AdminModerationService {
     public void deleteDirectMessage(String adminUsername, Long id) {
         adminGuardService.requireAdmin(adminUsername);
         adminModerationMapper.deleteDirectMessage(id);
+    }
+
+    @Transactional
+    public void deleteSchedule(String adminUsername, Long id) {
+        adminGuardService.requireAdmin(adminUsername);
+        adminModerationMapper.deleteScheduleParticipantsByScheduleId(id);
+        adminModerationMapper.deleteScheduleJoinRequestsByScheduleId(id);
+        adminModerationMapper.deleteScheduleById(id);
     }
 
     @Transactional

@@ -5,6 +5,7 @@ const adminBanButton = document.getElementById("adminBanButton");
 const adminUnbanButton = document.getElementById("adminUnbanButton");
 const adminMessage = document.getElementById("adminMessage");
 const adminReportList = document.getElementById("adminReportList");
+const adminScheduleList = document.getElementById("adminScheduleList");
 const adminBoardPostList = document.getElementById("adminBoardPostList");
 const adminBoardInterestList = document.getElementById("adminBoardInterestList");
 const adminDirectMessageList = document.getElementById("adminDirectMessageList");
@@ -48,6 +49,10 @@ adminUnbanButton.addEventListener("click", async () => {
 async function loadUsers() {
     users = await fetchJson("/api/admin/moderation/users");
     adminTargetUserIdSelect.innerHTML = "";
+    const allOption = document.createElement("option");
+    allOption.value = "";
+    allOption.textContent = "全ユーザー";
+    adminTargetUserIdSelect.appendChild(allOption);
     (users || []).forEach((u) => {
         const option = document.createElement("option");
         option.value = String(u.id);
@@ -57,29 +62,27 @@ async function loadUsers() {
 }
 
 async function loadAll() {
-    const targetUserId = Number(adminTargetUserIdSelect.value);
-    if (!Number.isFinite(targetUserId)) {
-        adminBoardPostList.innerHTML = "<li>対象ユーザーを選択してください。</li>";
-        adminBoardInterestList.innerHTML = "<li>対象ユーザーを選択してください。</li>";
-        adminDirectMessageList.innerHTML = "<li>対象ユーザーを選択してください。</li>";
-        return;
-    }
+    const selectedUserId = String(adminTargetUserIdSelect.value || "").trim();
 
     const keyword = String(adminKeywordInput.value || "").trim();
     const query = new URLSearchParams();
-    query.set("targetUserId", String(targetUserId));
+    if (selectedUserId) {
+        query.set("targetUserId", selectedUserId);
+    }
     if (keyword) {
         query.set("keyword", keyword);
     }
 
     try {
-        const [reports, posts, interests, messages] = await Promise.all([
+        const [reports, schedules, posts, interests, messages] = await Promise.all([
             fetchJson(`/api/admin/moderation/reports`),
+            fetchJson(`/api/admin/moderation/schedules?${query.toString()}`),
             fetchJson(`/api/admin/moderation/board-posts?${query.toString()}`),
             fetchJson(`/api/admin/moderation/board-interests?${query.toString()}`),
             fetchJson(`/api/admin/moderation/direct-messages?${query.toString()}`)
         ]);
         renderReports(reports || []);
+        renderSchedules(schedules || []);
         renderBoardPosts(posts || []);
         renderBoardInterests(interests || []);
         renderDirectMessages(messages || []);
@@ -89,6 +92,27 @@ async function loadAll() {
         adminMessage.style.color = "#be2f2f";
         adminMessage.textContent = error.message;
     }
+}
+
+function renderSchedules(rows) {
+    adminScheduleList.innerHTML = "";
+    if (!rows.length) {
+        adminScheduleList.innerHTML = "<li>該当なし</li>";
+        return;
+    }
+    rows.forEach((row) => {
+        const li = document.createElement("li");
+        const owner = row.ownerDisplayName || row.ownerUsername || "不明";
+        const date = row.scheduleDate || "-";
+        const time = row.startTime && row.endTime ? `${row.startTime}〜${row.endTime}` : (row.startTime || row.endTime || "時刻未設定");
+        const title = row.title || "(無題)";
+        li.textContent = `${date} ${time} / ${owner}: ${title}`;
+        li.appendChild(deleteButton(async () => {
+            await fetchJson(`/api/admin/moderation/schedules/${row.id}`, { method: "DELETE" });
+            await loadAll();
+        }));
+        adminScheduleList.appendChild(li);
+    });
 }
 
 function renderReports(rows) {
