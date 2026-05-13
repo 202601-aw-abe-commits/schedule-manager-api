@@ -20,9 +20,11 @@ public interface LabelColorMapper {
     List<LabelColorSetting> findByUserId(@Param("userId") Long userId);
 
     @Insert("""
-            MERGE INTO label_colors (user_id, label_key, color_hex, updated_at)
-            KEY (user_id, label_key)
+            INSERT INTO label_colors (user_id, label_key, color_hex, updated_at)
             VALUES (#{userId}, #{labelKey}, #{colorHex}, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id, label_key)
+            DO UPDATE SET color_hex = EXCLUDED.color_hex,
+                          updated_at = CURRENT_TIMESTAMP
             """)
     int upsert(@Param("userId") Long userId, @Param("labelKey") String labelKey, @Param("colorHex") String colorHex);
 

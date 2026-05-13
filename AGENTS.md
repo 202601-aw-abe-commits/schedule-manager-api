@@ -8,6 +8,7 @@
 ## Persistent Notes (Update When Needed)
 - Product context: this app is schedule management (`/calendar`, `/api/schedules`), not a pure ToDo app.
 - Primary local DB setting: `jdbc:h2:file:./data/schedule-db` (`spring.h2.console.path=/h2-console`).
+- DB initialization baseline moved to Flyway (`src/main/resources/db/migration`); production/local PostgreSQL should not rely on `spring.sql.init`.
 - Keep integration and docs wording aligned to schedule terminology (`予定`, `スケジュール`).
 - Admin moderation page: `/admin` (admin-only via `AdminGuardService`), APIs under `/api/admin/moderation`.
 - Admin can review all users' schedules/comments by selecting `全ユーザー` and can delete schedules, board posts, board comments, and DMs.
