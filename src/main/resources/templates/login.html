@@ -23,19 +23,20 @@
         <p class="success-text" th:if="${loggedOut}" th:text="#{login.loggedOut}"></p>
         <p class="form-message" th:if="${loginError}" th:text="#{login.error}"></p>
 
-        <form method="post" action="/login" class="schedule-form">
+        <form method="post" action="/login" class="schedule-form" id="loginForm">
             <label for="username" th:text="#{register.username}">Username</label>
             <input id="username" name="username" type="text" required>
 
             <label for="password" th:text="#{register.password}">Password</label>
             <input id="password" name="password" type="password" required>
 
-            <button type="submit" class="primary auth-link-button" th:text="#{common.login}">Login</button>
+            <button id="loginSubmitButton" type="submit" class="primary auth-link-button auth-submit-button" th:text="#{common.login}">Login</button>
         </form>
 
         <a href="/register" class="secondary auth-link-button" th:text="#{common.register}">Sign up</a>
     </section>
 </main>
 <script src="/js/theme.js"></script>
+<script src="/js/auth-form.js"></script>
 </body>
 </html>

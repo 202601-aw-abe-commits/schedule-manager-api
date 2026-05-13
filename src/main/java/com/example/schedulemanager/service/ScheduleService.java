@@ -406,6 +406,10 @@ public class ScheduleService {
         if (!Boolean.TRUE.equals(source.getMessageShareable())) {
             throw new IllegalArgumentException("この募集メッセージは再シェア不可です。");
         }
+        ScheduleItem shareTarget = resolveJoinTarget(source);
+        if (!scheduleMapper.existsParticipant(shareTarget.getId(), currentUser.getId())) {
+            throw new IllegalArgumentException("参加希望が了承された後にシェアできます。");
+        }
         if (scheduleMapper.existsSharedCopyBySource(currentUser.getId(), source.getId())) {
             throw new IllegalArgumentException("この募集はすでにシェア済みです。");
         }

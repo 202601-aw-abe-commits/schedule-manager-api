@@ -69,6 +69,13 @@ function renderSchedule(item) {
 
     if (item.joinRequestStatusForCurrentUser === "PENDING" && item.joinRequestCommentForCurrentUser) {
         joinCommentInput.value = item.joinRequestCommentForCurrentUser;
+        joinMessage.style.color = "#6c4a00";
+        joinMessage.textContent = "参加希望は承認待ちです。了承されるとシェアできるようになります。";
+    } else if (item.joinRequestStatusForCurrentUser === "APPROVED") {
+        joinMessage.style.color = "#087057";
+        joinMessage.textContent = "参加希望が了承されました。カレンダー画面からこの募集をシェアできます。";
+    } else {
+        joinMessage.textContent = "";
     }
 }
 

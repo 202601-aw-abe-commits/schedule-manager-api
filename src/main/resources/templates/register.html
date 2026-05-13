@@ -20,7 +20,7 @@
         <p class="help-text" th:text="#{register.help}"></p>
         <p class="form-message" th:if="${registerError}" th:text="${registerError}"></p>
 
-        <form method="post" action="/register" class="schedule-form">
+        <form method="post" action="/register" class="schedule-form" id="registerForm">
             <label for="registerUsername" th:text="#{register.username}">Username</label>
             <input id="registerUsername" name="username" type="text" minlength="2" maxlength="30" required>
 
@@ -33,12 +33,13 @@
             <label for="registerPassword" th:text="#{register.password}">Password</label>
             <input id="registerPassword" name="password" type="password" minlength="8" maxlength="72" required>
 
-            <button type="submit" class="primary" th:text="#{register.submit}">Create account</button>
+            <button id="registerSubmitButton" type="submit" class="primary auth-submit-button" th:text="#{register.submit}">Create account</button>
         </form>
 
-        <a href="/login" class="secondary auth-link-button" th:text="#{common.backToLogin}">Back to login</a>
+        <a href="/login" class="secondary auth-link-button auth-back-link-button" th:text="#{common.backToLogin}">Back to login</a>
     </section>
 </main>
 <script src="/js/theme.js"></script>
+<script src="/js/auth-form.js"></script>
 </body>
 </html>

@@ -588,30 +588,40 @@ function renderScheduleList(schedules) {
                 const shareActions = document.createElement("div");
                 shareActions.className = "schedule-actions";
 
-                const shareButton = document.createElement("button");
-                shareButton.type = "button";
-                shareButton.className = "share-btn";
-                shareButton.textContent = "この募集をシェア";
-                shareButton.addEventListener("click", async () => {
-                    try {
-                        await fetchJson(`/api/schedules/${item.id}/share`, { method: "POST" });
-                        formMessage.style.color = "#087057";
-                        formMessage.textContent = "募集メッセージをフレンドへシェアしました。";
-                        await loadSchedules(state.selectedDate);
+                if (item.joinedByCurrentUser) {
+                    const shareButton = document.createElement("button");
+                    shareButton.type = "button";
+                    shareButton.className = "share-btn";
+                    shareButton.textContent = "この募集をシェア";
+                    shareButton.addEventListener("click", async () => {
                         try {
-                            await loadMonthMarkers();
+                            await fetchJson(`/api/schedules/${item.id}/share`, { method: "POST" });
+                            formMessage.style.color = "#087057";
+                            formMessage.textContent = "募集メッセージをフレンドへシェアしました。";
+                            await loadSchedules(state.selectedDate);
+                            try {
+                                await loadMonthMarkers();
+                            } catch (error) {
+                                formMessage.style.color = "#be2f2f";
+                                formMessage.textContent = error.message;
+                            }
+                            renderCalendar();
                         } catch (error) {
                             formMessage.style.color = "#be2f2f";
                             formMessage.textContent = error.message;
                         }
-                        renderCalendar();
-                    } catch (error) {
-                        formMessage.style.color = "#be2f2f";
-                        formMessage.textContent = error.message;
+                    });
+                    shareActions.appendChild(shareButton);
+                } else {
+                    const shareHint = document.createElement("span");
+                    shareHint.className = "closed-label";
+                    if (item.joinRequestStatusForCurrentUser === "PENDING") {
+                        shareHint.textContent = "参加希望が了承されたらシェアできます。";
+                    } else {
+                        shareHint.textContent = "この募集は参加承認後にシェアできます。";
                     }
-                });
-
-                shareActions.appendChild(shareButton);
+                    shareActions.appendChild(shareHint);
+                }
                 li.appendChild(shareActions);
             }
 
@@ -1177,6 +1187,10 @@ function renderJoinAction(item) {
         pendingLabel.className = "closed-label";
         pendingLabel.textContent = "参加希望を送信済み（保留中）";
         actionArea.appendChild(pendingLabel);
+        const shareWaitLabel = document.createElement("span");
+        shareWaitLabel.className = "closed-label";
+        shareWaitLabel.textContent = "了承されると、この募集をシェアできるようになります。";
+        actionArea.appendChild(shareWaitLabel);
     }
 
     if (item.recruitmentClosed && !item.joinedByCurrentUser) {

@@ -12,6 +12,7 @@
 - Keep integration and docs wording aligned to schedule terminology (`予定`, `スケジュール`).
 - Admin moderation page: `/admin` (admin-only via `AdminGuardService`), APIs under `/api/admin/moderation`.
 - Admin can review all users' schedules/comments by selecting `全ユーザー` and can delete schedules, board posts, board comments, and DMs.
+- Schedule share rule: joinable schedule re-share is allowed only after the requester is approved as participant (`schedule_participant`), and UI should explain approval-gated sharing to requester.
 
 ## Project Structure & Module Organization
 - Main backend app lives in `src/main/java/com/example/schedulemanager`.

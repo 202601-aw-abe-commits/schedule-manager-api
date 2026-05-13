@@ -1703,6 +1703,21 @@ a.auth-link-button:active,
     transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease, background-color 0.18s ease;
 }
 
+.auth-submit-button {
+    width: 100%;
+    min-height: 50px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.auth-back-link-button {
+    min-height: 42px;
+    padding: 9px 12px;
+    font-size: 0.94rem;
+}
+
 .auth-link-button:hover {
     transform: translateY(-1px) scale(1.01);
     box-shadow: 0 0 16px #7ae6ff99;
