@@ -58,18 +58,10 @@ public class UserAccountService {
         String username = normalize(request.getUsername());
         String password = normalize(request.getPassword());
         String email = normalizeEmail(request.getEmail());
-        String displayName = normalize(request.getDisplayName());
 
         validateUsername(username);
         validatePassword(password);
         validateEmail(email, true);
-
-        if (displayName == null || displayName.isBlank()) {
-            throw new IllegalArgumentException("表示名は必須です。");
-        }
-        if (displayName.length() > 100) {
-            throw new IllegalArgumentException("表示名は100文字以内で入力してください。");
-        }
 
         if (userMapper.findByUsername(username) != null) {
             throw new IllegalArgumentException("そのユーザー名はすでに使われています。");
@@ -83,7 +75,7 @@ public class UserAccountService {
         user.setPasswordHash(passwordEncoder.encode(password));
         user.setEmail(email);
         user.setTotalPoints(0);
-        user.setDisplayName(displayName);
+        user.setDisplayName(username);
         user.setProfileIconColor(DEFAULT_PROFILE_ICON_COLOR);
         user.setEnabled(true);
         userMapper.insert(user);

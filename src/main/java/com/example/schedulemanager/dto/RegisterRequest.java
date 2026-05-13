@@ -20,10 +20,6 @@ public class RegisterRequest {
     @Size(max = 254, message = "{validation.email.length}")
     private String email;
 
-    @NotBlank(message = "{validation.displayName.required}")
-    @Size(max = 100, message = "{validation.displayName.length}")
-    private String displayName;
-
     public String getUsername() {
         return username;
     }
@@ -48,11 +44,4 @@ public class RegisterRequest {
         this.email = email;
     }
 
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
 }

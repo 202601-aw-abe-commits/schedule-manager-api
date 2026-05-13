@@ -14,6 +14,8 @@
 - Admin can review all users' schedules/comments by selecting `全ユーザー` and can delete schedules, board posts, board comments, and DMs.
 - Schedule share rule: joinable schedule re-share is allowed only after the requester is approved as participant (`schedule_participant`), and UI should explain approval-gated sharing to requester.
 - Joinable schedule supports Discord invite URL (`discord_invite_url`); owner updates it on `/schedules/{id}/discord-invite`, and participants/owner can use it from schedule card.
+- Join request supports optional game ID (`schedule_join_request.game_id`); requester can submit without it, and owner sees it with pending requests when provided.
+- Registration no longer accepts display name input; initial `display_name` is automatically set to the same value as `username`.
 
 ## Project Structure & Module Organization
 - Main backend app lives in `src/main/java/com/example/schedulemanager`.
