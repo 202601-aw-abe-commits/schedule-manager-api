@@ -42,7 +42,6 @@ CREATE TABLE IF NOT EXISTS schedule_item (
     start_time TIME,
     end_time TIME,
     description VARCHAR(1000),
-    discord_invite_url VARCHAR(1000),
     shared_with_friends BOOLEAN NOT NULL DEFAULT FALSE,
     joinable BOOLEAN NOT NULL DEFAULT FALSE,
     recruitment_limit INTEGER,
