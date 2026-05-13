@@ -36,7 +36,7 @@ public interface ScheduleMapper {
                        THEN TRUE
                        ELSE FALSE
                    END AS has_pending_join_request,
-                   s.title, s.start_time, s.end_time, s.description, s.shared_with_friends, s.joinable,
+                   s.title, s.start_time, s.end_time, s.description, s.discord_invite_url, s.shared_with_friends, s.joinable,
                    s.recruitment_limit,
                    s.created_at, s.updated_at
             FROM schedule_item s
@@ -80,7 +80,7 @@ public interface ScheduleMapper {
                        THEN TRUE
                        ELSE FALSE
                    END AS has_pending_join_request,
-                   s.title, s.start_time, s.end_time, s.description, s.shared_with_friends, s.joinable,
+                   s.title, s.start_time, s.end_time, s.description, s.discord_invite_url, s.shared_with_friends, s.joinable,
                    s.recruitment_limit,
                    s.created_at, s.updated_at
             FROM schedule_item s
@@ -110,7 +110,7 @@ public interface ScheduleMapper {
                        THEN TRUE
                        ELSE FALSE
                    END AS has_pending_join_request,
-                   s.title, s.start_time, s.end_time, s.description, s.shared_with_friends, s.joinable,
+                   s.title, s.start_time, s.end_time, s.description, s.discord_invite_url, s.shared_with_friends, s.joinable,
                    s.recruitment_limit,
                    s.created_at, s.updated_at
             FROM schedule_item s
@@ -142,7 +142,7 @@ public interface ScheduleMapper {
                    s.schedule_date, s.priority, s.device_type, s.rank_band, s.completed, s.completed_at,
                    s.message_shareable, s.source_schedule_item_id, s.source_owner_user_id,
                    su.display_name AS source_owner_display_name,
-                   s.title, s.start_time, s.end_time, s.description,
+                   s.title, s.start_time, s.end_time, s.description, s.discord_invite_url,
                    s.shared_with_friends, s.joinable, s.recruitment_limit, s.created_at, s.updated_at
             FROM schedule_item s
             LEFT JOIN app_user u ON u.id = s.owner_user_id
@@ -159,7 +159,7 @@ public interface ScheduleMapper {
                    s.schedule_date, s.priority, s.device_type, s.rank_band, s.completed, s.completed_at,
                    s.message_shareable, s.source_schedule_item_id, s.source_owner_user_id,
                    su.display_name AS source_owner_display_name,
-                   s.title, s.start_time, s.end_time, s.description, s.shared_with_friends, s.joinable,
+                   s.title, s.start_time, s.end_time, s.description, s.discord_invite_url, s.shared_with_friends, s.joinable,
                    s.recruitment_limit,
                    s.created_at, s.updated_at
             FROM schedule_item s
@@ -193,12 +193,12 @@ public interface ScheduleMapper {
             INSERT INTO schedule_item (
                 owner_user_id, schedule_date, priority, device_type, rank_band, completed, completed_at, message_shareable,
                 source_schedule_item_id, source_owner_user_id,
-                title, start_time, end_time, description, shared_with_friends, joinable, recruitment_limit
+                title, start_time, end_time, description, discord_invite_url, shared_with_friends, joinable, recruitment_limit
             )
             VALUES (
                 #{ownerUserId}, #{scheduleDate}, #{priority}, #{deviceType}, #{rankBand}, #{completed}, #{completedAt}, #{messageShareable},
                 #{sourceScheduleItemId}, #{sourceOwnerUserId},
-                #{title}, #{startTime}, #{endTime}, #{description}, #{sharedWithFriends}, #{joinable}, #{recruitmentLimit}
+                #{title}, #{startTime}, #{endTime}, #{description}, #{discordInviteUrl}, #{sharedWithFriends}, #{joinable}, #{recruitmentLimit}
             )
             """)
     @Options(useGeneratedKeys = true, keyProperty = "id")
@@ -209,13 +209,13 @@ public interface ScheduleMapper {
             "INSERT INTO schedule_item (",
             "  owner_user_id, schedule_date, priority, device_type, rank_band, completed, completed_at, message_shareable,",
             "  source_schedule_item_id, source_owner_user_id,",
-            "  title, start_time, end_time, description, shared_with_friends, joinable, recruitment_limit",
+            "  title, start_time, end_time, description, discord_invite_url, shared_with_friends, joinable, recruitment_limit",
             ") VALUES ",
             "<foreach collection='items' item='item' separator=','>",
             "(",
             "  #{item.ownerUserId}, #{item.scheduleDate}, #{item.priority}, #{item.deviceType}, #{item.rankBand}, #{item.completed}, #{item.completedAt}, #{item.messageShareable},",
             "  #{item.sourceScheduleItemId}, #{item.sourceOwnerUserId},",
-            "  #{item.title}, #{item.startTime}, #{item.endTime}, #{item.description}, #{item.sharedWithFriends}, #{item.joinable}, #{item.recruitmentLimit}",
+            "  #{item.title}, #{item.startTime}, #{item.endTime}, #{item.description}, #{item.discordInviteUrl}, #{item.sharedWithFriends}, #{item.joinable}, #{item.recruitmentLimit}",
             ")",
             "</foreach>",
             "</script>"
@@ -232,6 +232,7 @@ public interface ScheduleMapper {
                 start_time = #{startTime},
                 end_time = #{endTime},
                 description = #{description},
+                discord_invite_url = #{discordInviteUrl},
                 shared_with_friends = #{sharedWithFriends},
                 joinable = #{joinable},
                 message_shareable = #{messageShareable},
@@ -241,6 +242,19 @@ public interface ScheduleMapper {
               AND owner_user_id = #{ownerUserId}
             """)
     int update(ScheduleItem item);
+
+    @Update("""
+            UPDATE schedule_item
+            SET discord_invite_url = #{discordInviteUrl},
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = #{id}
+              AND owner_user_id = #{ownerUserId}
+              AND joinable = TRUE
+            """)
+    int updateDiscordInviteUrl(
+            @Param("id") Long id,
+            @Param("ownerUserId") Long ownerUserId,
+            @Param("discordInviteUrl") String discordInviteUrl);
 
     @Update("""
             UPDATE schedule_item
@@ -413,7 +427,7 @@ public interface ScheduleMapper {
                    s.schedule_date, s.priority, s.device_type, s.rank_band, s.completed, s.completed_at,
                    s.message_shareable, s.source_schedule_item_id, s.source_owner_user_id,
                    su.display_name AS source_owner_display_name,
-                   s.title, s.start_time, s.end_time, s.description, s.shared_with_friends, s.joinable,
+                   s.title, s.start_time, s.end_time, s.description, s.discord_invite_url, s.shared_with_friends, s.joinable,
                    s.recruitment_limit,
                    s.created_at, s.updated_at
             FROM schedule_item s

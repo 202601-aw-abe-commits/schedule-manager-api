@@ -8,6 +8,7 @@ public class ScheduleRequest {
     private String startTime;
     private String endTime;
     private String description;
+    private String discordInviteUrl;
     private Boolean sharedWithFriends;
     private Boolean joinable;
     private Boolean messageShareable;
@@ -67,6 +68,14 @@ public class ScheduleRequest {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getDiscordInviteUrl() {
+        return discordInviteUrl;
+    }
+
+    public void setDiscordInviteUrl(String discordInviteUrl) {
+        this.discordInviteUrl = discordInviteUrl;
     }
 
     public Boolean getSharedWithFriends() {

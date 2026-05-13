@@ -43,4 +43,17 @@ public class SchedulePageController {
         model.addAttribute("labelColorStyle", labelColorService.toInlineStyle(user.getId()));
         return "schedule-join";
     }
+
+    @GetMapping("/schedules/{id}/discord-invite")
+    public String discordInvitePage(
+            @PathVariable("id") Long id,
+            Model model,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        AppUser user = userAccountService.getByUsername(userDetails.getUsername());
+        model.addAttribute("scheduleId", id);
+        model.addAttribute("currentUsername", user.getUsername());
+        model.addAttribute("currentDisplayName", user.getDisplayName());
+        model.addAttribute("labelColorStyle", labelColorService.toInlineStyle(user.getId()));
+        return "schedule-discord-invite";
+    }
 }

@@ -429,6 +429,7 @@ public class ScheduleService {
         copy.setStartTime(source.getStartTime());
         copy.setEndTime(source.getEndTime());
         copy.setDescription(source.getDescription());
+        copy.setDiscordInviteUrl(source.getDiscordInviteUrl());
         copy.setSharedWithFriends(true);
         copy.setJoinable(true);
         copy.setRecruitmentLimit(source.getRecruitmentLimit());
@@ -438,6 +439,40 @@ public class ScheduleService {
         gamificationService.awardScheduleCreated(currentUser.getId(), created.getTitle(), created.getId());
         decorateForViewer(created, currentUser.getId());
         return created;
+    }
+
+    @Transactional(readOnly = true)
+    public ScheduleItem getOwnedJoinableSchedule(Long id, String currentUsername) {
+        AppUser currentUser = getCurrentUser(currentUsername);
+        ScheduleItem owned = scheduleMapper.findOwnedById(id, currentUser.getId());
+        if (owned == null) {
+            throw new NoSuchElementException("対象の予定が見つかりません。");
+        }
+        if (!Boolean.TRUE.equals(owned.getJoinable())) {
+            throw new IllegalArgumentException("参加募集予定でのみDiscord招待URLを設定できます。");
+        }
+        decorateForViewer(owned, currentUser.getId());
+        return owned;
+    }
+
+    @Transactional
+    public ScheduleItem updateDiscordInviteUrl(Long id, String currentUsername, String discordInviteUrl) {
+        AppUser currentUser = getCurrentUser(currentUsername);
+        ScheduleItem owned = scheduleMapper.findOwnedById(id, currentUser.getId());
+        if (owned == null) {
+            throw new NoSuchElementException("対象の予定が見つかりません。");
+        }
+        if (!Boolean.TRUE.equals(owned.getJoinable())) {
+            throw new IllegalArgumentException("参加募集予定でのみDiscord招待URLを設定できます。");
+        }
+        String normalized = normalizeDiscordInviteUrl(discordInviteUrl);
+        int updated = scheduleMapper.updateDiscordInviteUrl(id, currentUser.getId(), normalized);
+        if (updated == 0) {
+            throw new NoSuchElementException("対象の予定が見つからないか、更新権限がありません。");
+        }
+        ScheduleItem refreshed = scheduleMapper.findVisibleById(id, currentUser.getId());
+        decorateForViewer(refreshed, currentUser.getId());
+        return refreshed;
     }
 
     private List<List<String>> parseCsv(MultipartFile file) {
@@ -601,6 +636,7 @@ public class ScheduleService {
         item.setStartTime(startTime);
         item.setEndTime(endTime);
         item.setDescription(description);
+        item.setDiscordInviteUrl(null);
         item.setSharedWithFriends(sharedWithFriends);
         item.setJoinable(joinable);
         item.setMessageShareable(joinable && messageShareable);
@@ -719,6 +755,7 @@ public class ScheduleService {
         item.setStartTime(startTime);
         item.setEndTime(endTime);
         item.setDescription(normalize(request.getDescription()));
+        item.setDiscordInviteUrl(joinable ? normalizeDiscordInviteUrl(request.getDiscordInviteUrl()) : null);
         boolean sharedWithFriends = Boolean.TRUE.equals(request.getSharedWithFriends()) || joinable;
         item.setSharedWithFriends(sharedWithFriends);
         item.setJoinable(joinable);
@@ -775,6 +812,25 @@ public class ScheduleService {
             return null;
         }
         return value.trim();
+    }
+
+    private String normalizeDiscordInviteUrl(String value) {
+        String normalized = normalize(value);
+        if (normalized == null || normalized.isBlank()) {
+            return null;
+        }
+        String lower = normalized.toLowerCase(Locale.ROOT);
+        boolean allowedPrefix = lower.startsWith("https://discord.gg/")
+                || lower.startsWith("https://www.discord.gg/")
+                || lower.startsWith("https://discord.com/invite/")
+                || lower.startsWith("https://www.discord.com/invite/");
+        if (!allowedPrefix) {
+            throw new IllegalArgumentException("Discord招待URLは https://discord.gg/... または https://discord.com/invite/... を指定してください。");
+        }
+        if (normalized.length() > 1000) {
+            throw new IllegalArgumentException("Discord招待URLは1000文字以内で入力してください。");
+        }
+        return normalized;
     }
 
     private String normalizeDeviceType(String value) {

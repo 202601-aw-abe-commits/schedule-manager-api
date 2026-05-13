@@ -26,6 +26,7 @@ public class ScheduleItem {
     private LocalTime startTime;
     private LocalTime endTime;
     private String description;
+    private String discordInviteUrl;
     private Boolean sharedWithFriends;
     private Boolean joinable;
     private Integer recruitmentLimit;
@@ -200,6 +201,14 @@ public class ScheduleItem {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getDiscordInviteUrl() {
+        return discordInviteUrl;
+    }
+
+    public void setDiscordInviteUrl(String discordInviteUrl) {
+        this.discordInviteUrl = discordInviteUrl;
     }
 
     public Boolean getSharedWithFriends() {

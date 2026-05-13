@@ -42,6 +42,7 @@ const topFriendFilterSelect = document.getElementById("topFriendFilterSelect");
 const form = document.getElementById("scheduleForm");
 const formTitle = document.getElementById("formTitle");
 const scheduleIdInput = document.getElementById("scheduleId");
+const discordInviteUrlHiddenInput = document.getElementById("discordInviteUrlHidden");
 const scheduleDateInput = document.getElementById("scheduleDate");
 const titleInput = document.getElementById("title");
 const voiceInputButton = document.getElementById("voiceInputButton");
@@ -166,6 +167,7 @@ form.addEventListener("submit", async (event) => {
         startTime: startTimeInput.value || null,
         endTime: endTimeInput.value || null,
         description: descriptionInput.value,
+        discordInviteUrl: discordInviteUrlHiddenInput ? (discordInviteUrlHiddenInput.value || null) : null,
         sharedWithFriends: sharedWithFriendsInput.checked,
         joinable: joinableInput.checked,
         messageShareable: joinableInput.checked && messageShareableInput.checked,
@@ -500,6 +502,18 @@ function renderScheduleList(schedules) {
 
             li.append(owner, title, deviceType, rankBand, completed, time, description);
 
+            if (item.discordInviteUrl && (item.editable || item.joinedByCurrentUser)) {
+                const inviteLinkWrap = document.createElement("p");
+                inviteLinkWrap.className = "schedule-priority";
+                const inviteLink = document.createElement("a");
+                inviteLink.href = item.discordInviteUrl;
+                inviteLink.target = "_blank";
+                inviteLink.rel = "noopener noreferrer";
+                inviteLink.textContent = "Discord招待URLを開く";
+                inviteLinkWrap.appendChild(inviteLink);
+                li.appendChild(inviteLinkWrap);
+            }
+
             if (item.joinable && item.messageShareable) {
                 const shareable = document.createElement("p");
                 shareable.className = "schedule-priority";
@@ -582,7 +596,18 @@ function renderScheduleList(schedules) {
                     }
                 });
 
-                actions.append(editButton, completeButton, deleteButton);
+                actions.append(editButton, completeButton);
+                if (item.joinable) {
+                    const inviteButton = document.createElement("button");
+                    inviteButton.type = "button";
+                    inviteButton.className = "secondary";
+                    inviteButton.textContent = "Discord招待URL";
+                    inviteButton.addEventListener("click", () => {
+                        window.location.href = `/schedules/${item.id}/discord-invite`;
+                    });
+                    actions.appendChild(inviteButton);
+                }
+                actions.append(deleteButton);
                 li.appendChild(actions);
             } else if (item.joinable && item.messageShareable) {
                 const shareActions = document.createElement("div");
@@ -928,6 +953,9 @@ function fillFormForEdit(item) {
     startTimeInput.value = toTimeInput(item.startTime);
     endTimeInput.value = toTimeInput(item.endTime);
     descriptionInput.value = item.description ?? "";
+    if (discordInviteUrlHiddenInput) {
+        discordInviteUrlHiddenInput.value = item.discordInviteUrl ?? "";
+    }
     sharedWithFriendsInput.checked = item.sharedWithFriends === true;
     joinableInput.checked = item.joinable === true;
     messageShareableInput.checked = item.messageShareable === true;
@@ -949,6 +977,9 @@ function resetFormForCreate() {
     startTimeInput.value = "";
     endTimeInput.value = "";
     descriptionInput.value = "";
+    if (discordInviteUrlHiddenInput) {
+        discordInviteUrlHiddenInput.value = "";
+    }
     sharedWithFriendsInput.checked = false;
     joinableInput.checked = false;
     messageShareableInput.checked = false;

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord招待URL設定 | ゲーム予定</title>
+    <link rel="stylesheet" href="/css/calendar.css">
+</head>
+<body th:style="${labelColorStyle}">
+<header class="page-hero">
+    <h1 th:text="${currentDisplayName + 'のゲームスケジュール'}"></h1>
+    <nav class="hero-nav" aria-label="メインメニュー">
+        <a href="/calendar" data-nav-badge="calendar" data-nav-label="トップ">トップ</a>
+        <a href="/board">募集掲示板</a>
+        <a href="/friends" data-nav-badge="friends" data-nav-label="フレンド">フレンド</a>
+        <a href="/profile">プロフィール</a>
+    </nav>
+</header>
+<form method="post" action="/logout" class="logout-floating">
+    <button type="submit">ログアウト</button>
+</form>
+
+<main class="app-shell friends-shell" th:attr="data-schedule-id=${scheduleId}">
+    <a href="/calendar" class="secondary auth-link-button join-top-link">← トップへ戻る</a>
+    <section class="schedule-pane">
+        <header class="join-page-header">
+            <h2 class="join-page-title">Discord招待URL設定</h2>
+        </header>
+
+        <section class="friend-section">
+            <h3 id="inviteDetailTitle">読み込み中...</h3>
+            <p id="inviteDetailMeta" class="help-text"></p>
+            <p class="help-text">参加募集のURLのみ登録できます。未入力にするとURLを解除できます。</p>
+        </section>
+
+        <section class="friend-section">
+            <form id="inviteForm" class="schedule-form">
+                <label for="discordInviteUrlInput">Discord招待URL</label>
+                <input id="discordInviteUrlInput" type="url" maxlength="1000"
+                       placeholder="https://discord.gg/... または https://discord.com/invite/...">
+                <div class="form-actions">
+                    <button type="submit" class="primary">保存</button>
+                </div>
+            </form>
+            <p id="inviteMessage" class="form-message" aria-live="polite"></p>
+        </section>
+    </section>
+</main>
+
+<script src="/js/theme.js"></script>
+<script src="/js/nav-badges.js"></script>
+<script src="/js/schedule-discord-invite.js"></script>
+</body>
+</html>

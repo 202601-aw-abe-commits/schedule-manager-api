@@ -2,6 +2,7 @@ package com.example.schedulemanager.controller;
 
 import com.example.schedulemanager.dto.ScheduleRequest;
 import com.example.schedulemanager.dto.ScheduleCsvImportResult;
+import com.example.schedulemanager.dto.ScheduleDiscordInviteRequest;
 import com.example.schedulemanager.dto.ScheduleJoinRequestCreateRequest;
 import com.example.schedulemanager.model.ScheduleItem;
 import com.example.schedulemanager.service.ScheduleService;
@@ -149,6 +150,22 @@ public class ScheduleApiController {
             @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(scheduleService.shareToFriends(id, userDetails.getUsername()));
+    }
+
+    @GetMapping("/{id}/discord-invite")
+    public ScheduleItem getDiscordInvite(
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return scheduleService.getOwnedJoinableSchedule(id, userDetails.getUsername());
+    }
+
+    @PutMapping("/{id}/discord-invite")
+    public ScheduleItem updateDiscordInvite(
+            @PathVariable("id") Long id,
+            @RequestBody(required = false) ScheduleDiscordInviteRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        String discordInviteUrl = request == null ? null : request.getDiscordInviteUrl();
+        return scheduleService.updateDiscordInviteUrl(id, userDetails.getUsername(), discordInviteUrl);
     }
 
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
