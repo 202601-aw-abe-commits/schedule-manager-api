@@ -89,6 +89,20 @@ public class FriendshipService {
         }
     }
 
+    @Transactional
+    public void deleteFriend(Long currentUserId, Long friendUserId) {
+        if (currentUserId == null || friendUserId == null) {
+            throw new IllegalArgumentException("削除対象が不正です。");
+        }
+        if (currentUserId.equals(friendUserId)) {
+            throw new IllegalArgumentException("自分自身は削除できません。");
+        }
+        int deleted = friendshipMapper.deleteAcceptedFriendship(currentUserId, friendUserId);
+        if (deleted == 0) {
+            throw new NoSuchElementException("削除対象のフレンド関係が見つかりません。");
+        }
+    }
+
     private String normalize(String value) {
         if (value == null) {
             return null;

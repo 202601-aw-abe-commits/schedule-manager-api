@@ -71,6 +71,33 @@ function renderFriendListWithNotification(list) {
         });
 
         li.appendChild(notifyButton);
+
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "secondary";
+        deleteButton.textContent = "削除";
+        deleteButton.addEventListener("click", async () => {
+            const displayName = friend.displayName || friend.username || "このユーザー";
+            const firstConfirm = window.confirm(`${displayName} をフレンド一覧から削除しますか？`);
+            if (!firstConfirm) {
+                return;
+            }
+            const secondConfirm = window.confirm("本当に削除しますか？この操作は取り消せません。");
+            if (!secondConfirm) {
+                return;
+            }
+            try {
+                await fetchJson(`/api/friends/${encodeURIComponent(friendId)}`, { method: "DELETE" });
+                friendMessage.style.color = "#087057";
+                friendMessage.textContent = `${displayName} を削除しました。`;
+                await loadFriendList();
+            } catch (error) {
+                friendMessage.style.color = "#be2f2f";
+                friendMessage.textContent = error.message;
+            }
+        });
+
+        li.appendChild(deleteButton);
         friendList.appendChild(li);
     });
 }

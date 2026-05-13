@@ -16,6 +16,7 @@
 - Joinable schedule supports Discord invite URL (`discord_invite_url`); owner updates it on `/schedules/{id}/discord-invite`, and participants/owner can use it from schedule card.
 - Join request supports optional game ID (`schedule_join_request.game_id`); requester can submit without it, and owner sees it with pending requests when provided.
 - Registration no longer accepts display name input; initial `display_name` is automatically set to the same value as `username`.
+- Friend list page supports deleting accepted friendships via `/api/friends/{friendUserId}` with two-step client confirmation.
 
 ## Project Structure & Module Organization
 - Main backend app lives in `src/main/java/com/example/schedulemanager`.

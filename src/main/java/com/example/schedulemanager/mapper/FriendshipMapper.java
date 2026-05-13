@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.Delete;
 
 @Mapper
 public interface FriendshipMapper {
@@ -79,6 +80,16 @@ public interface FriendshipMapper {
               AND status = 'PENDING'
             """)
     int acceptRequest(@Param("requestId") Long requestId, @Param("userId") Long userId);
+
+    @Delete("""
+            DELETE FROM friendship
+            WHERE status = 'ACCEPTED'
+              AND (
+                (requester_user_id = #{userId} AND addressee_user_id = #{friendUserId})
+                OR (requester_user_id = #{friendUserId} AND addressee_user_id = #{userId})
+              )
+            """)
+    int deleteAcceptedFriendship(@Param("userId") Long userId, @Param("friendUserId") Long friendUserId);
 
     @Select("""
             SELECT u.id, u.username, u.display_name

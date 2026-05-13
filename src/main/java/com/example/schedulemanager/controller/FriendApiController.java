@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -84,6 +85,15 @@ public class FriendApiController {
             @AuthenticationPrincipal UserDetails userDetails) {
         AppUser user = userAccountService.getByUsername(userDetails.getUsername());
         friendshipService.acceptRequest(user.getId(), requestId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{friendUserId}")
+    public ResponseEntity<Void> deleteFriend(
+            @PathVariable("friendUserId") Long friendUserId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        AppUser user = userAccountService.getByUsername(userDetails.getUsername());
+        friendshipService.deleteFriend(user.getId(), friendUserId);
         return ResponseEntity.noContent().build();
     }
 
