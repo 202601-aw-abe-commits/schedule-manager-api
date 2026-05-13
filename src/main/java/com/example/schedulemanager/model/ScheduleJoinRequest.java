@@ -11,6 +11,7 @@ public class ScheduleJoinRequest {
     private String requesterProfileIconColor;
     private Boolean requesterHasProfileImage;
     private String comment;
+    private String gameId;
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -31,6 +32,8 @@ public class ScheduleJoinRequest {
     public void setRequesterHasProfileImage(Boolean requesterHasProfileImage) { this.requesterHasProfileImage = requesterHasProfileImage; }
     public String getComment() { return comment; }
     public void setComment(String comment) { this.comment = comment; }
+    public String getGameId() { return gameId; }
+    public void setGameId(String gameId) { this.gameId = gameId; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public LocalDateTime getCreatedAt() { return createdAt; }

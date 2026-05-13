@@ -338,7 +338,7 @@ public interface ScheduleMapper {
     int countPendingJoinRequestsForOwner(@Param("ownerUserId") Long ownerUserId);
 
     @Select("""
-            SELECT id, schedule_item_id, requester_user_id, comment, status, created_at, updated_at
+            SELECT id, schedule_item_id, requester_user_id, comment, game_id, status, created_at, updated_at
             FROM schedule_join_request
             WHERE schedule_item_id = #{scheduleId}
               AND requester_user_id = #{requesterUserId}
@@ -353,7 +353,7 @@ public interface ScheduleMapper {
                    u.display_name AS requester_display_name,
                    u.profile_icon_color AS requester_profile_icon_color,
                    CASE WHEN u.profile_image_data IS NULL THEN FALSE ELSE TRUE END AS requester_has_profile_image,
-                   jr.comment, jr.status, jr.created_at, jr.updated_at
+                   jr.comment, jr.game_id, jr.status, jr.created_at, jr.updated_at
             FROM schedule_join_request jr
             JOIN app_user u ON u.id = jr.requester_user_id
             WHERE jr.schedule_item_id = #{scheduleId}
@@ -363,18 +363,20 @@ public interface ScheduleMapper {
     List<ScheduleJoinRequest> findPendingJoinRequestsBySchedule(@Param("scheduleId") Long scheduleId);
 
     @Insert("""
-            INSERT INTO schedule_join_request (schedule_item_id, requester_user_id, comment, status)
-            VALUES (#{scheduleId}, #{requesterUserId}, #{comment}, #{status})
+            INSERT INTO schedule_join_request (schedule_item_id, requester_user_id, comment, game_id, status)
+            VALUES (#{scheduleId}, #{requesterUserId}, #{comment}, #{gameId}, #{status})
             """)
     int insertJoinRequest(
             @Param("scheduleId") Long scheduleId,
             @Param("requesterUserId") Long requesterUserId,
             @Param("comment") String comment,
+            @Param("gameId") String gameId,
             @Param("status") String status);
 
     @Update("""
             UPDATE schedule_join_request
             SET comment = #{comment},
+                game_id = #{gameId},
                 status = #{status},
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = #{id}
@@ -382,6 +384,7 @@ public interface ScheduleMapper {
     int updateJoinRequest(
             @Param("id") Long id,
             @Param("comment") String comment,
+            @Param("gameId") String gameId,
             @Param("status") String status);
 
     @Update("""

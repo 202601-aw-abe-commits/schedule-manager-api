@@ -277,21 +277,23 @@ public class ScheduleService {
         }
 
         String comment = normalizeJoinRequestComment(request == null ? null : request.getComment());
+        String gameId = normalizeJoinRequestGameId(request == null ? null : request.getGameId());
         ScheduleJoinRequest existing = scheduleMapper.findJoinRequestByScheduleAndRequester(joinTarget.getId(), currentUser.getId());
         if (existing == null) {
-            scheduleMapper.insertJoinRequest(joinTarget.getId(), currentUser.getId(), comment, "PENDING");
+            scheduleMapper.insertJoinRequest(joinTarget.getId(), currentUser.getId(), comment, gameId, "PENDING");
         } else {
-            scheduleMapper.updateJoinRequest(existing.getId(), comment, "PENDING");
+            scheduleMapper.updateJoinRequest(existing.getId(), comment, gameId, "PENDING");
         }
         if (joinTarget.getOwnerUserId() != null && !joinTarget.getOwnerUserId().equals(currentUser.getId())) {
             String actorName = currentUser.getDisplayName() == null ? currentUser.getUsername() : currentUser.getDisplayName();
             String scheduleTitle = joinTarget.getTitle() == null ? "予定" : joinTarget.getTitle();
+            String idSuffix = gameId == null ? "" : "（ゲームID: " + gameId + "）";
             notificationEventService.publish(
                     joinTarget.getOwnerUserId(),
                     currentUser.getId(),
                     "SCHEDULE_JOIN_REQUEST",
                     "参加希望通知",
-                    actorName + " さんが「" + scheduleTitle + "」に参加希望を送信しました。");
+                    actorName + " さんが「" + scheduleTitle + "」に参加希望を送信しました。" + idSuffix);
         }
     }
 
@@ -887,6 +889,7 @@ public class ScheduleService {
             item.setJoinedByCurrentUser(false);
             item.setJoinRequestStatusForCurrentUser(null);
             item.setJoinRequestCommentForCurrentUser(null);
+            item.setJoinRequestGameIdForCurrentUser(null);
             item.setPendingJoinRequests(List.of());
             item.setParticipants(List.of());
             return;
@@ -902,6 +905,7 @@ public class ScheduleService {
         ScheduleJoinRequest ownRequest = scheduleMapper.findJoinRequestByScheduleAndRequester(participationScheduleId, viewerUserId);
         item.setJoinRequestStatusForCurrentUser(ownRequest == null ? null : ownRequest.getStatus());
         item.setJoinRequestCommentForCurrentUser(ownRequest == null ? null : ownRequest.getComment());
+        item.setJoinRequestGameIdForCurrentUser(ownRequest == null ? null : ownRequest.getGameId());
         if (viewerUserId.equals(participationTarget.getOwnerUserId())) {
             item.setPendingJoinRequests(scheduleMapper.findPendingJoinRequestsBySchedule(participationScheduleId));
         } else {
@@ -927,6 +931,17 @@ public class ScheduleService {
         }
         if (normalized.length() > 500) {
             throw new IllegalArgumentException("参加希望コメントは500文字以内で入力してください。");
+        }
+        return normalized;
+    }
+
+    private String normalizeJoinRequestGameId(String value) {
+        String normalized = normalize(value);
+        if (normalized == null || normalized.isBlank()) {
+            return null;
+        }
+        if (normalized.length() > 100) {
+            throw new IllegalArgumentException("ゲームIDは100文字以内で入力してください。");
         }
         return normalized;
     }
