@@ -87,4 +87,16 @@ public class FriendApiController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/users/{username}")
+    public Map<String, Object> findUserByUsername(
+            @PathVariable("username") String username,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        // Ensure caller is authenticated before lookup.
+        userAccountService.getByUsername(userDetails.getUsername());
+        AppUser target = userAccountService.getByUsername(username);
+        return Map.of(
+                "username", target.getUsername(),
+                "displayName", target.getDisplayName());
+    }
+
 }

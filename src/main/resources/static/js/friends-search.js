@@ -15,8 +15,16 @@ if (friendRequestForm) {
         }
 
         if (action === "search") {
-            window.location.href = `/friends/profile/${encodeURIComponent(username)}`;
-            return;
+            try {
+                const found = await fetchJson(`/api/friends/users/${encodeURIComponent(username)}`);
+                const resolvedUsername = found && found.username ? found.username : username;
+                window.location.href = `/friends/profile/${encodeURIComponent(resolvedUsername)}`;
+                return;
+            } catch (error) {
+                friendMessage.style.color = "#be2f2f";
+                friendMessage.textContent = "ユーザーが見つかりませんでした。";
+                return;
+            }
         }
 
         try {
