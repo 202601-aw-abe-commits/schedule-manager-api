@@ -42,7 +42,7 @@ const topFriendFilterSelect = document.getElementById("topFriendFilterSelect");
 const form = document.getElementById("scheduleForm");
 const formTitle = document.getElementById("formTitle");
 const scheduleIdInput = document.getElementById("scheduleId");
-const discordInviteUrlHiddenInput = document.getElementById("discordInviteUrlHidden");
+const discordInviteUrlInput = document.getElementById("discordInviteUrl");
 const scheduleDateInput = document.getElementById("scheduleDate");
 const titleInput = document.getElementById("title");
 const voiceInputButton = document.getElementById("voiceInputButton");
@@ -167,7 +167,7 @@ form.addEventListener("submit", async (event) => {
         startTime: startTimeInput.value || null,
         endTime: endTimeInput.value || null,
         description: descriptionInput.value,
-        discordInviteUrl: discordInviteUrlHiddenInput ? (discordInviteUrlHiddenInput.value || null) : null,
+        discordInviteUrl: discordInviteUrlInput ? (discordInviteUrlInput.value || null) : null,
         sharedWithFriends: sharedWithFriendsInput.checked,
         joinable: joinableInput.checked,
         messageShareable: joinableInput.checked && messageShareableInput.checked,
@@ -953,8 +953,8 @@ function fillFormForEdit(item) {
     startTimeInput.value = toTimeInput(item.startTime);
     endTimeInput.value = toTimeInput(item.endTime);
     descriptionInput.value = item.description ?? "";
-    if (discordInviteUrlHiddenInput) {
-        discordInviteUrlHiddenInput.value = item.discordInviteUrl ?? "";
+    if (discordInviteUrlInput) {
+        discordInviteUrlInput.value = item.discordInviteUrl ?? "";
     }
     sharedWithFriendsInput.checked = item.sharedWithFriends === true;
     joinableInput.checked = item.joinable === true;
@@ -977,8 +977,8 @@ function resetFormForCreate() {
     startTimeInput.value = "";
     endTimeInput.value = "";
     descriptionInput.value = "";
-    if (discordInviteUrlHiddenInput) {
-        discordInviteUrlHiddenInput.value = "";
+    if (discordInviteUrlInput) {
+        discordInviteUrlInput.value = "";
     }
     sharedWithFriendsInput.checked = false;
     joinableInput.checked = false;
@@ -1181,6 +1181,13 @@ function renderJoinAction(item) {
                 profileLink.textContent = `${request.requesterDisplayName || requesterUsername || "不明"}`;
                 name.appendChild(profileLink);
                 name.appendChild(document.createTextNode(`: ${request.comment || ""}`));
+                if (request.gameId) {
+                    const gameIdLabel = document.createElement("span");
+                    gameIdLabel.className = "help-text";
+                    gameIdLabel.textContent = `（ゲームID: ${request.gameId}）`;
+                    name.appendChild(document.createTextNode(" "));
+                    name.appendChild(gameIdLabel);
+                }
                 const approveButton = document.createElement("button");
                 approveButton.type = "button";
                 approveButton.className = "primary";
@@ -1265,6 +1272,9 @@ function syncJoinableOptions() {
         sharedWithFriendsInput.disabled = true;
         messageShareableInput.disabled = false;
         recruitmentLimitInput.disabled = false;
+        if (discordInviteUrlInput) {
+            discordInviteUrlInput.disabled = false;
+        }
         recruitmentLimitInput.required = true;
         return;
     }
@@ -1272,6 +1282,10 @@ function syncJoinableOptions() {
     messageShareableInput.checked = false;
     messageShareableInput.disabled = true;
     recruitmentLimitInput.disabled = true;
+    if (discordInviteUrlInput) {
+        discordInviteUrlInput.value = "";
+        discordInviteUrlInput.disabled = true;
+    }
     recruitmentLimitInput.required = false;
     recruitmentLimitInput.value = "";
 }

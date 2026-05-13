@@ -31,12 +31,18 @@
             <h3 id="joinDetailTitle">読み込み中...</h3>
             <p id="joinDetailMeta" class="help-text"></p>
             <p id="joinDetailDescription"></p>
+            <p id="joinDiscordInviteWrap" class="help-text" hidden>
+                Discord招待URL:
+                <a id="joinDiscordInviteLink" href="#" target="_blank" rel="noopener noreferrer">開く</a>
+            </p>
         </section>
 
         <section class="friend-section">
             <form id="joinRequestForm" class="schedule-form">
                 <label for="joinCommentInput">備考（参加希望コメント）</label>
                 <textarea id="joinCommentInput" rows="4" maxlength="500" placeholder="例: 21:00から参加できます" required></textarea>
+                <label for="joinGameIdInput">ゲームID（任意）</label>
+                <input id="joinGameIdInput" type="text" maxlength="100" placeholder="例: player#1234">
                 <div class="form-actions">
                     <button type="submit" class="primary">参加希望を送信</button>
                 </div>

@@ -88,7 +88,6 @@
                 <span class="profile-chip profile-chip-pink">FORM</span>
             </div>
             <input id="scheduleId" type="hidden">
-            <input id="discordInviteUrlHidden" type="hidden">
 
             <label for="scheduleDate">日付</label>
             <input id="scheduleDate" name="scheduleDate" type="date" required>
@@ -153,6 +152,10 @@
 
             <label for="recruitmentLimit">募集人数（あと何人参加できるか）</label>
             <input id="recruitmentLimit" name="recruitmentLimit" type="number" min="1" step="1" placeholder="例: 3">
+
+            <label for="discordInviteUrl">Discord招待URL（参加募集向け）</label>
+            <input id="discordInviteUrl" name="discordInviteUrl" type="url" maxlength="1000"
+                   placeholder="https://discord.gg/... または https://discord.com/invite/...">
 
             <p id="formMessage" class="form-message" aria-live="polite"></p>
 

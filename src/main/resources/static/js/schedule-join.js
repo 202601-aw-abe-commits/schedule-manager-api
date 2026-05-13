@@ -4,8 +4,11 @@ const scheduleId = Number(app?.dataset?.scheduleId || 0);
 const joinDetailTitle = document.getElementById("joinDetailTitle");
 const joinDetailMeta = document.getElementById("joinDetailMeta");
 const joinDetailDescription = document.getElementById("joinDetailDescription");
+const joinDiscordInviteWrap = document.getElementById("joinDiscordInviteWrap");
+const joinDiscordInviteLink = document.getElementById("joinDiscordInviteLink");
 const joinRequestForm = document.getElementById("joinRequestForm");
 const joinCommentInput = document.getElementById("joinCommentInput");
+const joinGameIdInput = document.getElementById("joinGameIdInput");
 const joinMessage = document.getElementById("joinMessage");
 
 if (joinRequestForm) {
@@ -16,7 +19,10 @@ if (joinRequestForm) {
             await fetchJson(`/api/schedules/${scheduleId}/join`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ comment: joinCommentInput.value })
+                body: JSON.stringify({
+                    comment: joinCommentInput.value,
+                    gameId: joinGameIdInput ? joinGameIdInput.value : null
+                })
             });
             joinMessage.style.color = "#087057";
             joinMessage.textContent = "参加希望を送信しました。";
@@ -66,15 +72,31 @@ function renderSchedule(item) {
     const end = item.endTime || "--:--";
     joinDetailMeta.textContent = `${date} ${start}-${end} | 作成者: ${owner}`;
     joinDetailDescription.textContent = item.description || "備考なし";
+    if (joinDiscordInviteWrap) {
+        joinDiscordInviteWrap.hidden = true;
+    }
 
     if (item.joinRequestStatusForCurrentUser === "PENDING" && item.joinRequestCommentForCurrentUser) {
         joinCommentInput.value = item.joinRequestCommentForCurrentUser;
+        if (joinGameIdInput) {
+            joinGameIdInput.value = item.joinRequestGameIdForCurrentUser || "";
+        }
         joinMessage.style.color = "#6c4a00";
         joinMessage.textContent = "参加希望は承認待ちです。了承されるとシェアできるようになります。";
     } else if (item.joinRequestStatusForCurrentUser === "APPROVED") {
+        if (joinGameIdInput) {
+            joinGameIdInput.value = item.joinRequestGameIdForCurrentUser || "";
+        }
+        if (item.discordInviteUrl && joinDiscordInviteWrap && joinDiscordInviteLink) {
+            joinDiscordInviteLink.href = item.discordInviteUrl;
+            joinDiscordInviteWrap.hidden = false;
+        }
         joinMessage.style.color = "#087057";
         joinMessage.textContent = "参加希望が了承されました。カレンダー画面からこの募集をシェアできます。";
     } else {
+        if (joinGameIdInput) {
+            joinGameIdInput.value = "";
+        }
         joinMessage.textContent = "";
     }
 }
