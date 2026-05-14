@@ -4,6 +4,8 @@ public class TaskCompletionRankingRow {
     private Long userId;
     private String username;
     private String displayName;
+    private String profileIconColor;
+    private Boolean hasProfileImage;
     private Integer rank;
     private Integer completedCount;
 
@@ -29,6 +31,22 @@ public class TaskCompletionRankingRow {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public String getProfileIconColor() {
+        return profileIconColor;
+    }
+
+    public void setProfileIconColor(String profileIconColor) {
+        this.profileIconColor = profileIconColor;
+    }
+
+    public Boolean getHasProfileImage() {
+        return hasProfileImage;
+    }
+
+    public void setHasProfileImage(Boolean hasProfileImage) {
+        this.hasProfileImage = hasProfileImage;
     }
 
     public Integer getRank() {

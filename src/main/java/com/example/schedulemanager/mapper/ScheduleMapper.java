@@ -448,9 +448,11 @@ public interface ScheduleMapper {
 
     @Select({
             "<script>",
-            "SELECT ranked.user_id AS user_id, ranked.username, ranked.display_name, ranked.rank_no AS rank, ranked.completed_count",
+            "SELECT ranked.user_id AS user_id, ranked.username, ranked.display_name, ranked.profile_icon_color, ranked.has_profile_image,",
+            "       ranked.rank_no AS rank, ranked.completed_count",
             "FROM (",
-            "  SELECT u.id AS user_id, u.username, u.display_name,",
+            "  SELECT u.id AS user_id, u.username, u.display_name, u.profile_icon_color,",
+            "         CASE WHEN u.profile_image_data IS NULL THEN FALSE ELSE TRUE END AS has_profile_image,",
             "         COALESCE(c.completed_count, 0) AS completed_count,",
             "         RANK() OVER (ORDER BY COALESCE(c.completed_count, 0) DESC, u.id ASC) AS rank_no",
             "  FROM app_user u",

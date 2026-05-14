@@ -201,6 +201,8 @@ public class GamificationService {
             item.put("id", row.getUserId());
             item.put("username", row.getUsername());
             item.put("displayName", row.getDisplayName());
+            item.put("profileIconColor", row.getProfileIconColor());
+            item.put("hasProfileImage", Boolean.TRUE.equals(row.getHasProfileImage()));
             item.put("completedCount", completedCount);
             item.put("progressPercent", Math.min(100, Math.max(0, percent)));
             item.put("avatarInitial", extractAvatarInitial(row.getDisplayName(), row.getUsername()));

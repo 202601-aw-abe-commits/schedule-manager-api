@@ -288,9 +288,14 @@ function renderLevelRanking(rankingRows) {
         medal.className = "ranking-medal";
         medal.textContent = medalText(row.rank);
 
-        const avatar = document.createElement("div");
+        const avatar = document.createElement("img");
         avatar.className = "ranking-avatar";
-        avatar.textContent = (row.avatarInitial || "?").slice(0, 1);
+        avatar.alt = `${row.displayName || row.username || "ユーザー"} のプロフィール画像`;
+        avatar.loading = "lazy";
+        avatar.src = resolveRankingAvatarUrl(row);
+        avatar.addEventListener("error", () => {
+            avatar.src = buildDefaultProfileDataUrl(row.profileIconColor);
+        });
 
         const body = document.createElement("div");
         body.className = "ranking-body";
@@ -349,6 +354,28 @@ function formatDateTime(value) {
     const h = String(date.getHours()).padStart(2, "0");
     const min = String(date.getMinutes()).padStart(2, "0");
     return `${y}-${m}-${d} ${h}:${min}`;
+}
+
+function resolveRankingAvatarUrl(row) {
+    const userId = Number(row.id);
+    if (row.hasProfileImage && Number.isFinite(userId) && userId > 0) {
+        return `/api/users/${userId}/profile-image`;
+    }
+    return buildDefaultProfileDataUrl(row.profileIconColor);
+}
+
+function buildDefaultProfileDataUrl(color) {
+    const fill = normalizeColorValue(color);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="default profile"><rect width="100" height="100" fill="${fill}"/><circle cx="50" cy="36" r="18" fill="#ffffff"/><path d="M18 86c0-17.7 14.3-32 32-32s32 14.3 32 32v14H18z" fill="#ffffff"/></svg>`;
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function normalizeColorValue(color) {
+    const value = String(color || "").trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(value)) {
+        return value;
+    }
+    return "#BFD6FF";
 }
 
 async function fetchJson(url, options = {}) {

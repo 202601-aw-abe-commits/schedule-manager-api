@@ -1192,11 +1192,9 @@ a.board-entry-card[href="/friends/requests"] {
     height: 30px;
     border-radius: 999px;
     background: #dce9ff;
-    color: #204181;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
+    display: block;
+    object-fit: cover;
+    overflow: hidden;
 }
 
 .ranking-title {
