@@ -36,8 +36,24 @@
         <p th:if="${!isSelf and isFriend}">このユーザーはフレンドです。</p>
         <p th:if="${!isSelf and !isFriend and !canSendRequest}">すでにフレンド申請済み、または関係が存在します。</p>
         <p th:text="${friend.profileBio != null && !friend.profileBio.isBlank() ? friend.profileBio : '自己紹介は未設定です。'}"></p>
-        <p><strong>配信URL:</strong> <span th:text="${friend.streamUrl != null ? friend.streamUrl : '未設定'}"></span></p>
-        <p><strong>X URL:</strong> <span th:text="${friend.xUrl != null ? friend.xUrl : '未設定'}"></span></p>
+        <p>
+            <strong>配信URL:</strong>
+            <a th:if="${friend.streamUrl != null && !friend.streamUrl.isBlank()}"
+               th:href="${friend.streamUrl}"
+               th:text="${friend.streamUrl}"
+               target="_blank"
+               rel="noopener noreferrer"></a>
+            <span th:if="${friend.streamUrl == null || friend.streamUrl.isBlank()}">未設定</span>
+        </p>
+        <p>
+            <strong>X URL:</strong>
+            <a th:if="${friend.xUrl != null && !friend.xUrl.isBlank()}"
+               th:href="${friend.xUrl}"
+               th:text="${friend.xUrl}"
+               target="_blank"
+               rel="noopener noreferrer"></a>
+            <span th:if="${friend.xUrl == null || friend.xUrl.isBlank()}">未設定</span>
+        </p>
         <p><a href="/friends">フレンド一覧に戻る</a></p>
     </section>
 </main>
