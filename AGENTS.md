@@ -18,6 +18,7 @@
 - Registration no longer accepts display name input; initial `display_name` is automatically set to the same value as `username`.
 - Friend list page supports deleting accepted friendships via `/api/friends/{friendUserId}` with two-step client confirmation.
 - Friend profile page (`/friends/profile/{username}`) displays `X URL` and `配信URL` as clickable links (open in new tab) when set.
+- Friend list page (`/friends/list`) avatar uses each user's configured profile image when available; otherwise falls back to color-based default icon.
 
 ## Project Structure & Module Organization
 - Main backend app lives in `src/main/java/com/example/schedulemanager`.

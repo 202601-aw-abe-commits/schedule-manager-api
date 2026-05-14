@@ -92,7 +92,11 @@ public interface FriendshipMapper {
     int deleteAcceptedFriendship(@Param("userId") Long userId, @Param("friendUserId") Long friendUserId);
 
     @Select("""
-            SELECT u.id, u.username, u.display_name
+            SELECT u.id,
+                   u.username,
+                   u.display_name,
+                   u.profile_icon_color,
+                   CASE WHEN u.profile_image_data IS NULL THEN FALSE ELSE TRUE END AS has_profile_image
             FROM app_user u
             WHERE u.id IN (
                 SELECT CASE

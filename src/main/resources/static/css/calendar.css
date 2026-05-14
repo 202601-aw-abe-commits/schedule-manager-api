@@ -887,6 +887,11 @@ a.board-entry-card[href="/friends/requests"] {
     border: 1px solid #b9d8ff;
 }
 
+.dm-avatar-image {
+    display: block;
+    object-fit: cover;
+}
+
 .dm-conversation-body {
     min-width: 0;
     flex: 1;

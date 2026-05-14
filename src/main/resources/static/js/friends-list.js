@@ -33,9 +33,14 @@ function renderFriendListWithNotification(list) {
         profileLink.href = `/friends/profile/${encodeURIComponent(friend.username || "")}`;
         profileLink.className = "friend-list-link";
 
-        const avatar = document.createElement("div");
-        avatar.className = "dm-avatar";
-        avatar.textContent = extractInitial(friend.displayName, friend.username);
+        const avatar = document.createElement("img");
+        avatar.className = "dm-avatar dm-avatar-image";
+        avatar.alt = `${friend.displayName || friend.username || "ユーザー"} のプロフィール画像`;
+        avatar.loading = "lazy";
+        avatar.src = resolveFriendAvatarUrl(friend);
+        avatar.addEventListener("error", () => {
+            avatar.src = buildDefaultProfileDataUrl(friend.profileIconColor);
+        });
 
         const label = document.createElement("div");
         label.className = "friend-list-label";
@@ -102,9 +107,26 @@ function renderFriendListWithNotification(list) {
     });
 }
 
-function extractInitial(displayName, username) {
-    const source = String(displayName || username || "?").trim();
-    return source ? source.slice(0, 1) : "?";
+function resolveFriendAvatarUrl(friend) {
+    const friendId = Number(friend.id);
+    if (friend.hasProfileImage && Number.isFinite(friendId) && friendId > 0) {
+        return `/api/users/${friendId}/profile-image`;
+    }
+    return buildDefaultProfileDataUrl(friend.profileIconColor);
+}
+
+function buildDefaultProfileDataUrl(color) {
+    const fill = normalizeColorValue(color);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="default profile"><rect width="100" height="100" fill="${fill}"/><circle cx="50" cy="36" r="18" fill="#ffffff"/><path d="M18 86c0-17.7 14.3-32 32-32s32 14.3 32 32v14H18z" fill="#ffffff"/></svg>`;
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function normalizeColorValue(color) {
+    const value = String(color || "").trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(value)) {
+        return value;
+    }
+    return "#BFD6FF";
 }
 
 async function fetchJson(url, options = {}) {
