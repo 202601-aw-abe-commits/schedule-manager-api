@@ -21,7 +21,7 @@ async function loadFriendList() {
 function renderFriendListWithNotification(list) {
     friendList.innerHTML = "";
     if (!Array.isArray(list) || list.length === 0) {
-        friendList.innerHTML = "<li>フレンドはまだいません。</li>";
+        friendList.innerHTML = "<li class=\"friend-card-empty\">フレンドはまだいません。</li>";
         return;
     }
 
@@ -33,6 +33,9 @@ function renderFriendListWithNotification(list) {
         profileLink.href = `/friends/profile/${encodeURIComponent(friend.username || "")}`;
         profileLink.className = "friend-list-link";
 
+        const avatarWrap = document.createElement("div");
+        avatarWrap.className = "friend-avatar-wrap";
+
         const avatar = document.createElement("img");
         avatar.className = "dm-avatar dm-avatar-image";
         avatar.alt = `${friend.displayName || friend.username || "ユーザー"} のプロフィール画像`;
@@ -42,13 +45,27 @@ function renderFriendListWithNotification(list) {
             avatar.src = buildDefaultProfileDataUrl(friend.profileIconColor);
         });
 
+        const info = document.createElement("div");
+        info.className = "friend-list-info";
+
         const label = document.createElement("div");
         label.className = "friend-list-label";
-        label.textContent = `${friend.displayName} (@${friend.username})`;
+        label.textContent = `${friend.displayName || friend.username}`;
 
-        profileLink.appendChild(avatar);
-        profileLink.appendChild(label);
+        const username = document.createElement("div");
+        username.className = "friend-list-username";
+        username.textContent = `@${friend.username || ""}`;
+
+        avatarWrap.appendChild(avatar);
+        info.appendChild(label);
+        info.appendChild(username);
+
+        profileLink.appendChild(avatarWrap);
+        profileLink.appendChild(info);
         li.appendChild(profileLink);
+
+        const controls = document.createElement("div");
+        controls.className = "friend-card-controls";
 
         const notifyButton = document.createElement("button");
         notifyButton.type = "button";
@@ -75,7 +92,7 @@ function renderFriendListWithNotification(list) {
             }
         });
 
-        li.appendChild(notifyButton);
+        controls.appendChild(notifyButton);
 
         const deleteButton = document.createElement("button");
         deleteButton.type = "button";
@@ -102,7 +119,8 @@ function renderFriendListWithNotification(list) {
             }
         });
 
-        li.appendChild(deleteButton);
+        controls.appendChild(deleteButton);
+        li.appendChild(controls);
         friendList.appendChild(li);
     });
 }

@@ -1078,6 +1078,78 @@ a.board-entry-card[href="/friends/requests"] {
     text-overflow: ellipsis;
 }
 
+.friends-list-page .friend-list-section {
+    padding: 16px;
+}
+
+.friends-list-page .friend-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+    min-height: 140px;
+}
+
+.friends-list-page .friend-list-item {
+    border: 1px solid #5f7dff66;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #4f59be66 0%, #6668ca66 100%);
+    padding: 10px 12px;
+    gap: 12px;
+}
+
+.friends-list-page .friend-list-link {
+    flex: 1;
+    min-width: 0;
+}
+
+.friends-list-page .friend-avatar-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.friends-list-page .friend-list-info {
+    min-width: 0;
+}
+
+.friends-list-page .friend-list-label {
+    color: #f4f7ff;
+    font-size: 1.04rem;
+    margin-bottom: 2px;
+}
+
+.friends-list-page .friend-list-username {
+    color: #d3dcff;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.friends-list-page .friend-card-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.friends-list-page .mini-list button {
+    margin-top: 0;
+    font-size: 0.76rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 5px 10px;
+}
+
+.friends-list-page .friend-card-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #eaf1ff;
+    min-height: 120px;
+}
+
 .friend-profile-image {
     width: 120px;
     max-width: 40vw;
@@ -1812,6 +1884,15 @@ a.auth-link-button:active,
 
     .mini-list li button {
         margin-left: 0;
+    }
+
+    .friends-list-page .friend-list-item {
+        flex-wrap: wrap;
+    }
+
+    .friends-list-page .friend-card-controls {
+        width: 100%;
+        justify-content: flex-start;
     }
 }
 

@@ -6,7 +6,7 @@
     <title>フレンド一覧 | ゲーム予定</title>
     <link rel="stylesheet" href="/css/calendar.css">
 </head>
-<body th:style="${labelColorStyle}">
+<body th:style="${labelColorStyle}" class="friends-list-page">
 <header class="page-hero">
     <h1 th:text="${currentDisplayName + 'のフレンド'}"></h1>
     <nav class="hero-nav" aria-label="メインメニュー">
@@ -25,8 +25,8 @@
         <header>
             <h2>フレンド一覧</h2>
         </header>
-        <section class="friend-section">
-            <ul id="friendList" class="mini-list"></ul>
+        <section class="friend-section friend-list-section">
+            <ul id="friendList" class="mini-list friend-card-grid"></ul>
             <p id="friendMessage" class="form-message" aria-live="polite"></p>
         </section>
     </section>
