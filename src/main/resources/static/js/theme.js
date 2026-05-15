@@ -1,6 +1,7 @@
 (function () {
     const STORAGE_KEY = "themeMode";
     const DARK_CLASS = "dark-mode";
+    const BACKGROUND_IMAGE_COUNT = 2;
 
     function applyTheme(mode) {
         const isDark = mode === "dark";
@@ -35,7 +36,25 @@
         document.body.appendChild(button);
     }
 
+    function buildBackgroundImageList() {
+        return Array.from({ length: BACKGROUND_IMAGE_COUNT }, (_, index) => {
+            return `/img/backgrounds/bg-${index + 1}.png`;
+        });
+    }
+
+    function applyRandomBackground() {
+        const backgroundImages = buildBackgroundImageList();
+        if (!backgroundImages.length) {
+            return;
+        }
+        const randomIndex = Math.floor(Math.random() * backgroundImages.length);
+        const selected = backgroundImages[randomIndex];
+        document.body.style.setProperty("--random-bg-image", `url("${selected}")`);
+        document.body.classList.add("random-bg-enabled");
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
+        applyRandomBackground();
         buildToggleButton();
         applyTheme(currentTheme());
     });

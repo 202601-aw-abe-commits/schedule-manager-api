@@ -29,10 +29,22 @@ body {
     font-family: "Avenir Next", "Hiragino Sans", "Yu Gothic", sans-serif;
     color: var(--ink);
     background: var(--bg);
+    background-image: var(--bg);
+    background-size: cover;
+    background-position: center;
     background-attachment: fixed;
     text-shadow: none;
     position: relative;
     overflow-x: hidden;
+}
+
+body.random-bg-enabled {
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.62)),
+        var(--bg),
+        var(--random-bg-image);
+    background-size: auto, auto, cover;
+    background-position: center, center, center;
 }
 
 .page-hero,
