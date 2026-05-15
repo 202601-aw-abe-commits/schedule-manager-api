@@ -1,7 +1,7 @@
 (function () {
     const STORAGE_KEY = "themeMode";
     const DARK_CLASS = "dark-mode";
-    const BACKGROUND_IMAGE_COUNT = 2;
+    const BACKGROUND_IMAGE_COUNT = 4;
 
     function applyTheme(mode) {
         const isDark = mode === "dark";
