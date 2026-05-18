@@ -68,6 +68,13 @@ const friendSharePickerApplyButton = document.getElementById("friendSharePickerA
 const friendSharePickerCancelButton = document.getElementById("friendSharePickerCancelButton");
 const messageShareableInput = document.getElementById("messageShareable");
 const recruitmentLimitInput = document.getElementById("recruitmentLimit");
+const presetParticipantsSection = document.getElementById("presetParticipantsSection");
+const presetParticipantInputModeFriend = document.getElementById("presetParticipantInputModeFriend");
+const presetParticipantInputModeManual = document.getElementById("presetParticipantInputModeManual");
+const presetParticipantFriendBlock = document.getElementById("presetParticipantFriendBlock");
+const presetParticipantManualBlock = document.getElementById("presetParticipantManualBlock");
+const presetParticipantFriendsInput = document.getElementById("presetParticipantFriends");
+const presetParticipantNamesInput = document.getElementById("presetParticipantNames");
 const formMessage = document.getElementById("formMessage");
 const csvImportForm = document.getElementById("csvImportForm");
 const csvImportFileInput = document.getElementById("csvImportFile");
@@ -154,6 +161,12 @@ friendSharePickerApplyButton.addEventListener("click", () => {
 friendSharePickerCancelButton.addEventListener("click", () => {
     closeFriendSharePickerScreen();
 });
+if (presetParticipantInputModeFriend) {
+    presetParticipantInputModeFriend.addEventListener("change", () => syncPresetParticipantInputMode());
+}
+if (presetParticipantInputModeManual) {
+    presetParticipantInputModeManual.addEventListener("change", () => syncPresetParticipantInputMode());
+}
 
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -171,7 +184,9 @@ form.addEventListener("submit", async (event) => {
         sharedWithFriends: sharedWithFriendsInput.checked,
         joinable: joinableInput.checked,
         messageShareable: joinableInput.checked && messageShareableInput.checked,
-        recruitmentLimit: parseRecruitmentLimit()
+        recruitmentLimit: parseRecruitmentLimit(),
+        preselectedParticipantUserIds: parsePreselectedParticipantUserIds(),
+        preselectedParticipantNames: parsePreselectedParticipantNames()
     };
     if (joinableInput.checked && friendShareScopeSelectedInput.checked && state.selectedFriendShareUserIds.size === 0) {
         formMessage.style.color = "#be2f2f";
@@ -960,6 +975,14 @@ function fillFormForEdit(item) {
     joinableInput.checked = item.joinable === true;
     messageShareableInput.checked = item.messageShareable === true;
     recruitmentLimitInput.value = item.recruitmentLimit ?? "";
+    if (presetParticipantFriendsInput) {
+        Array.from(presetParticipantFriendsInput.options).forEach((opt) => {
+            opt.selected = false;
+        });
+    }
+    if (presetParticipantNamesInput) {
+        presetParticipantNamesInput.value = "";
+    }
     syncJoinableOptions();
     formMessage.style.color = "#087057";
     formMessage.textContent = "編集モードです。内容を更新して保存してください。";
@@ -984,6 +1007,14 @@ function resetFormForCreate() {
     joinableInput.checked = false;
     messageShareableInput.checked = false;
     recruitmentLimitInput.value = "";
+    if (presetParticipantFriendsInput) {
+        Array.from(presetParticipantFriendsInput.options).forEach((opt) => {
+            opt.selected = false;
+        });
+    }
+    if (presetParticipantNamesInput) {
+        presetParticipantNamesInput.value = "";
+    }
     syncJoinableOptions();
     formMessage.textContent = "";
 }
@@ -1275,6 +1306,7 @@ function syncJoinableOptions() {
         if (discordInviteUrlInput) {
             discordInviteUrlInput.disabled = false;
         }
+        syncPresetParticipantInputMode();
         recruitmentLimitInput.required = true;
         return;
     }
@@ -1286,6 +1318,15 @@ function syncJoinableOptions() {
         discordInviteUrlInput.value = "";
         discordInviteUrlInput.disabled = true;
     }
+    if (presetParticipantFriendsInput) {
+        Array.from(presetParticipantFriendsInput.options).forEach((opt) => {
+            opt.selected = false;
+        });
+    }
+    if (presetParticipantNamesInput) {
+        presetParticipantNamesInput.value = "";
+    }
+    syncPresetParticipantInputMode();
     recruitmentLimitInput.required = false;
     recruitmentLimitInput.value = "";
 }
@@ -1299,6 +1340,25 @@ function parseRecruitmentLimit() {
         return null;
     }
     return Number.parseInt(value, 10);
+}
+
+function parsePreselectedParticipantUserIds() {
+    if (!presetParticipantFriendsInput || !isPresetParticipantFriendMode()) {
+        return [];
+    }
+    return Array.from(presetParticipantFriendsInput.selectedOptions)
+        .map((opt) => Number.parseInt(opt.value, 10))
+        .filter((id) => Number.isInteger(id) && id > 0);
+}
+
+function parsePreselectedParticipantNames() {
+    if (!presetParticipantNamesInput || isPresetParticipantFriendMode()) {
+        return [];
+    }
+    return String(presetParticipantNamesInput.value || "")
+        .split("\n")
+        .map((name) => name.trim())
+        .filter((name) => name.length > 0);
 }
 
 function initializeVoiceInput() {
@@ -1923,6 +1983,11 @@ async function initializeCalendarPage() {
     syncReminderTimer();
     resetFormForCreate();
     try {
+        await loadPresetParticipantFriendOptions();
+    } catch (error) {
+        // 取得失敗時も手入力で登録できるようにする。
+    }
+    try {
         await loadTitleSuggestions();
     } catch (error) {
         // 候補取得失敗時も入力は可能にする。
@@ -1980,4 +2045,33 @@ function base64UrlToUint8Array(base64UrlString) {
         output[i] = raw.charCodeAt(i);
     }
     return output;
+}
+
+function isPresetParticipantFriendMode() {
+    return !presetParticipantInputModeManual || presetParticipantInputModeManual.checked !== true;
+}
+
+function syncPresetParticipantInputMode() {
+    const friendMode = isPresetParticipantFriendMode();
+    if (presetParticipantFriendBlock) {
+        presetParticipantFriendBlock.hidden = !friendMode;
+    }
+    if (presetParticipantManualBlock) {
+        presetParticipantManualBlock.hidden = friendMode;
+    }
+}
+
+async function loadPresetParticipantFriendOptions() {
+    if (!presetParticipantFriendsInput) {
+        return;
+    }
+    const data = await fetchJson("/api/friends");
+    const friends = Array.isArray(data && data.friends) ? data.friends : [];
+    presetParticipantFriendsInput.innerHTML = "";
+    friends.forEach((friend) => {
+        const option = document.createElement("option");
+        option.value = String(friend.id || "");
+        option.textContent = friend.displayName || friend.username || "不明";
+        presetParticipantFriendsInput.appendChild(option);
+    });
 }

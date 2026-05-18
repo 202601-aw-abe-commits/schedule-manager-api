@@ -1,5 +1,7 @@
 package com.example.schedulemanager.dto;
 
+import java.util.List;
+
 public class ScheduleRequest {
     private String scheduleDate;
     private String deviceType;
@@ -13,6 +15,8 @@ public class ScheduleRequest {
     private Boolean joinable;
     private Boolean messageShareable;
     private Integer recruitmentLimit;
+    private List<Long> preselectedParticipantUserIds;
+    private List<String> preselectedParticipantNames;
 
     public String getScheduleDate() {
         return scheduleDate;
@@ -108,5 +112,21 @@ public class ScheduleRequest {
 
     public void setRecruitmentLimit(Integer recruitmentLimit) {
         this.recruitmentLimit = recruitmentLimit;
+    }
+
+    public List<Long> getPreselectedParticipantUserIds() {
+        return preselectedParticipantUserIds;
+    }
+
+    public void setPreselectedParticipantUserIds(List<Long> preselectedParticipantUserIds) {
+        this.preselectedParticipantUserIds = preselectedParticipantUserIds;
+    }
+
+    public List<String> getPreselectedParticipantNames() {
+        return preselectedParticipantNames;
+    }
+
+    public void setPreselectedParticipantNames(List<String> preselectedParticipantNames) {
+        this.preselectedParticipantNames = preselectedParticipantNames;
     }
 }

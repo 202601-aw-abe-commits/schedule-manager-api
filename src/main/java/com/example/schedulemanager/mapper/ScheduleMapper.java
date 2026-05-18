@@ -291,6 +291,13 @@ public interface ScheduleMapper {
     int countParticipants(@Param("scheduleId") Long scheduleId);
 
     @Select("""
+            SELECT COUNT(*)
+            FROM schedule_manual_participant
+            WHERE schedule_item_id = #{scheduleId}
+            """)
+    int countManualParticipants(@Param("scheduleId") Long scheduleId);
+
+    @Select("""
             SELECT COUNT(*) > 0
             FROM schedule_participant
             WHERE schedule_item_id = #{scheduleId}
@@ -315,6 +322,12 @@ public interface ScheduleMapper {
             """)
     int insertParticipant(@Param("scheduleId") Long scheduleId, @Param("userId") Long userId);
 
+    @Insert("""
+            INSERT INTO schedule_manual_participant (schedule_item_id, participant_name)
+            VALUES (#{scheduleId}, #{participantName})
+            """)
+    int insertManualParticipant(@Param("scheduleId") Long scheduleId, @Param("participantName") String participantName);
+
     @Delete("""
             DELETE FROM schedule_participant
             WHERE schedule_item_id = #{scheduleId}
@@ -322,11 +335,25 @@ public interface ScheduleMapper {
     int deleteAllParticipantsBySchedule(@Param("scheduleId") Long scheduleId);
 
     @Delete("""
+            DELETE FROM schedule_manual_participant
+            WHERE schedule_item_id = #{scheduleId}
+            """)
+    int deleteManualParticipantsBySchedule(@Param("scheduleId") Long scheduleId);
+
+    @Delete("""
             DELETE FROM schedule_participant
             WHERE schedule_item_id = #{scheduleId}
               AND participant_user_id = #{userId}
             """)
     int deleteParticipant(@Param("scheduleId") Long scheduleId, @Param("userId") Long userId);
+
+    @Select("""
+            SELECT participant_name
+            FROM schedule_manual_participant
+            WHERE schedule_item_id = #{scheduleId}
+            ORDER BY created_at, id
+            """)
+    List<String> findManualParticipantNames(@Param("scheduleId") Long scheduleId);
 
     @Select("""
             SELECT COUNT(*)

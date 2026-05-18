@@ -4,9 +4,11 @@ import com.example.schedulemanager.dto.ScheduleRequest;
 import com.example.schedulemanager.dto.ScheduleCsvImportError;
 import com.example.schedulemanager.dto.ScheduleCsvImportResult;
 import com.example.schedulemanager.dto.ScheduleJoinRequestCreateRequest;
+import com.example.schedulemanager.mapper.FriendshipMapper;
 import com.example.schedulemanager.mapper.ScheduleMapper;
 import com.example.schedulemanager.mapper.UserMapper;
 import com.example.schedulemanager.model.AppUser;
+import com.example.schedulemanager.model.FriendUser;
 import com.example.schedulemanager.model.ScheduleItem;
 import com.example.schedulemanager.model.ScheduleJoinRequest;
 import java.io.BufferedReader;
@@ -24,6 +26,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,6 +39,7 @@ public class ScheduleService {
             "description", "sharedWithFriends", "joinable", "messageShareable", "recruitmentLimit");
 
     private final ScheduleMapper scheduleMapper;
+    private final FriendshipMapper friendshipMapper;
     private final UserMapper userMapper;
     private final GamificationService gamificationService;
     private final NotificationEventService notificationEventService;
@@ -42,11 +47,13 @@ public class ScheduleService {
 
     public ScheduleService(
             ScheduleMapper scheduleMapper,
+            FriendshipMapper friendshipMapper,
             UserMapper userMapper,
             GamificationService gamificationService,
             NotificationEventService notificationEventService,
             FriendNotificationPreferenceService friendNotificationPreferenceService) {
         this.scheduleMapper = scheduleMapper;
+        this.friendshipMapper = friendshipMapper;
         this.userMapper = userMapper;
         this.gamificationService = gamificationService;
         this.notificationEventService = notificationEventService;
@@ -203,10 +210,13 @@ public class ScheduleService {
     public ScheduleItem create(ScheduleRequest request, String currentUsername) {
         AppUser currentUser = getCurrentUser(currentUsername);
         ScheduleItem item = fromRequest(request);
+        PresetParticipants presetParticipants = normalizePresetParticipants(request, currentUser.getId());
+        validatePresetParticipantsForRecruitment(item, presetParticipants);
         item.setOwnerUserId(currentUser.getId());
         item.setCompleted(false);
         item.setCompletedAt(null);
         scheduleMapper.insert(item);
+        applyPresetParticipants(item, currentUser, presetParticipants);
         ScheduleItem created = scheduleMapper.findVisibleById(item.getId(), currentUser.getId());
         gamificationService.awardScheduleCreated(currentUser.getId(), created.getTitle(), created.getId());
         decorateForViewer(created, currentUser.getId());
@@ -224,7 +234,7 @@ public class ScheduleService {
 
         ScheduleItem item = fromRequest(request);
         if (Boolean.TRUE.equals(item.getJoinable()) && item.getRecruitmentLimit() != null) {
-            int currentParticipants = scheduleMapper.countParticipants(id);
+            int currentParticipants = totalParticipantCount(id);
             if (item.getRecruitmentLimit() < currentParticipants) {
                 throw new IllegalArgumentException("募集人数は現在の参加者数以上にしてください。");
             }
@@ -237,6 +247,7 @@ public class ScheduleService {
         }
         if (!Boolean.TRUE.equals(item.getJoinable())) {
             scheduleMapper.deleteAllParticipantsBySchedule(id);
+            scheduleMapper.deleteManualParticipantsBySchedule(id);
             scheduleMapper.deleteJoinRequestsBySchedule(id);
         }
 
@@ -255,6 +266,7 @@ public class ScheduleService {
         }
 
         scheduleMapper.deleteAllParticipantsBySchedule(id);
+        scheduleMapper.deleteManualParticipantsBySchedule(id);
         scheduleMapper.deleteJoinRequestsBySchedule(id);
         int deletedCount = scheduleMapper.delete(id, currentUser.getId());
         if (deletedCount == 0) {
@@ -272,7 +284,7 @@ public class ScheduleService {
         if (scheduleMapper.existsParticipant(joinTarget.getId(), currentUser.getId())) {
             throw new IllegalArgumentException("すでに参加しています。");
         }
-        if (isRecruitmentClosed(joinTarget, scheduleMapper.countParticipants(joinTarget.getId()))) {
+        if (isRecruitmentClosed(joinTarget, totalParticipantCount(joinTarget.getId()))) {
             throw new IllegalArgumentException("この募集は締め切られています。");
         }
 
@@ -326,7 +338,7 @@ public class ScheduleService {
                 .orElseThrow(() -> new NoSuchElementException("参加希望が見つかりません。"));
 
         if (approve) {
-            if (isRecruitmentClosed(owned, scheduleMapper.countParticipants(scheduleId))) {
+            if (isRecruitmentClosed(owned, totalParticipantCount(scheduleId))) {
                 throw new IllegalArgumentException("この募集は締め切られているため承認できません。");
             }
             if (!scheduleMapper.existsParticipant(scheduleId, target.getRequesterUserId())) {
@@ -896,12 +908,15 @@ public class ScheduleService {
         }
         ScheduleItem participationTarget = resolveJoinTarget(item);
         Long participationScheduleId = participationTarget.getId();
-        int participantCount = scheduleMapper.countParticipants(participationScheduleId);
+        List<FriendUser> participants = new ArrayList<>(scheduleMapper.findParticipants(participationScheduleId));
+        List<String> manualParticipantNames = scheduleMapper.findManualParticipantNames(participationScheduleId);
+        participants.addAll(toManualParticipants(manualParticipantNames));
+        int participantCount = participants.size();
         item.setParticipantCount(participantCount);
         item.setRemainingRecruitmentSlots(calcRemainingRecruitmentSlots(participationTarget.getRecruitmentLimit(), participantCount));
         item.setRecruitmentClosed(isRecruitmentClosed(participationTarget, participantCount));
         item.setJoinedByCurrentUser(scheduleMapper.existsParticipant(participationScheduleId, viewerUserId));
-        item.setParticipants(scheduleMapper.findParticipants(participationScheduleId));
+        item.setParticipants(participants);
         ScheduleJoinRequest ownRequest = scheduleMapper.findJoinRequestByScheduleAndRequester(participationScheduleId, viewerUserId);
         item.setJoinRequestStatusForCurrentUser(ownRequest == null ? null : ownRequest.getStatus());
         item.setJoinRequestCommentForCurrentUser(ownRequest == null ? null : ownRequest.getComment());
@@ -958,6 +973,10 @@ public class ScheduleService {
         }
     }
 
+    private int totalParticipantCount(Long scheduleId) {
+        return scheduleMapper.countParticipants(scheduleId) + scheduleMapper.countManualParticipants(scheduleId);
+    }
+
     private Integer calcRemainingRecruitmentSlots(Integer recruitmentLimit, int participantCount) {
         if (recruitmentLimit == null) {
             return null;
@@ -971,5 +990,92 @@ public class ScheduleService {
             return false;
         }
         return participantCount >= recruitmentLimit;
+    }
+
+    private PresetParticipants normalizePresetParticipants(ScheduleRequest request, Long ownerUserId) {
+        if (request == null) {
+            return new PresetParticipants(Set.of(), List.of());
+        }
+        Set<Long> userIds = new LinkedHashSet<>();
+        List<Long> rawUserIds = request.getPreselectedParticipantUserIds();
+        if (rawUserIds != null) {
+            for (Long userId : rawUserIds) {
+                if (userId == null || userId <= 0 || ownerUserId.equals(userId)) {
+                    continue;
+                }
+                userIds.add(userId);
+            }
+        }
+
+        Set<String> names = new LinkedHashSet<>();
+        List<String> rawNames = request.getPreselectedParticipantNames();
+        if (rawNames != null) {
+            for (String rawName : rawNames) {
+                String normalized = normalize(rawName);
+                if (normalized == null || normalized.isBlank()) {
+                    continue;
+                }
+                if (normalized.length() > 100) {
+                    throw new IllegalArgumentException("参加者名は100文字以内で入力してください。");
+                }
+                names.add(normalized);
+            }
+        }
+        return new PresetParticipants(userIds, new ArrayList<>(names));
+    }
+
+    private void validatePresetParticipantsForRecruitment(ScheduleItem item, PresetParticipants presetParticipants) {
+        if (item == null || presetParticipants == null) {
+            return;
+        }
+        Integer recruitmentLimit = item.getRecruitmentLimit();
+        if (recruitmentLimit == null) {
+            return;
+        }
+        int presetCount = presetParticipants.userIds().size() + presetParticipants.manualNames().size();
+        if (presetCount > recruitmentLimit) {
+            throw new IllegalArgumentException("事前参加者数が募集人数を超えています。");
+        }
+    }
+
+    private void applyPresetParticipants(ScheduleItem createdItem, AppUser owner, PresetParticipants presetParticipants) {
+        if (createdItem == null || owner == null || presetParticipants == null) {
+            return;
+        }
+        for (Long userId : presetParticipants.userIds()) {
+            if (!friendshipMapper.existsAcceptedFriendship(owner.getId(), userId)) {
+                continue;
+            }
+            if (!scheduleMapper.existsParticipant(createdItem.getId(), userId)) {
+                scheduleMapper.insertParticipant(createdItem.getId(), userId);
+            }
+        }
+        for (String name : presetParticipants.manualNames()) {
+            scheduleMapper.insertManualParticipant(createdItem.getId(), name);
+        }
+    }
+
+    private List<FriendUser> toManualParticipants(List<String> names) {
+        if (names == null || names.isEmpty()) {
+            return List.of();
+        }
+        List<FriendUser> participants = new ArrayList<>();
+        for (String name : names) {
+            String normalized = normalize(name);
+            if (normalized == null || normalized.isBlank()) {
+                continue;
+            }
+            FriendUser user = new FriendUser();
+            user.setId(null);
+            user.setUsername(null);
+            user.setDisplayName(normalized);
+            user.setProfileIconColor("#BFD6FF");
+            user.setHasProfileImage(false);
+            participants.add(user);
+        }
+        return participants;
+    }
+
+    private record PresetParticipants(Set<Long> userIds, List<String> manualNames) {
     }
 }

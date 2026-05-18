@@ -158,6 +158,27 @@
             <label for="recruitmentLimit">募集人数（あと何人参加できるか）</label>
             <input id="recruitmentLimit" name="recruitmentLimit" type="number" min="1" step="1" placeholder="例: 3">
 
+            <section id="presetParticipantsSection" class="friend-share-scope">
+                <p class="friend-share-title">参加中のプレイヤー</p>
+                <label class="inline-check">
+                    <input id="presetParticipantInputModeFriend" name="presetParticipantInputMode" type="radio" value="FRIEND" checked>
+                    フレンド一覧から選ぶ
+                </label>
+                <label class="inline-check">
+                    <input id="presetParticipantInputModeManual" name="presetParticipantInputMode" type="radio" value="MANUAL">
+                    名前を入力する
+                </label>
+                <div id="presetParticipantFriendBlock">
+                    <label for="presetParticipantFriends">フレンド選択（複数選択可）</label>
+                    <select id="presetParticipantFriends" multiple size="5"></select>
+                </div>
+                <div id="presetParticipantManualBlock" hidden>
+                    <label for="presetParticipantNames">プレイヤー名（1行に1人）</label>
+                    <textarea id="presetParticipantNames" rows="3" maxlength="1000" placeholder="例: たろう&#10;はなこ"></textarea>
+                </div>
+                <p class="help-text">保存すると「参加中」に反映されます。参加募集にしない予定でも入力できます。</p>
+            </section>
+
             <label for="discordInviteUrl">Discord招待URL（参加募集向け）</label>
             <input id="discordInviteUrl" name="discordInviteUrl" type="url" maxlength="1000"
                    placeholder="https://discord.gg/... または https://discord.com/invite/...">
