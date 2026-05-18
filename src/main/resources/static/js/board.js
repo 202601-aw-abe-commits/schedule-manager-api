@@ -27,6 +27,9 @@ const postDetailEmpty = document.getElementById("postDetailEmpty");
 const postDetailPanel = document.getElementById("postDetailPanel");
 const postDetailMeta = document.getElementById("postDetailMeta");
 const postDetailBody = document.getElementById("postDetailBody");
+const postOwnerActions = document.getElementById("postOwnerActions");
+const postEditButton = document.getElementById("postEditButton");
+const postDeleteButton = document.getElementById("postDeleteButton");
 const interestForm = document.getElementById("interestForm");
 const interestCommentInput = document.getElementById("interestComment");
 const interestSubmitButton = document.getElementById("interestSubmitButton");
@@ -250,12 +253,111 @@ async function selectPost(post) {
     const rankText = post.rankBand ? post.rankBand : "未指定";
     postDetailMeta.textContent = `作成者: ${authorName} / 予定日: ${dateText} / 時間: ${timeText} / ランク: ${rankText} / 募集人数: ${limit}`;
     const isOwnPost = post.authorUsername && post.authorUsername === currentUsername;
+    if (postOwnerActions) {
+        postOwnerActions.hidden = !isOwnPost;
+    }
     interestCommentInput.disabled = isOwnPost;
     interestSubmitButton.disabled = isOwnPost;
     interestCommentInput.placeholder = isOwnPost ? "自分の募集には参加希望を送信できません" : "例: 参加希望です。21:00から入れます。";
     postDetailPanel.hidden = false;
     postDetailEmpty.hidden = true;
     await loadInterests(post.id);
+}
+
+if (postEditButton) {
+    postEditButton.addEventListener("click", async () => {
+        if (!state.selectedPost || !state.selectedPost.id) {
+            return;
+        }
+        const post = state.selectedPost;
+        if (!post.authorUsername || post.authorUsername !== currentUsername) {
+            boardMessage.style.color = "#be2f2f";
+            boardMessage.textContent = "自分の投稿のみ編集できます。";
+            return;
+        }
+
+        const nextBody = window.prompt("募集内容を入力してください（1000文字以内）", post.body || "");
+        if (nextBody === null) {
+            return;
+        }
+        const nextScheduleDateRaw = window.prompt("予定日（YYYY-MM-DD、空で未指定）", post.scheduleDate || "");
+        if (nextScheduleDateRaw === null) {
+            return;
+        }
+        const nextStartTimeRaw = window.prompt("開始時刻（HH:mm、空で未指定）", post.startTime ? String(post.startTime).slice(0, 5) : "");
+        if (nextStartTimeRaw === null) {
+            return;
+        }
+        const nextRankBandRaw = window.prompt("ランク（空で未指定）", post.rankBand || "");
+        if (nextRankBandRaw === null) {
+            return;
+        }
+        const nextRecruitmentLimitRaw = window.prompt("募集人数（空で未指定）", post.recruitmentLimit == null ? "" : String(post.recruitmentLimit));
+        if (nextRecruitmentLimitRaw === null) {
+            return;
+        }
+
+        const payload = {
+            body: nextBody,
+            scheduleDate: normalizeOptionalText(nextScheduleDateRaw),
+            startTime: normalizeOptionalText(nextStartTimeRaw),
+            rankBand: normalizeOptionalText(nextRankBandRaw),
+            recruitmentLimit: parseIntOrNull(nextRecruitmentLimitRaw)
+        };
+
+        try {
+            const updated = await fetchJson(`/api/board/posts/${post.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            boardMessage.style.color = "#087057";
+            boardMessage.textContent = "投稿を編集しました。";
+            await loadThreads();
+            await selectGameTitle(post.threadTitle || state.selectedGameTitle);
+            if (updated && updated.id) {
+                const refreshed = state.selectedPosts.find((row) => Number(row.id) === Number(updated.id));
+                if (refreshed) {
+                    await selectPost(refreshed);
+                }
+            }
+        } catch (error) {
+            boardMessage.style.color = "#be2f2f";
+            boardMessage.textContent = error.message;
+        }
+    });
+}
+
+if (postDeleteButton) {
+    postDeleteButton.addEventListener("click", async () => {
+        if (!state.selectedPost || !state.selectedPost.id) {
+            return;
+        }
+        const post = state.selectedPost;
+        if (!post.authorUsername || post.authorUsername !== currentUsername) {
+            boardMessage.style.color = "#be2f2f";
+            boardMessage.textContent = "自分の投稿のみ削除できます。";
+            return;
+        }
+        const confirmed = window.confirm("この投稿を削除しますか？");
+        if (!confirmed) {
+            return;
+        }
+        try {
+            await fetchJson(`/api/board/posts/${post.id}`, { method: "DELETE" });
+            boardMessage.style.color = "#087057";
+            boardMessage.textContent = "投稿を削除しました。";
+            state.selectedPost = null;
+            postDetailPanel.hidden = true;
+            postDetailEmpty.hidden = false;
+            interestList.innerHTML = "";
+            await loadThreads();
+            await selectGameTitle(post.threadTitle || state.selectedGameTitle);
+        } catch (error) {
+            boardMessage.style.color = "#be2f2f";
+            boardMessage.textContent = error.message;
+        }
+    });
 }
 
 async function loadInterests(postId) {
@@ -351,6 +453,11 @@ function parseIntOrNull(value) {
         return null;
     }
     return Number.parseInt(value, 10);
+}
+
+function normalizeOptionalText(value) {
+    const normalized = normalizeTitle(value);
+    return normalized === "" ? null : normalized;
 }
 
 function normalizeTitle(value) {

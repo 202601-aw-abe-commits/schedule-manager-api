@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
@@ -110,4 +111,30 @@ public interface BoardMapper {
             WHERE id = #{threadId}
             """)
     int touchThreadUpdatedAt(@Param("threadId") Long threadId);
+
+    @Update("""
+            UPDATE board_post
+            SET body = #{body},
+                schedule_date = #{scheduleDate},
+                start_time = #{startTime},
+                rank_band = #{rankBand},
+                recruitment_limit = #{recruitmentLimit}
+            WHERE id = #{postId}
+              AND author_user_id = #{authorUserId}
+            """)
+    int updatePostByAuthor(
+            @Param("postId") Long postId,
+            @Param("authorUserId") Long authorUserId,
+            @Param("body") String body,
+            @Param("scheduleDate") java.time.LocalDate scheduleDate,
+            @Param("startTime") java.time.LocalTime startTime,
+            @Param("rankBand") String rankBand,
+            @Param("recruitmentLimit") Integer recruitmentLimit);
+
+    @Delete("""
+            DELETE FROM board_post
+            WHERE id = #{postId}
+              AND author_user_id = #{authorUserId}
+            """)
+    int deletePostByAuthor(@Param("postId") Long postId, @Param("authorUserId") Long authorUserId);
 }

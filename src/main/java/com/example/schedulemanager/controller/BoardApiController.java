@@ -1,6 +1,7 @@
 package com.example.schedulemanager.controller;
 
 import com.example.schedulemanager.dto.BoardRecruitmentCreateRequest;
+import com.example.schedulemanager.dto.BoardRecruitmentUpdateRequest;
 import com.example.schedulemanager.dto.BoardPostInterestCreateRequest;
 import com.example.schedulemanager.dto.BoardThreadCreateRequest;
 import com.example.schedulemanager.model.BoardPost;
@@ -15,6 +16,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,6 +57,22 @@ public class BoardApiController {
             @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(boardService.createRecruitment(threadId, request, userDetails.getUsername()));
+    }
+
+    @PutMapping("/posts/{postId}")
+    public BoardPost updatePost(
+            @PathVariable("postId") Long postId,
+            @RequestBody BoardRecruitmentUpdateRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return boardService.updateRecruitment(postId, request, userDetails.getUsername());
+    }
+
+    @DeleteMapping("/posts/{postId}")
+    public ResponseEntity<Void> deletePost(
+            @PathVariable("postId") Long postId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        boardService.deleteRecruitment(postId, userDetails.getUsername());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/posts/{postId}/interests")

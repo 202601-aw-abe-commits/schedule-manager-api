@@ -1,6 +1,7 @@
 package com.example.schedulemanager.service;
 
 import com.example.schedulemanager.dto.BoardRecruitmentCreateRequest;
+import com.example.schedulemanager.dto.BoardRecruitmentUpdateRequest;
 import com.example.schedulemanager.dto.BoardPostInterestCreateRequest;
 import com.example.schedulemanager.dto.BoardThreadCreateRequest;
 import com.example.schedulemanager.mapper.BoardMapper;
@@ -164,6 +165,69 @@ public class BoardService {
                 .filter(row -> row.getId().equals(interest.getId()))
                 .findFirst()
                 .orElseThrow(() -> new NoSuchElementException("作成した参加希望の取得に失敗しました。"));
+    }
+
+    @Transactional
+    public BoardPost updateRecruitment(Long postId, BoardRecruitmentUpdateRequest request, String username) {
+        BoardPost existing = ensurePostExists(postId);
+        if (request == null) {
+            throw new IllegalArgumentException("更新内容が空です。");
+        }
+
+        String body = normalize(request.getBody());
+        if (body == null || body.isBlank()) {
+            throw new IllegalArgumentException("募集内容を入力してください。");
+        }
+        if (body.length() > 1000) {
+            throw new IllegalArgumentException("募集内容は1000文字以内で入力してください。");
+        }
+
+        LocalDate scheduleDate = parseDate(request.getScheduleDate());
+        LocalTime startTime = parseTime(request.getStartTime());
+        String rankBand = normalize(request.getRankBand());
+        if (rankBand != null && rankBand.length() > 100) {
+            throw new IllegalArgumentException("ランクは100文字以内で入力してください。");
+        }
+        Integer recruitmentLimit = request.getRecruitmentLimit();
+        if (recruitmentLimit != null && recruitmentLimit < 1) {
+            throw new IllegalArgumentException("募集人数は1以上で指定してください。");
+        }
+
+        AppUser currentUser = findCurrentUser(username);
+        int updated = boardMapper.updatePostByAuthor(
+                postId,
+                currentUser.getId(),
+                body,
+                scheduleDate,
+                startTime,
+                rankBand,
+                recruitmentLimit);
+        if (updated == 0) {
+            throw new NoSuchElementException("指定された投稿が存在しないか、更新権限がありません。");
+        }
+
+        if (existing.getThreadId() != null) {
+            boardMapper.touchThreadUpdatedAt(existing.getThreadId());
+        }
+
+        BoardPost updatedPost = boardMapper.findPostById(postId);
+        if (updatedPost == null) {
+            throw new NoSuchElementException("更新した投稿の取得に失敗しました。");
+        }
+        return updatedPost;
+    }
+
+    @Transactional
+    public void deleteRecruitment(Long postId, String username) {
+        BoardPost existing = ensurePostExists(postId);
+        AppUser currentUser = findCurrentUser(username);
+        int deleted = boardMapper.deletePostByAuthor(postId, currentUser.getId());
+        if (deleted == 0) {
+            throw new NoSuchElementException("指定された投稿が存在しないか、削除権限がありません。");
+        }
+        if (existing.getThreadId() != null) {
+            boardMapper.touchThreadUpdatedAt(existing.getThreadId());
+        }
     }
 
     private void ensureThreadExists(Long threadId) {
