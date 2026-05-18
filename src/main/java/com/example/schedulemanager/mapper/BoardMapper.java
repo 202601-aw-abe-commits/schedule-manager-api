@@ -240,4 +240,21 @@ public interface BoardMapper {
               AND author_user_id = #{authorUserId}
             """)
     int deletePostByAuthor(@Param("postId") Long postId, @Param("authorUserId") Long authorUserId);
+
+    @Delete("""
+            DELETE FROM board_post
+            WHERE schedule_date IS NOT NULL
+              AND schedule_date < #{targetDate}
+            """)
+    int deletePostsBeforeDate(@Param("targetDate") LocalDate targetDate);
+
+    @Delete("""
+            DELETE FROM board_thread bt
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM board_post bp
+                WHERE bp.thread_id = bt.id
+            )
+            """)
+    int deleteThreadsWithoutPosts();
 }
