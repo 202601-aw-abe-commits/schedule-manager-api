@@ -211,7 +211,8 @@ public class ScheduleService {
         AppUser currentUser = getCurrentUser(currentUsername);
         ScheduleItem item = fromRequest(request);
         PresetParticipants presetParticipants = normalizePresetParticipants(request, currentUser.getId());
-        validatePresetParticipantsForRecruitment(item, presetParticipants);
+        int presetParticipantCount = presetParticipants.userIds().size() + presetParticipants.manualNames().size();
+        item.setRecruitmentLimit(resolveStoredRecruitmentLimit(item.getRecruitmentLimit(), presetParticipantCount));
         item.setOwnerUserId(currentUser.getId());
         item.setCompleted(false);
         item.setCompletedAt(null);
@@ -235,9 +236,7 @@ public class ScheduleService {
         ScheduleItem item = fromRequest(request);
         if (Boolean.TRUE.equals(item.getJoinable()) && item.getRecruitmentLimit() != null) {
             int currentParticipants = totalParticipantCount(id);
-            if (item.getRecruitmentLimit() < currentParticipants) {
-                throw new IllegalArgumentException("募集人数は現在の参加者数以上にしてください。");
-            }
+            item.setRecruitmentLimit(resolveStoredRecruitmentLimit(item.getRecruitmentLimit(), currentParticipants));
         }
         item.setId(id);
         item.setOwnerUserId(currentUser.getId());
@@ -751,10 +750,10 @@ public class ScheduleService {
         }
         if (joinable) {
             if (recruitmentLimit == null) {
-                throw new IllegalArgumentException("募集人数を入力してください。");
+                throw new IllegalArgumentException("あと何人募集するかを入力してください。");
             }
             if (recruitmentLimit < 1) {
-                throw new IllegalArgumentException("募集人数は1以上で入力してください。");
+                throw new IllegalArgumentException("あと何人募集するかは1以上で入力してください。");
             }
         } else {
             recruitmentLimit = null;
@@ -977,6 +976,16 @@ public class ScheduleService {
         return scheduleMapper.countParticipants(scheduleId) + scheduleMapper.countManualParticipants(scheduleId);
     }
 
+    private Integer resolveStoredRecruitmentLimit(Integer remainingRecruitmentCount, int participantCount) {
+        if (remainingRecruitmentCount == null) {
+            return null;
+        }
+        if (remainingRecruitmentCount < 1) {
+            throw new IllegalArgumentException("あと何人募集するかは1以上で入力してください。");
+        }
+        return participantCount + remainingRecruitmentCount;
+    }
+
     private Integer calcRemainingRecruitmentSlots(Integer recruitmentLimit, int participantCount) {
         if (recruitmentLimit == null) {
             return null;
@@ -1022,20 +1031,6 @@ public class ScheduleService {
             }
         }
         return new PresetParticipants(userIds, new ArrayList<>(names));
-    }
-
-    private void validatePresetParticipantsForRecruitment(ScheduleItem item, PresetParticipants presetParticipants) {
-        if (item == null || presetParticipants == null) {
-            return;
-        }
-        Integer recruitmentLimit = item.getRecruitmentLimit();
-        if (recruitmentLimit == null) {
-            return;
-        }
-        int presetCount = presetParticipants.userIds().size() + presetParticipants.manualNames().size();
-        if (presetCount > recruitmentLimit) {
-            throw new IllegalArgumentException("事前参加者数が募集人数を超えています。");
-        }
     }
 
     private void applyPresetParticipants(ScheduleItem createdItem, AppUser owner, PresetParticipants presetParticipants) {

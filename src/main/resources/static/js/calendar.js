@@ -992,15 +992,14 @@ function fillFormForEdit(item) {
     sharedWithFriendsInput.checked = item.sharedWithFriends === true;
     joinableInput.checked = item.joinable === true;
     messageShareableInput.checked = item.messageShareable === true;
-    recruitmentLimitInput.value = item.recruitmentLimit ?? "";
-    if (presetParticipantFriendsInput) {
-        Array.from(presetParticipantFriendsInput.options).forEach((opt) => {
-            opt.selected = false;
-        });
-    }
+    recruitmentLimitInput.value = item.joinable
+        ? Math.max(Number(item.recruitmentLimit ?? 0) - Number(item.participantCount ?? 0), 0)
+        : "";
     if (presetParticipantNamesInput) {
         presetParticipantNamesInput.value = "";
     }
+    selectedPresetParticipantFriendIds = new Set();
+    syncPresetParticipantSelectionSummary();
     syncJoinableOptions();
     formMessage.style.color = "#087057";
     formMessage.textContent = "編集モードです。内容を更新して保存してください。";
@@ -1025,11 +1024,6 @@ function resetFormForCreate() {
     joinableInput.checked = false;
     messageShareableInput.checked = false;
     recruitmentLimitInput.value = "";
-    if (presetParticipantFriendsInput) {
-        Array.from(presetParticipantFriendsInput.options).forEach((opt) => {
-            opt.selected = false;
-        });
-    }
     if (presetParticipantNamesInput) {
         presetParticipantNamesInput.value = "";
     }
@@ -1337,11 +1331,6 @@ function syncJoinableOptions() {
     if (discordInviteUrlInput) {
         discordInviteUrlInput.value = "";
         discordInviteUrlInput.disabled = true;
-    }
-    if (presetParticipantFriendsInput) {
-        Array.from(presetParticipantFriendsInput.options).forEach((opt) => {
-            opt.selected = false;
-        });
     }
     if (presetParticipantNamesInput) {
         presetParticipantNamesInput.value = "";
@@ -2096,7 +2085,6 @@ function renderPresetParticipantFriendPicker() {
         const card = document.createElement("div");
         card.className = "friend-list-link";
         card.style.cursor = "pointer";
-
         card.addEventListener("click", () => {
             togglePresetParticipantFriend(friendId);
         });

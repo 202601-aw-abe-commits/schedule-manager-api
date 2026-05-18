@@ -129,11 +129,11 @@
             <section id="presetParticipantsSection" class="friend-share-scope">
                 <p class="friend-share-title">参加中のプレイヤー</p>
                 <button id="openPresetParticipantFriendPickerButton" type="button" class="secondary preset-participant-picker-button">
-                    フレンド一覧から選ぶ
+                    フレンド一覧から選択する
                 </button>
+                <p id="presetParticipantSelectionSummary" class="help-text" hidden></p>
                 <label for="presetParticipantNames">プレイヤー名（1行に1人）</label>
                 <textarea id="presetParticipantNames" rows="3" maxlength="1000" placeholder="例: たろう&#10;はなこ"></textarea>
-                <p id="presetParticipantSelectionSummary" class="help-text" hidden></p>
                 <p class="help-text">保存すると「参加中」に反映されます。参加募集にしない予定でも入力できます。</p>
             </section>
 
@@ -166,8 +166,9 @@
                 この募集メッセージの共有を許可する
             </label>
 
-            <label for="recruitmentLimit">募集人数（あと何人参加できるか）</label>
-            <input id="recruitmentLimit" name="recruitmentLimit" type="number" min="1" step="1" placeholder="例: 3">
+            <label for="recruitmentLimit">あと何人募集するか</label>
+            <input id="recruitmentLimit" name="recruitmentLimit" type="number" min="1" step="1" placeholder="例: 1">
+            <p class="help-text">参加中のプレイヤーとは別に、追加で募集する人数を入力してください。</p>
 
             <label for="discordInviteUrl">Discord招待URL（参加募集向け）</label>
             <input id="discordInviteUrl" name="discordInviteUrl" type="url" maxlength="1000"
@@ -195,7 +196,7 @@
         <section id="presetParticipantFriendPickerScreen" class="friend-section friend-share-picker-screen" hidden>
             <h3>参加中プレイヤーを選択</h3>
             <p class="help-text">フレンドを複数選べます。カードをクリックすると選択/解除します。</p>
-            <ul id="presetParticipantFriendPickerList" class="mini-list"></ul>
+            <ul id="presetParticipantFriendPickerList" class="preset-participant-picker-grid"></ul>
             <div class="form-actions">
                 <button id="presetParticipantFriendPickerApplyButton" type="button" class="primary">選択を反映</button>
                 <button id="presetParticipantFriendPickerCancelButton" type="button" class="secondary">戻る</button>
