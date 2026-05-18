@@ -69,12 +69,13 @@ const friendSharePickerCancelButton = document.getElementById("friendSharePicker
 const messageShareableInput = document.getElementById("messageShareable");
 const recruitmentLimitInput = document.getElementById("recruitmentLimit");
 const presetParticipantsSection = document.getElementById("presetParticipantsSection");
-const presetParticipantInputModeFriend = document.getElementById("presetParticipantInputModeFriend");
-const presetParticipantInputModeManual = document.getElementById("presetParticipantInputModeManual");
-const presetParticipantFriendBlock = document.getElementById("presetParticipantFriendBlock");
-const presetParticipantManualBlock = document.getElementById("presetParticipantManualBlock");
-const presetParticipantFriendsInput = document.getElementById("presetParticipantFriends");
 const presetParticipantNamesInput = document.getElementById("presetParticipantNames");
+const openPresetParticipantFriendPickerButton = document.getElementById("openPresetParticipantFriendPickerButton");
+const presetParticipantSelectionSummary = document.getElementById("presetParticipantSelectionSummary");
+const presetParticipantFriendPickerScreen = document.getElementById("presetParticipantFriendPickerScreen");
+const presetParticipantFriendPickerList = document.getElementById("presetParticipantFriendPickerList");
+const presetParticipantFriendPickerApplyButton = document.getElementById("presetParticipantFriendPickerApplyButton");
+const presetParticipantFriendPickerCancelButton = document.getElementById("presetParticipantFriendPickerCancelButton");
 const formMessage = document.getElementById("formMessage");
 const csvImportForm = document.getElementById("csvImportForm");
 const csvImportFileInput = document.getElementById("csvImportFile");
@@ -93,6 +94,8 @@ let titleSpeechRecognitionRunning = false;
 let descriptionSpeechRecognitionRunning = false;
 let latestSchedules = [];
 let ownOnlyMode = false;
+let presetParticipantFriends = [];
+let selectedPresetParticipantFriendIds = new Set();
 
 if (topScheduleSearchForm) {
     topScheduleSearchForm.addEventListener("submit", (event) => {
@@ -141,6 +144,11 @@ document.getElementById("newScheduleButton").addEventListener("click", () => {
 document.getElementById("cancelEditButton").addEventListener("click", () => {
     resetFormForCreate();
 });
+if (presetParticipantNamesInput) {
+    presetParticipantNamesInput.addEventListener("input", () => {
+        syncPresetParticipantSelectionSummary();
+    });
+}
 
 joinableInput.addEventListener("change", () => {
     syncJoinableOptions();
@@ -161,11 +169,21 @@ friendSharePickerApplyButton.addEventListener("click", () => {
 friendSharePickerCancelButton.addEventListener("click", () => {
     closeFriendSharePickerScreen();
 });
-if (presetParticipantInputModeFriend) {
-    presetParticipantInputModeFriend.addEventListener("change", () => syncPresetParticipantInputMode());
+if (openPresetParticipantFriendPickerButton) {
+    openPresetParticipantFriendPickerButton.addEventListener("click", async () => {
+        await openPresetParticipantFriendPickerScreen();
+    });
 }
-if (presetParticipantInputModeManual) {
-    presetParticipantInputModeManual.addEventListener("change", () => syncPresetParticipantInputMode());
+if (presetParticipantFriendPickerApplyButton) {
+    presetParticipantFriendPickerApplyButton.addEventListener("click", () => {
+        closePresetParticipantFriendPickerScreen();
+        syncPresetParticipantSelectionSummary();
+    });
+}
+if (presetParticipantFriendPickerCancelButton) {
+    presetParticipantFriendPickerCancelButton.addEventListener("click", () => {
+        closePresetParticipantFriendPickerScreen();
+    });
 }
 
 form.addEventListener("submit", async (event) => {
@@ -1015,6 +1033,9 @@ function resetFormForCreate() {
     if (presetParticipantNamesInput) {
         presetParticipantNamesInput.value = "";
     }
+    selectedPresetParticipantFriendIds = new Set();
+    renderPresetParticipantFriendPicker();
+    syncPresetParticipantSelectionSummary();
     syncJoinableOptions();
     formMessage.textContent = "";
 }
@@ -1306,7 +1327,6 @@ function syncJoinableOptions() {
         if (discordInviteUrlInput) {
             discordInviteUrlInput.disabled = false;
         }
-        syncPresetParticipantInputMode();
         recruitmentLimitInput.required = true;
         return;
     }
@@ -1326,7 +1346,9 @@ function syncJoinableOptions() {
     if (presetParticipantNamesInput) {
         presetParticipantNamesInput.value = "";
     }
-    syncPresetParticipantInputMode();
+    selectedPresetParticipantFriendIds = new Set();
+    renderPresetParticipantFriendPicker();
+    syncPresetParticipantSelectionSummary();
     recruitmentLimitInput.required = false;
     recruitmentLimitInput.value = "";
 }
@@ -1343,22 +1365,18 @@ function parseRecruitmentLimit() {
 }
 
 function parsePreselectedParticipantUserIds() {
-    if (!presetParticipantFriendsInput || !isPresetParticipantFriendMode()) {
+    if (selectedPresetParticipantFriendIds.size === 0) {
         return [];
     }
-    return Array.from(presetParticipantFriendsInput.selectedOptions)
-        .map((opt) => Number.parseInt(opt.value, 10))
+    return Array.from(selectedPresetParticipantFriendIds)
         .filter((id) => Number.isInteger(id) && id > 0);
 }
 
 function parsePreselectedParticipantNames() {
-    if (!presetParticipantNamesInput || isPresetParticipantFriendMode()) {
+    if (!presetParticipantNamesInput) {
         return [];
     }
-    return String(presetParticipantNamesInput.value || "")
-        .split("\n")
-        .map((name) => name.trim())
-        .filter((name) => name.length > 0);
+    return parseManualParticipantNamesOnly();
 }
 
 function initializeVoiceInput() {
@@ -2047,31 +2065,132 @@ function base64UrlToUint8Array(base64UrlString) {
     return output;
 }
 
-function isPresetParticipantFriendMode() {
-    return !presetParticipantInputModeManual || presetParticipantInputModeManual.checked !== true;
-}
-
-function syncPresetParticipantInputMode() {
-    const friendMode = isPresetParticipantFriendMode();
-    if (presetParticipantFriendBlock) {
-        presetParticipantFriendBlock.hidden = !friendMode;
-    }
-    if (presetParticipantManualBlock) {
-        presetParticipantManualBlock.hidden = friendMode;
-    }
-}
-
 async function loadPresetParticipantFriendOptions() {
-    if (!presetParticipantFriendsInput) {
+    if (!presetParticipantFriendPickerList) {
         return;
     }
     const data = await fetchJson("/api/friends");
-    const friends = Array.isArray(data && data.friends) ? data.friends : [];
-    presetParticipantFriendsInput.innerHTML = "";
-    friends.forEach((friend) => {
-        const option = document.createElement("option");
-        option.value = String(friend.id || "");
-        option.textContent = friend.displayName || friend.username || "不明";
-        presetParticipantFriendsInput.appendChild(option);
+    presetParticipantFriends = Array.isArray(data && data.friends) ? data.friends : [];
+    renderPresetParticipantFriendPicker();
+    syncPresetParticipantSelectionSummary();
+}
+
+function renderPresetParticipantFriendPicker() {
+    if (!presetParticipantFriendPickerList) {
+        return;
+    }
+    presetParticipantFriendPickerList.innerHTML = "";
+    if (!Array.isArray(presetParticipantFriends) || presetParticipantFriends.length === 0) {
+        presetParticipantFriendPickerList.innerHTML = "<li class=\"friend-card-empty\">フレンドはまだいません。</li>";
+        return;
+    }
+
+    presetParticipantFriends.forEach((friend) => {
+        const friendId = Number(friend.id);
+        const li = document.createElement("li");
+        li.className = "friend-list-item";
+        if (selectedPresetParticipantFriendIds.has(friendId)) {
+            li.classList.add("is-selected");
+        }
+
+        const card = document.createElement("div");
+        card.className = "friend-list-link";
+        card.style.cursor = "pointer";
+
+        card.addEventListener("click", () => {
+            togglePresetParticipantFriend(friendId);
+        });
+
+        const avatarWrap = document.createElement("div");
+        avatarWrap.className = "friend-avatar-wrap";
+
+        const avatar = document.createElement("img");
+        avatar.className = "dm-avatar dm-avatar-image";
+        avatar.alt = `${friend.displayName || friend.username || "ユーザー"} のプロフィール画像`;
+        avatar.loading = "lazy";
+        avatar.src = resolveFriendAvatarUrl(friend);
+        avatar.addEventListener("error", () => {
+            avatar.src = buildDefaultProfileDataUrl(friend.profileIconColor);
+        });
+
+        const info = document.createElement("div");
+        info.className = "friend-list-info";
+
+        const label = document.createElement("div");
+        label.className = "friend-list-label";
+        label.textContent = `${friend.displayName || friend.username}`;
+
+        const username = document.createElement("div");
+        username.className = "friend-list-username";
+        username.textContent = `@${friend.username || ""}`;
+
+        avatarWrap.appendChild(avatar);
+        info.appendChild(label);
+        info.appendChild(username);
+        card.appendChild(avatarWrap);
+        card.appendChild(info);
+        li.appendChild(card);
+
+        const badge = document.createElement("span");
+        badge.className = "profile-chip profile-chip-cyan";
+        badge.textContent = selectedPresetParticipantFriendIds.has(friendId) ? "選択中" : "追加";
+        li.appendChild(badge);
+
+        presetParticipantFriendPickerList.appendChild(li);
     });
+}
+
+function togglePresetParticipantFriend(friendId) {
+    if (!Number.isFinite(friendId) || friendId <= 0) {
+        return;
+    }
+    if (selectedPresetParticipantFriendIds.has(friendId)) {
+        selectedPresetParticipantFriendIds.delete(friendId);
+    } else {
+        selectedPresetParticipantFriendIds.add(friendId);
+    }
+    renderPresetParticipantFriendPicker();
+    syncPresetParticipantSelectionSummary();
+}
+
+function syncPresetParticipantSelectionSummary() {
+    if (!presetParticipantSelectionSummary) {
+        return;
+    }
+    const friendCount = selectedPresetParticipantFriendIds.size;
+    const manualNames = parseManualParticipantNamesOnly();
+    const parts = [];
+    if (friendCount > 0) {
+        parts.push(`フレンド ${friendCount}人`);
+    }
+    if (manualNames.length > 0) {
+        parts.push(`手入力 ${manualNames.length}人`);
+    }
+    presetParticipantSelectionSummary.textContent = parts.length > 0 ? parts.join(" / ") : "未選択です";
+    presetParticipantSelectionSummary.hidden = false;
+}
+
+function parseManualParticipantNamesOnly() {
+    if (!presetParticipantNamesInput) {
+        return [];
+    }
+    return String(presetParticipantNamesInput.value || "")
+        .split("\n")
+        .map((name) => name.trim())
+        .filter((name) => name.length > 0);
+}
+
+async function openPresetParticipantFriendPickerScreen() {
+    if (!presetParticipantFriendPickerScreen) {
+        return;
+    }
+    renderPresetParticipantFriendPicker();
+    presetParticipantFriendPickerScreen.hidden = false;
+    presetParticipantFriendPickerScreen.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function closePresetParticipantFriendPickerScreen() {
+    if (presetParticipantFriendPickerScreen) {
+        presetParticipantFriendPickerScreen.hidden = true;
+    }
 }
