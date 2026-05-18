@@ -136,8 +136,8 @@ body::after {
     margin: 0;
     font-size: clamp(1.9rem, 4vw, 3.1rem);
     letter-spacing: 0.05em;
-    color: #21439a;
-    text-shadow: 0 0 6px #d8f3ff, 0 0 14px #5dd6ff, 0 0 24px #8b7bff99;
+    color: #3f2b84;
+    text-shadow: 0 2px 10px #ffffffcc, 0 0 18px #d9c5ff99;
     animation: hero-neon-wave 2.8s ease-in-out infinite, hero-neon-flicker 4.2s linear infinite;
     transform-origin: center;
     position: relative;
@@ -174,11 +174,13 @@ body::after {
     font-size: 0.75em;
 }
 
-.hero-brand span:nth-child(2) {
-    background: linear-gradient(90deg, #a66cff 0%, #ff5ea9 48%, #7aa9ff 100%);
+.hero-brand-title {
+    background: linear-gradient(90deg, #ff3f9f 0%, #e14cff 45%, #8a56ff 100%);
     -webkit-background-clip: text;
     background-clip: text;
-    color: transparent;
+    -webkit-text-fill-color: transparent;
+    color: transparent !important;
+    text-shadow: none;
 }
 
 .hero-brand-spark {
@@ -189,10 +191,10 @@ body::after {
 
 .hero-subcopy {
     margin: 10px 0 0;
-    color: #dce7ff;
+    color: #26365f;
     font-size: clamp(1rem, 2vw, 1.9rem);
     font-weight: 700;
-    text-shadow: 0 2px 12px #0d1741a6;
+    text-shadow: 0 1px 0 #ffffffd9, 0 2px 8px #cfdcff99;
 }
 
 .hero-metrics {
@@ -201,8 +203,9 @@ body::after {
     justify-content: center;
     align-items: center;
     gap: 18px;
-    color: #d6def9;
+    color: #2b3f6f;
     font-weight: 600;
+    text-shadow: 0 1px 0 #ffffffd9;
 }
 
 .hero-metric {

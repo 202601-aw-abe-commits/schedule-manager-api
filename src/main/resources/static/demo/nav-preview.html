@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nav Preview | GameSchedule</title>
+    <link rel="stylesheet" href="/css/calendar.css">
+    <style>
+        .preview-shell {
+            min-height: 100vh;
+            padding: 24px 0 40px;
+        }
+
+        .preview-note {
+            max-width: 1200px;
+            margin: 0 auto 12px;
+            padding: 0 16px;
+            color: #2b3f6f;
+            font-weight: 700;
+        }
+
+        .preview-note code {
+            background: #ffffffc9;
+            border: 1px solid #c6d6f4;
+            border-radius: 8px;
+            padding: 2px 6px;
+        }
+
+        .preview-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        .preview-card {
+            background: #ffffffd6;
+            border: 1px solid #c8d6f0;
+            border-radius: 14px;
+            padding: 14px;
+            margin-top: 16px;
+            color: #1d2d58;
+            box-shadow: 0 10px 24px #8bb6e033;
+        }
+    </style>
+</head>
+<body>
+<div class="preview-shell">
+    <p class="preview-note">DBなし確認用。ここを開いて <code>calendar.css</code> の変更を即チェックできます。</p>
+
+    <header class="page-hero">
+        <div class="hero-title-line">
+            <h1 class="hero-brand"><span class="hero-brand-icon">🎮</span> <span class="hero-brand-title">GameSchedule</span> <span class="hero-brand-spark">✧</span></h1>
+        </div>
+        <p class="hero-subcopy">フレンドとゲームの予定を共有しよう</p>
+        <div class="hero-metrics" aria-label="トップ統計">
+            <span class="hero-metric"><span class="hero-metric-dot" aria-hidden="true"></span><span>5</span> オンライン</span>
+            <span class="hero-metric"><span class="hero-metric-trophy" aria-hidden="true">🏆</span><span>1</span> イベント</span>
+        </div>
+        <nav class="hero-nav" aria-label="メインメニュー">
+            <a href="#" class="is-current">カレンダー</a>
+            <a href="#">イベント</a>
+            <a href="#">フレンド</a>
+        </nav>
+    </header>
+
+    <main class="preview-main">
+        <section class="preview-card">
+            <h2>Preview Panel</h2>
+            <p>このブロックはページ全体のコントラスト確認用です。文字色・発光・余白を調整したらここで見え方を確認してください。</p>
+        </section>
+    </main>
+</div>
+</body>
+</html>
