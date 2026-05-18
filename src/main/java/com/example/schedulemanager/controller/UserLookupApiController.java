@@ -1,7 +1,6 @@
 package com.example.schedulemanager.controller;
 
 import com.example.schedulemanager.model.AppUser;
-import com.example.schedulemanager.service.FriendshipService;
 import com.example.schedulemanager.service.UserAccountService;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
@@ -17,24 +16,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/users")
 public class UserLookupApiController {
     private final UserAccountService userAccountService;
-    private final FriendshipService friendshipService;
 
     public UserLookupApiController(
-            UserAccountService userAccountService,
-            FriendshipService friendshipService) {
+            UserAccountService userAccountService) {
         this.userAccountService = userAccountService;
-        this.friendshipService = friendshipService;
     }
 
     @GetMapping("/{userId}/profile-image")
     public ResponseEntity<byte[]> profileImage(
             @PathVariable("userId") Long userId,
             @AuthenticationPrincipal UserDetails userDetails) {
-        AppUser currentUser = userAccountService.getByUsername(userDetails.getUsername());
-        boolean canView = friendshipService.areFriendsOrSelf(currentUser.getId(), userId);
-        if (!canView) {
-            return ResponseEntity.notFound().build();
-        }
+        // Any authenticated user can view profile images from user lookup pages.
+        userAccountService.getByUsername(userDetails.getUsername());
 
         AppUser targetUser = userAccountService.getById(userId);
         byte[] imageData = targetUser.getProfileImageData();

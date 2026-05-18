@@ -18,6 +18,7 @@
 - Registration no longer accepts display name input; initial `display_name` is automatically set to the same value as `username`.
 - Friend list page supports deleting accepted friendships via `/api/friends/{friendUserId}` with two-step client confirmation.
 - Friend profile page (`/friends/profile/{username}`) displays `X URL` and `配信URL` as clickable links (open in new tab) when set.
+- Friend search/profile lookup image (`/api/users/{userId}/profile-image`) is viewable for authenticated users so searched users' selected profile images are reflected even before friendship.
 - Friend list page (`/friends/list`) avatar uses each user's configured profile image when available; otherwise falls back to color-based default icon.
 - Friend level ranking avatar (friends page/home widget) uses each user's configured profile image when available; otherwise falls back to color-based default icon.
 - Main navigation (`.hero-nav`) uses an outer rounded container with pill-style active tab highlight (`.is-current`) across calendar/friends/board/profile pages.
