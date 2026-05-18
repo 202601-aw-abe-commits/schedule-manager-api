@@ -7,6 +7,7 @@ public class BoardRecruitmentCreateRequest {
     private String rankBand;
     private Integer recruitmentLimit;
     private String discordInviteUrl;
+    private String deviceType;
 
     public String getBody() {
         return body;
@@ -54,5 +55,13 @@ public class BoardRecruitmentCreateRequest {
 
     public void setDiscordInviteUrl(String discordInviteUrl) {
         this.discordInviteUrl = discordInviteUrl;
+    }
+
+    public String getDeviceType() {
+        return deviceType;
+    }
+
+    public void setDeviceType(String deviceType) {
+        this.deviceType = deviceType;
     }
 }

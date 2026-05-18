@@ -67,15 +67,15 @@ public interface BoardMapper {
     BoardThread findThreadViewById(@Param("threadId") Long threadId);
 
     @Insert("""
-            INSERT INTO board_post (thread_id, author_user_id, body, schedule_date, start_time, rank_band, recruitment_limit, discord_invite_url)
-            VALUES (#{threadId}, #{authorUserId}, #{body}, #{scheduleDate}, #{startTime}, #{rankBand}, #{recruitmentLimit}, #{discordInviteUrl})
+            INSERT INTO board_post (thread_id, author_user_id, body, schedule_date, start_time, device_type, rank_band, recruitment_limit, discord_invite_url)
+            VALUES (#{threadId}, #{authorUserId}, #{body}, #{scheduleDate}, #{startTime}, #{deviceType}, #{rankBand}, #{recruitmentLimit}, #{discordInviteUrl})
             """)
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insertPost(BoardPost post);
 
     @Select("""
             SELECT bp.id, bp.thread_id, bp.author_user_id, u.username AS author_username, u.display_name AS author_display_name,
-                   bp.body, bp.schedule_date, bp.start_time, bp.rank_band, bp.recruitment_limit, bp.discord_invite_url, bp.created_at
+                   bp.body, bp.schedule_date, bp.start_time, bp.device_type, bp.rank_band, bp.recruitment_limit, bp.discord_invite_url, bp.created_at
             FROM board_post bp
             JOIN app_user u ON u.id = bp.author_user_id
             WHERE bp.thread_id = #{threadId}
@@ -85,7 +85,7 @@ public interface BoardMapper {
 
     @Select("""
             SELECT bp.id, bp.thread_id, bp.author_user_id, u.username AS author_username, u.display_name AS author_display_name,
-                   bp.body, bp.schedule_date, bp.start_time, bp.rank_band, bp.recruitment_limit, bp.discord_invite_url, bp.created_at
+                   bp.body, bp.schedule_date, bp.start_time, bp.device_type, bp.rank_band, bp.recruitment_limit, bp.discord_invite_url, bp.created_at
             FROM board_post bp
             JOIN app_user u ON u.id = bp.author_user_id
             WHERE bp.id = #{postId}
@@ -218,6 +218,7 @@ public interface BoardMapper {
             SET body = #{body},
                 schedule_date = #{scheduleDate},
                 start_time = #{startTime},
+                device_type = #{deviceType},
                 rank_band = #{rankBand},
                 recruitment_limit = #{recruitmentLimit}
             WHERE id = #{postId}
@@ -229,6 +230,7 @@ public interface BoardMapper {
             @Param("body") String body,
             @Param("scheduleDate") LocalDate scheduleDate,
             @Param("startTime") LocalTime startTime,
+            @Param("deviceType") String deviceType,
             @Param("rankBand") String rankBand,
             @Param("recruitmentLimit") Integer recruitmentLimit);
 

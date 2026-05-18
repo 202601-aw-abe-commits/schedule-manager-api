@@ -1166,6 +1166,11 @@ a.board-entry-card[href="/friends/requests"] {
     line-height: 1.1;
 }
 
+.board-create-back-link {
+    padding: 8px 12px;
+    line-height: 1.25;
+}
+
 .friend-list-item {
     display: flex;
     align-items: center;
@@ -1461,6 +1466,51 @@ a.board-entry-card[href="/friends/requests"] {
     border: 1px solid #a7d6ff;
     background: linear-gradient(145deg, #ffffff 0%, #f2f9ff 100%);
     box-shadow: inset 0 0 0 1px #e0f1ff, 0 8px 18px #9fd3ff44;
+}
+
+.board-post-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 10px;
+    min-height: 90px;
+}
+
+.board-post-summary-item {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.board-post-summary-button {
+    width: 100%;
+    text-align: left;
+    border: 1px solid #9db8ff;
+    border-radius: 14px;
+    background: linear-gradient(145deg, #eef4ff 0%, #dce9ff 100%);
+    padding: 14px 14px;
+    color: #1d2f66;
+    cursor: pointer;
+    box-shadow: inset 0 0 0 1px #ffffffaa, 0 6px 14px #7ea7ff40;
+}
+
+.board-post-summary-date {
+    display: block;
+    width: 100%;
+    font-size: 1.14rem;
+    font-weight: 800;
+    color: #142a63;
+}
+
+.board-post-summary-limit,
+.board-post-summary-author {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #203a78;
 }
 
 .friends-shell.vivid-shell .dm-conversation-link {

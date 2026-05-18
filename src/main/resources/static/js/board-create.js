@@ -3,6 +3,7 @@ const threadGameTitleInput = document.getElementById("threadGameTitle");
 const threadFirstPostBodyInput = document.getElementById("threadFirstPostBody");
 const threadFirstPostScheduleDateInput = document.getElementById("threadFirstPostScheduleDate");
 const threadFirstPostStartTimeInput = document.getElementById("threadFirstPostStartTime");
+const threadFirstPostDeviceTypeInput = document.getElementById("threadFirstPostDeviceType");
 const threadFirstPostRankBandInput = document.getElementById("threadFirstPostRankBand");
 const threadFirstPostRecruitmentLimitInput = document.getElementById("threadFirstPostRecruitmentLimit");
 const threadDiscordInviteUrlInput = document.getElementById("threadDiscordInviteUrl");
@@ -40,6 +41,7 @@ threadForm.addEventListener("submit", async (event) => {
                 body: threadFirstPostBodyInput.value,
                 scheduleDate: threadFirstPostScheduleDateInput.value || null,
                 startTime: threadFirstPostStartTimeInput.value || null,
+                deviceType: normalizeTitle(threadFirstPostDeviceTypeInput.value) || "PC",
                 rankBand: normalizeTitle(threadFirstPostRankBandInput.value) || null,
                 recruitmentLimit: parseIntOrNull(threadFirstPostRecruitmentLimitInput.value),
                 discordInviteUrl: normalizeOptionalText(threadDiscordInviteUrlInput.value)

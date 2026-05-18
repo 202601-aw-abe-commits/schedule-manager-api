@@ -30,20 +30,26 @@
         </header>
 
         <section class="friend-section">
-            <a href="/board" class="secondary auth-link-button join-top-link">← 募集掲示板に戻る</a>
+            <a href="/board" class="secondary auth-link-button join-top-link board-create-back-link">← 募集掲示板に戻る</a>
             <form id="threadForm" class="schedule-form">
                 <label for="threadGameTitle">ゲームタイトル</label>
                 <input id="threadGameTitle" type="text" maxlength="200" placeholder="例: モンハンワイルズ" list="threadGameTitleSuggestions" autocomplete="off" required>
                 <datalist id="threadGameTitleSuggestions"></datalist>
 
                 <label for="threadFirstPostBody">募集内容</label>
-                <textarea id="threadFirstPostBody" rows="4" maxlength="1000" placeholder="例: 21時から2人募集します" required></textarea>
+                <textarea id="threadFirstPostBody" rows="4" maxlength="1000" placeholder="例: エンジョイ勢です。楽しく遊べる方募集です" required></textarea>
 
                 <label for="threadFirstPostScheduleDate">予定日（任意）</label>
                 <input id="threadFirstPostScheduleDate" type="date">
 
                 <label for="threadFirstPostStartTime">開始時刻（任意）</label>
                 <input id="threadFirstPostStartTime" type="time">
+
+                <label for="threadFirstPostDeviceType">デバイス</label>
+                <select id="threadFirstPostDeviceType" required>
+                    <option value="PC">PC</option>
+                    <option value="CONSOLE">家庭用ゲーム機</option>
+                </select>
 
                 <label for="threadFirstPostRankBand">ランク（任意）</label>
                 <input id="threadFirstPostRankBand" type="text" maxlength="100" placeholder="例: ダイヤ4 / プラチナ帯">
@@ -64,6 +70,7 @@
 </main>
 
 <script src="/js/theme.js"></script>
+<script src="/js/game-badges.js"></script>
 <script src="/js/nav-badges.js"></script>
 <script src="/js/board-create.js"></script>
 </body>

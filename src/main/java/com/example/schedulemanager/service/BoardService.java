@@ -103,6 +103,7 @@ public class BoardService {
 
         LocalDate scheduleDate = parseDate(request.getScheduleDate());
         LocalTime startTime = parseTime(request.getStartTime());
+        String deviceType = normalizeBoardDeviceType(request.getDeviceType());
         String rankBand = normalize(request.getRankBand());
         if (rankBand != null && rankBand.length() > 100) {
             throw new IllegalArgumentException("ランクは100文字以内で入力してください。");
@@ -120,6 +121,7 @@ public class BoardService {
         post.setBody(body);
         post.setScheduleDate(scheduleDate);
         post.setStartTime(startTime);
+        post.setDeviceType(deviceType);
         post.setRankBand(rankBand);
         post.setRecruitmentLimit(recruitmentLimit);
         post.setDiscordInviteUrl(discordInviteUrl);
@@ -199,6 +201,7 @@ public class BoardService {
         LocalDate scheduleDate = parseDate(request.getScheduleDate());
         LocalTime startTime = parseTime(request.getStartTime());
         String rankBand = normalize(request.getRankBand());
+        String deviceType = normalizeBoardDeviceType(existing.getDeviceType());
         if (rankBand != null && rankBand.length() > 100) {
             throw new IllegalArgumentException("ランクは100文字以内で入力してください。");
         }
@@ -214,6 +217,7 @@ public class BoardService {
                 body,
                 scheduleDate,
                 startTime,
+                deviceType,
                 rankBand,
                 recruitmentLimit);
         if (updated == 0) {
@@ -467,6 +471,18 @@ public class BoardService {
     private boolean isRecruitmentClosed(BoardPost post, int participantCount) {
         Integer limit = post.getRecruitmentLimit();
         return limit != null && participantCount >= limit;
+    }
+
+    private String normalizeBoardDeviceType(String value) {
+        String normalized = normalize(value);
+        if (normalized == null || normalized.isBlank()) {
+            return "PC";
+        }
+        String upper = normalized.toUpperCase();
+        if ("PC".equals(upper) || "CONSOLE".equals(upper)) {
+            return upper;
+        }
+        throw new IllegalArgumentException("デバイスはPCまたは家庭用ゲーム機を選択してください。");
     }
 
     private void notifyFriendFollowersForRecruitment(AppUser actor, Long threadId) {

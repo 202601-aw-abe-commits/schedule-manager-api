@@ -15,6 +15,7 @@ public class BoardPost {
     private String body;
     private LocalDate scheduleDate;
     private LocalTime startTime;
+    private String deviceType;
     private String rankBand;
     private Integer recruitmentLimit;
     private String discordInviteUrl;
@@ -97,6 +98,14 @@ public class BoardPost {
 
     public void setStartTime(LocalTime startTime) {
         this.startTime = startTime;
+    }
+
+    public String getDeviceType() {
+        return deviceType;
+    }
+
+    public void setDeviceType(String deviceType) {
+        this.deviceType = deviceType;
     }
 
     public Integer getRecruitmentLimit() {

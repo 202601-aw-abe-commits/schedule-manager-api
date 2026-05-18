@@ -126,7 +126,8 @@ function renderGameCards() {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "board-game-card";
-        button.innerHTML = `<h4>${escapeHtml(title)}</h4><p class=\"help-text\">スレッド: ${threads.length} / 投稿: ${totalPosts}</p>`;
+        const decoratedTitle = window.GameBadge ? window.GameBadge.withBadge(title) : title;
+        button.innerHTML = `<h4>${escapeHtml(decoratedTitle)}</h4><p class=\"help-text\">スレッド: ${threads.length} / 投稿: ${totalPosts}</p>`;
         button.addEventListener("click", async () => {
             await selectGameTitle(title);
         });
@@ -176,20 +177,25 @@ async function loadPostsByGameTitle(gameTitle) {
 function renderPostSummaries() {
     postSummaryList.innerHTML = "";
     if (!Array.isArray(state.selectedPosts) || state.selectedPosts.length === 0) {
-        postSummaryList.innerHTML = "<li>このゲームの投稿はまだありません。</li>";
+        postSummaryList.innerHTML = "<li class=\"friend-card-empty\">このゲームの投稿はまだありません。</li>";
         return;
     }
 
     state.selectedPosts.forEach((post) => {
         const li = document.createElement("li");
+        li.className = "board-post-summary-item";
         const button = document.createElement("button");
         button.type = "button";
-        button.className = "secondary";
+        button.className = "board-post-summary-button";
         const authorName = post.authorDisplayName || post.authorUsername || "不明";
-        const limit = post.recruitmentLimit ? `${post.recruitmentLimit}人` : "指定なし";
+        const dateText = formatBoardDate(post.scheduleDate);
         const timeText = post.startTime ? String(post.startTime).slice(0, 5) : "未指定";
-        const rankText = post.rankBand ? post.rankBand : "未指定";
-        button.textContent = `募集人数: ${limit} / 時間: ${timeText} / ランク: ${rankText} / 作成者: ${authorName}`;
+        const limit = post.recruitmentLimit ? `${post.recruitmentLimit}人` : "指定なし";
+        button.innerHTML = `
+            <div class="board-post-summary-date">${escapeHtml(dateText)} ${escapeHtml(timeText)}</div>
+            <div class="board-post-summary-limit">募集人数: ${escapeHtml(limit)}</div>
+            <div class="board-post-summary-author">作成者: ${escapeHtml(authorName)}</div>
+        `;
         button.addEventListener("click", async () => {
             await selectPost(post);
         });
@@ -216,9 +222,10 @@ async function selectPost(post) {
     const authorName = post.authorDisplayName || post.authorUsername || "不明";
     const dateText = post.scheduleDate || "未指定";
     const timeText = post.startTime ? String(post.startTime).slice(0, 5) : "未指定";
+    const deviceText = toBoardDeviceLabel(post.deviceType);
     const limit = post.recruitmentLimit ? `${post.recruitmentLimit}人` : "指定なし";
     const rankText = post.rankBand ? post.rankBand : "未指定";
-    postDetailMeta.textContent = `作成者: ${authorName} / 予定日: ${dateText} / 時間: ${timeText} / ランク: ${rankText} / 募集人数: ${limit}`;
+    postDetailMeta.textContent = `作成者: ${authorName} / 予定日: ${dateText} / 時間: ${timeText} / デバイス: ${deviceText} / ランク: ${rankText} / 募集人数: ${limit}`;
     const isOwnPost = post.authorUsername && post.authorUsername === currentUsername;
     if (postOwnerActions) {
         postOwnerActions.hidden = !isOwnPost;
@@ -568,6 +575,28 @@ function normalizeTitle(value) {
         return "";
     }
     return String(value).trim();
+}
+
+function toBoardDeviceLabel(value) {
+    const normalized = normalizeTitle(value).toUpperCase();
+    if (normalized === "CONSOLE") {
+        return "家庭用ゲーム機";
+    }
+    return "PC";
+}
+
+function formatBoardDate(value) {
+    if (!value) {
+        return "日付未指定";
+    }
+    const text = String(value);
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
+    if (!match) {
+        return text;
+    }
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    return `${month}月${day}日`;
 }
 
 async function fetchJson(url, options = {}) {

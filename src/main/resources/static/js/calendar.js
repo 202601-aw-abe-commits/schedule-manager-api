@@ -475,7 +475,7 @@ function renderScheduleList(schedules) {
             owner.appendChild(ownerText);
 
             const title = document.createElement("h4");
-            title.textContent = item.title;
+            title.textContent = window.GameBadge ? window.GameBadge.withBadge(item.title) : item.title;
 
             const time = document.createElement("div");
             time.className = "schedule-time";
