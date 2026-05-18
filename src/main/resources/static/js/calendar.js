@@ -148,6 +148,7 @@ document.getElementById("cancelEditButton").addEventListener("click", () => {
 });
 if (presetParticipantNamesInput) {
     presetParticipantNamesInput.addEventListener("input", () => {
+        syncPresetParticipantSelectionFromTextarea();
         syncPresetParticipantSelectionSummary();
     });
 }
@@ -2155,6 +2156,7 @@ function togglePresetParticipantFriend(friendId) {
     } else {
         selectedPresetParticipantFriendIds.add(friendId);
     }
+    syncPresetParticipantNamesFromSelection();
     renderPresetParticipantFriendPicker();
     syncPresetParticipantSelectionSummary();
 }
@@ -2176,14 +2178,104 @@ function syncPresetParticipantSelectionSummary() {
     presetParticipantSelectionSummary.hidden = false;
 }
 
-function parseManualParticipantNamesOnly() {
+function normalizePresetParticipantDisplayName(value) {
+    return String(value || "")
+        .trim()
+        .replace(/\s+/g, " ");
+}
+
+function getPresetParticipantFriendAliases(friend) {
+    const aliases = [];
+    const displayName = normalizePresetParticipantDisplayName(friend && friend.displayName);
+    const username = normalizePresetParticipantDisplayName(friend && friend.username);
+    if (displayName) {
+        aliases.push(displayName);
+    }
+    if (username && username !== displayName) {
+        aliases.push(username);
+    }
+    return aliases;
+}
+
+function buildPresetParticipantFriendAliasMap() {
+    const aliasToFriendId = new Map();
+    if (!Array.isArray(presetParticipantFriends)) {
+        return aliasToFriendId;
+    }
+    presetParticipantFriends.forEach((friend) => {
+        const friendId = Number(friend && friend.id);
+        if (!Number.isFinite(friendId) || friendId <= 0) {
+            return;
+        }
+        getPresetParticipantFriendAliases(friend).forEach((alias) => {
+            aliasToFriendId.set(alias.toLowerCase(), friendId);
+        });
+    });
+    return aliasToFriendId;
+}
+
+function getPresetParticipantTextareaLines() {
     if (!presetParticipantNamesInput) {
         return [];
     }
     return String(presetParticipantNamesInput.value || "")
         .split("\n")
-        .map((name) => name.trim())
+        .map((name) => normalizePresetParticipantDisplayName(name))
         .filter((name) => name.length > 0);
+}
+
+function syncPresetParticipantSelectionFromTextarea() {
+    if (!presetParticipantNamesInput) {
+        return;
+    }
+    const aliasToFriendId = buildPresetParticipantFriendAliasMap();
+    const selectedIds = new Set();
+    getPresetParticipantTextareaLines().forEach((line) => {
+        const friendId = aliasToFriendId.get(line.toLowerCase());
+        if (Number.isFinite(friendId) && friendId > 0) {
+            selectedIds.add(friendId);
+        }
+    });
+    selectedPresetParticipantFriendIds = selectedIds;
+    renderPresetParticipantFriendPicker();
+}
+
+function syncPresetParticipantNamesFromSelection() {
+    if (!presetParticipantNamesInput) {
+        return;
+    }
+    const aliasToFriendId = buildPresetParticipantFriendAliasMap();
+    const selectedAliases = new Set();
+    const selectedNames = [];
+
+    selectedPresetParticipantFriendIds.forEach((friendId) => {
+        const friend = Array.isArray(presetParticipantFriends)
+            ? presetParticipantFriends.find((row) => Number(row && row.id) === friendId)
+            : null;
+        if (!friend) {
+            return;
+        }
+        const displayName = normalizePresetParticipantDisplayName(friend.displayName || friend.username);
+        if (displayName) {
+            selectedNames.push(displayName);
+            selectedAliases.add(displayName.toLowerCase());
+        }
+        getPresetParticipantFriendAliases(friend).forEach((alias) => {
+            selectedAliases.add(alias.toLowerCase());
+        });
+    });
+
+    const manualNames = getPresetParticipantTextareaLines().filter((name) => !selectedAliases.has(name.toLowerCase()));
+    const mergedNames = [...selectedNames, ...manualNames];
+    presetParticipantNamesInput.value = mergedNames.join("\n");
+}
+
+function parseManualParticipantNamesOnly() {
+    if (!presetParticipantNamesInput) {
+        return [];
+    }
+    const aliasToFriendId = buildPresetParticipantFriendAliasMap();
+    return getPresetParticipantTextareaLines().filter((name) => !aliasToFriendId.has(name.toLowerCase()));
 }
 
 async function openPresetParticipantFriendPickerScreen() {

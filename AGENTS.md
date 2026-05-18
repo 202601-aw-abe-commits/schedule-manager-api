@@ -20,7 +20,7 @@
 - `/board` post summary list is rendered as cards (friend-list-like style) showing `何月何日`, `何時`, `募集人数`; tapping a card opens post detail.
 - Game title emoji badge mapping is shared via `/js/game-badges.js` and used across board/top pages for consistent game markers.
 - Board recruitment posts are auto-cleaned daily: posts with `schedule_date` earlier than today are deleted, and threads with no remaining posts are also removed.
-- Calendar schedule creation supports pre-registering participants for joinable schedules via friend selection and manual name input; `あと何人募集するか` is treated as the additional recruit count, not the total cap, and saved names are shown in `参加中` together with approved participants.
+- Calendar schedule creation supports pre-registering participants for joinable schedules via friend selection and manual name input; selecting a friend card writes the display name into the player-name textarea, multiple selection is supported, `あと何人募集するか` is treated as the additional recruit count, not the total cap, and saved names are shown in `参加中` together with approved participants.
 - Schedule share rule: joinable schedule re-share is allowed only after the requester is approved as participant (`schedule_participant`), and UI should explain approval-gated sharing to requester.
 - Joinable schedule supports Discord invite URL (`discord_invite_url`); owner updates it on `/schedules/{id}/discord-invite`, and participants/owner can use it from schedule card.
 - Join request supports optional game ID (`schedule_join_request.game_id`); requester can submit without it, and owner sees it with pending requests when provided.
