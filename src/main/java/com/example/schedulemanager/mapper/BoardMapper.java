@@ -1,8 +1,12 @@
 package com.example.schedulemanager.mapper;
 
 import com.example.schedulemanager.model.BoardPost;
+import com.example.schedulemanager.model.BoardJoinRequest;
 import com.example.schedulemanager.model.BoardPostInterest;
 import com.example.schedulemanager.model.BoardThread;
+import com.example.schedulemanager.model.FriendUser;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -71,7 +75,7 @@ public interface BoardMapper {
 
     @Select("""
             SELECT bp.id, bp.thread_id, bp.author_user_id, u.username AS author_username, u.display_name AS author_display_name,
-                   bp.body, bp.schedule_date, bp.start_time, bp.rank_band, bp.recruitment_limit, bp.created_at
+                   bp.body, bp.schedule_date, bp.start_time, bp.rank_band, bp.recruitment_limit, bp.discord_invite_url, bp.created_at
             FROM board_post bp
             JOIN app_user u ON u.id = bp.author_user_id
             WHERE bp.thread_id = #{threadId}
@@ -81,7 +85,7 @@ public interface BoardMapper {
 
     @Select("""
             SELECT bp.id, bp.thread_id, bp.author_user_id, u.username AS author_username, u.display_name AS author_display_name,
-                   bp.body, bp.schedule_date, bp.start_time, bp.rank_band, bp.recruitment_limit, bp.created_at
+                   bp.body, bp.schedule_date, bp.start_time, bp.rank_band, bp.recruitment_limit, bp.discord_invite_url, bp.created_at
             FROM board_post bp
             JOIN app_user u ON u.id = bp.author_user_id
             WHERE bp.id = #{postId}
@@ -112,6 +116,103 @@ public interface BoardMapper {
             """)
     int touchThreadUpdatedAt(@Param("threadId") Long threadId);
 
+    @Select("""
+            SELECT COUNT(*)
+            FROM board_post_participant
+            WHERE post_id = #{postId}
+            """)
+    int countParticipants(@Param("postId") Long postId);
+
+    @Select("""
+            SELECT COUNT(*) > 0
+            FROM board_post_participant
+            WHERE post_id = #{postId}
+              AND participant_user_id = #{userId}
+            """)
+    boolean existsParticipant(@Param("postId") Long postId, @Param("userId") Long userId);
+
+    @Select("""
+            SELECT u.id, u.username, u.display_name, u.profile_icon_color,
+                   CASE WHEN u.profile_image_data IS NULL THEN FALSE ELSE TRUE END AS has_profile_image
+            FROM board_post_participant bpp
+            JOIN app_user u ON u.id = bpp.participant_user_id
+            WHERE bpp.post_id = #{postId}
+            ORDER BY bpp.created_at ASC, bpp.id ASC
+            """)
+    List<FriendUser> findParticipants(@Param("postId") Long postId);
+
+    @Select("""
+            SELECT id, post_id, requester_user_id, comment, status, created_at, updated_at
+            FROM board_post_join_request
+            WHERE post_id = #{postId}
+              AND requester_user_id = #{requesterUserId}
+            """)
+    BoardJoinRequest findJoinRequestByPostAndRequester(
+            @Param("postId") Long postId,
+            @Param("requesterUserId") Long requesterUserId);
+
+    @Select("""
+            SELECT jr.id, jr.post_id, jr.requester_user_id,
+                   u.username AS requester_username,
+                   u.display_name AS requester_display_name,
+                   u.profile_icon_color AS requester_profile_icon_color,
+                   CASE WHEN u.profile_image_data IS NULL THEN FALSE ELSE TRUE END AS requester_has_profile_image,
+                   jr.comment, jr.status, jr.created_at, jr.updated_at
+            FROM board_post_join_request jr
+            JOIN app_user u ON u.id = jr.requester_user_id
+            WHERE jr.post_id = #{postId}
+              AND jr.status = 'PENDING'
+            ORDER BY jr.created_at ASC, jr.id ASC
+            """)
+    List<BoardJoinRequest> findPendingJoinRequestsByPost(@Param("postId") Long postId);
+
+    @Insert("""
+            INSERT INTO board_post_join_request (post_id, requester_user_id, comment, status)
+            VALUES (#{postId}, #{requesterUserId}, #{comment}, #{status})
+            """)
+    int insertJoinRequest(
+            @Param("postId") Long postId,
+            @Param("requesterUserId") Long requesterUserId,
+            @Param("comment") String comment,
+            @Param("status") String status);
+
+    @Update("""
+            UPDATE board_post_join_request
+            SET comment = #{comment},
+                status = #{status},
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = #{id}
+            """)
+    int updateJoinRequest(
+            @Param("id") Long id,
+            @Param("comment") String comment,
+            @Param("status") String status);
+
+    @Update("""
+            UPDATE board_post_join_request
+            SET status = #{status},
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = #{id}
+            """)
+    int updateJoinRequestStatus(@Param("id") Long id, @Param("status") String status);
+
+    @Insert("""
+            INSERT INTO board_post_participant (post_id, participant_user_id)
+            VALUES (#{postId}, #{userId})
+            """)
+    int insertParticipant(@Param("postId") Long postId, @Param("userId") Long userId);
+
+    @Update("""
+            UPDATE board_post
+            SET discord_invite_url = #{discordInviteUrl}
+            WHERE id = #{postId}
+              AND author_user_id = #{authorUserId}
+            """)
+    int updateDiscordInviteByAuthor(
+            @Param("postId") Long postId,
+            @Param("authorUserId") Long authorUserId,
+            @Param("discordInviteUrl") String discordInviteUrl);
+
     @Update("""
             UPDATE board_post
             SET body = #{body},
@@ -126,8 +227,8 @@ public interface BoardMapper {
             @Param("postId") Long postId,
             @Param("authorUserId") Long authorUserId,
             @Param("body") String body,
-            @Param("scheduleDate") java.time.LocalDate scheduleDate,
-            @Param("startTime") java.time.LocalTime startTime,
+            @Param("scheduleDate") LocalDate scheduleDate,
+            @Param("startTime") LocalTime startTime,
             @Param("rankBand") String rankBand,
             @Param("recruitmentLimit") Integer recruitmentLimit);
 

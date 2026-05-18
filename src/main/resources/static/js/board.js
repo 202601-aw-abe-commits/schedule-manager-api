@@ -2,12 +2,6 @@ const app = document.querySelector(".app-shell");
 const currentUsername = app.dataset.currentUsername;
 const searchKeyword = (app.dataset.searchKeyword || "").trim();
 
-const threadForm = document.getElementById("threadForm");
-const threadGameTitleInput = document.getElementById("threadGameTitle");
-const threadFirstPostBodyInput = document.getElementById("threadFirstPostBody");
-const threadFirstPostScheduleDateInput = document.getElementById("threadFirstPostScheduleDate");
-const threadFirstPostStartTimeInput = document.getElementById("threadFirstPostStartTime");
-const threadFirstPostRankBandInput = document.getElementById("threadFirstPostRankBand");
 const threadFirstPostRecruitmentLimitInput = document.getElementById("threadFirstPostRecruitmentLimit");
 const threadGameTitleSuggestions = document.getElementById("threadGameTitleSuggestions");
 const threadSearchSuggestions = document.getElementById("threadSearchSuggestions");
@@ -15,7 +9,6 @@ const boardMessage = document.getElementById("boardMessage");
 
 const openCreateThreadCardButton = document.getElementById("openCreateThreadCard");
 const openThreadListCardButton = document.getElementById("openThreadListCard");
-const createThreadSection = document.getElementById("createThreadSection");
 const threadListSection = document.getElementById("threadListSection");
 const postEditorSection = document.getElementById("postEditorSection");
 const postListSection = document.getElementById("postListSection");
@@ -30,10 +23,25 @@ const postDetailBody = document.getElementById("postDetailBody");
 const postOwnerActions = document.getElementById("postOwnerActions");
 const postEditButton = document.getElementById("postEditButton");
 const postDeleteButton = document.getElementById("postDeleteButton");
-const interestForm = document.getElementById("interestForm");
-const interestCommentInput = document.getElementById("interestComment");
-const interestSubmitButton = document.getElementById("interestSubmitButton");
-const interestList = document.getElementById("interestList");
+const postEditForm = document.getElementById("postEditForm");
+const editPostBodyInput = document.getElementById("editPostBody");
+const editPostScheduleDateInput = document.getElementById("editPostScheduleDate");
+const editPostStartTimeInput = document.getElementById("editPostStartTime");
+const editPostRankBandInput = document.getElementById("editPostRankBand");
+const editPostRecruitmentLimitInput = document.getElementById("editPostRecruitmentLimit");
+const postUpdateButton = document.getElementById("postUpdateButton");
+const postEditCancelButton = document.getElementById("postEditCancelButton");
+const joinRequestForm = document.getElementById("joinRequestForm");
+const joinRequestCommentInput = document.getElementById("joinRequestComment");
+const joinRequestSubmitButton = document.getElementById("joinRequestSubmitButton");
+const boardPendingJoinSection = document.getElementById("boardPendingJoinSection");
+const boardPendingJoinList = document.getElementById("boardPendingJoinList");
+const boardParticipantList = document.getElementById("boardParticipantList");
+const boardDiscordSection = document.getElementById("boardDiscordSection");
+const boardDiscordInviteLink = document.getElementById("boardDiscordInviteLink");
+const boardDiscordOwnerForm = document.getElementById("boardDiscordOwnerForm");
+const boardDiscordInviteUrlInput = document.getElementById("boardDiscordInviteUrl");
+const boardDiscordSaveButton = document.getElementById("boardDiscordSaveButton");
 
 const state = {
     threads: [],
@@ -56,77 +64,34 @@ const POPULAR_GAME_TITLES = [
 const GAME_TITLE_HISTORY_KEY = "board_game_title_history";
 const GAME_TITLE_HISTORY_LIMIT = 20;
 
-if (openCreateThreadCardButton) {
-    openCreateThreadCardButton.addEventListener("click", () => setBoardMode("create"));
-}
 if (openThreadListCardButton) {
     openThreadListCardButton.addEventListener("click", () => setBoardMode("list"));
 }
 
-threadForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    boardMessage.textContent = "";
-    const trimmedTitle = normalizeTitle(threadGameTitleInput.value);
-
-    try {
-        const created = await fetchJson("/api/board/threads", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ gameTitle: trimmedTitle })
-        });
-        await fetchJson(`/api/board/threads/${created.id}/posts`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                body: threadFirstPostBodyInput.value,
-                scheduleDate: threadFirstPostScheduleDateInput.value || null,
-                startTime: threadFirstPostStartTimeInput.value || null,
-                rankBand: normalizeTitle(threadFirstPostRankBandInput.value) || null,
-                recruitmentLimit: parseIntOrNull(threadFirstPostRecruitmentLimitInput.value)
-            })
-        });
-        pushGameTitleHistory(created.gameTitle || trimmedTitle);
-        threadGameTitleInput.value = "";
-        threadFirstPostBodyInput.value = "";
-        threadFirstPostScheduleDateInput.value = "";
-        threadFirstPostStartTimeInput.value = "";
-        threadFirstPostRankBandInput.value = "";
-        threadFirstPostRecruitmentLimitInput.value = "";
-        refreshGameTitleSuggestions();
-        boardMessage.style.color = "#087057";
-        boardMessage.textContent = "スレッドと募集投稿を作成しました。";
-        await loadThreads();
-        setBoardMode("list");
-        await selectGameTitle(created.gameTitle);
-    } catch (error) {
-        boardMessage.style.color = "#be2f2f";
-        boardMessage.textContent = `作成に失敗しました。${error.message}`;
-    }
-});
-
-interestForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    if (!state.selectedPost || !state.selectedPost.id) {
-        return;
-    }
-    try {
-        interestSubmitButton.disabled = true;
-        await fetchJson(`/api/board/posts/${state.selectedPost.id}/interests`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ comment: interestCommentInput.value })
-        });
-        interestCommentInput.value = "";
-        boardMessage.style.color = "#087057";
-        boardMessage.textContent = "参加希望を送信しました。";
-        await loadInterests(state.selectedPost.id);
-    } catch (error) {
-        boardMessage.style.color = "#be2f2f";
-        boardMessage.textContent = error.message;
-    } finally {
-        interestSubmitButton.disabled = false;
-    }
-});
+if (joinRequestForm) {
+    joinRequestForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!state.selectedPost || !state.selectedPost.id) {
+            return;
+        }
+        try {
+            joinRequestSubmitButton.disabled = true;
+            await fetchJson(`/api/board/posts/${state.selectedPost.id}/join-requests`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ comment: joinRequestCommentInput.value })
+            });
+            boardMessage.style.color = "#087057";
+            boardMessage.textContent = "参加希望を送信しました。";
+            await refreshSelectedPost();
+        } catch (error) {
+            boardMessage.style.color = "#be2f2f";
+            boardMessage.textContent = error.message;
+        } finally {
+            joinRequestSubmitButton.disabled = false;
+        }
+    });
+}
 
 async function loadThreads() {
     const query = searchKeyword ? `?keyword=${encodeURIComponent(searchKeyword)}` : "";
@@ -175,7 +140,8 @@ async function selectGameTitle(gameTitle) {
     state.selectedPost = null;
     postDetailPanel.hidden = true;
     postDetailEmpty.hidden = false;
-    interestList.innerHTML = "";
+    boardPendingJoinList.innerHTML = "";
+    boardParticipantList.innerHTML = "";
     await loadPostsByGameTitle(state.selectedGameTitle);
 }
 
@@ -245,6 +211,7 @@ function renderPostSummaries() {
 
 async function selectPost(post) {
     state.selectedPost = post;
+    hidePostEditForm();
     postDetailBody.textContent = post.body || "";
     const authorName = post.authorDisplayName || post.authorUsername || "不明";
     const dateText = post.scheduleDate || "未指定";
@@ -256,16 +223,13 @@ async function selectPost(post) {
     if (postOwnerActions) {
         postOwnerActions.hidden = !isOwnPost;
     }
-    interestCommentInput.disabled = isOwnPost;
-    interestSubmitButton.disabled = isOwnPost;
-    interestCommentInput.placeholder = isOwnPost ? "自分の募集には参加希望を送信できません" : "例: 参加希望です。21:00から入れます。";
+    renderParticipationPanel(post, isOwnPost);
     postDetailPanel.hidden = false;
     postDetailEmpty.hidden = true;
-    await loadInterests(post.id);
 }
 
 if (postEditButton) {
-    postEditButton.addEventListener("click", async () => {
+    postEditButton.addEventListener("click", () => {
         if (!state.selectedPost || !state.selectedPost.id) {
             return;
         }
@@ -275,37 +239,32 @@ if (postEditButton) {
             boardMessage.textContent = "自分の投稿のみ編集できます。";
             return;
         }
+        showPostEditForm(post);
+    });
+}
 
-        const nextBody = window.prompt("募集内容を入力してください（1000文字以内）", post.body || "");
-        if (nextBody === null) {
+if (postEditForm) {
+    postEditForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!state.selectedPost || !state.selectedPost.id) {
             return;
         }
-        const nextScheduleDateRaw = window.prompt("予定日（YYYY-MM-DD、空で未指定）", post.scheduleDate || "");
-        if (nextScheduleDateRaw === null) {
+        const post = state.selectedPost;
+        if (!post.authorUsername || post.authorUsername !== currentUsername) {
+            boardMessage.style.color = "#be2f2f";
+            boardMessage.textContent = "自分の投稿のみ編集できます。";
             return;
         }
-        const nextStartTimeRaw = window.prompt("開始時刻（HH:mm、空で未指定）", post.startTime ? String(post.startTime).slice(0, 5) : "");
-        if (nextStartTimeRaw === null) {
-            return;
-        }
-        const nextRankBandRaw = window.prompt("ランク（空で未指定）", post.rankBand || "");
-        if (nextRankBandRaw === null) {
-            return;
-        }
-        const nextRecruitmentLimitRaw = window.prompt("募集人数（空で未指定）", post.recruitmentLimit == null ? "" : String(post.recruitmentLimit));
-        if (nextRecruitmentLimitRaw === null) {
-            return;
-        }
-
         const payload = {
-            body: nextBody,
-            scheduleDate: normalizeOptionalText(nextScheduleDateRaw),
-            startTime: normalizeOptionalText(nextStartTimeRaw),
-            rankBand: normalizeOptionalText(nextRankBandRaw),
-            recruitmentLimit: parseIntOrNull(nextRecruitmentLimitRaw)
+            body: editPostBodyInput.value,
+            scheduleDate: normalizeOptionalText(editPostScheduleDateInput.value),
+            startTime: normalizeOptionalText(editPostStartTimeInput.value),
+            rankBand: normalizeOptionalText(editPostRankBandInput.value),
+            recruitmentLimit: parseIntOrNull(editPostRecruitmentLimitInput.value)
         };
 
         try {
+            postUpdateButton.disabled = true;
             const updated = await fetchJson(`/api/board/posts/${post.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
@@ -313,6 +272,7 @@ if (postEditButton) {
             });
             boardMessage.style.color = "#087057";
             boardMessage.textContent = "投稿を編集しました。";
+            hidePostEditForm();
             await loadThreads();
             await selectGameTitle(post.threadTitle || state.selectedGameTitle);
             if (updated && updated.id) {
@@ -324,7 +284,15 @@ if (postEditButton) {
         } catch (error) {
             boardMessage.style.color = "#be2f2f";
             boardMessage.textContent = error.message;
+        } finally {
+            postUpdateButton.disabled = false;
         }
+    });
+}
+
+if (postEditCancelButton) {
+    postEditCancelButton.addEventListener("click", () => {
+        hidePostEditForm();
     });
 }
 
@@ -350,7 +318,8 @@ if (postDeleteButton) {
             state.selectedPost = null;
             postDetailPanel.hidden = true;
             postDetailEmpty.hidden = false;
-            interestList.innerHTML = "";
+            boardPendingJoinList.innerHTML = "";
+            boardParticipantList.innerHTML = "";
             await loadThreads();
             await selectGameTitle(post.threadTitle || state.selectedGameTitle);
         } catch (error) {
@@ -360,29 +329,28 @@ if (postDeleteButton) {
     });
 }
 
-async function loadInterests(postId) {
-    const interests = await fetchJson(`/api/board/posts/${postId}/interests`);
-    interestList.innerHTML = "";
-    if (!Array.isArray(interests) || interests.length === 0) {
-        interestList.innerHTML = "<li>まだ参加希望コメントはありません。</li>";
-        return;
-    }
-
-    interests.forEach((interest) => {
-        const li = document.createElement("li");
-        const name = interest.requesterDisplayName || interest.requesterUsername || "不明";
-        li.textContent = `${name}: ${interest.comment}`;
-        if (interest.requesterUserId && interest.requesterUsername !== currentUsername) {
-            const reportButton = document.createElement("button");
-            reportButton.type = "button";
-            reportButton.className = "secondary";
-            reportButton.textContent = "通報";
-            reportButton.addEventListener("click", async () => {
-                await reportUser(interest.requesterUserId, "BOARD_INTEREST", interest.id);
-            });
-            li.appendChild(reportButton);
+if (boardDiscordOwnerForm) {
+    boardDiscordOwnerForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!state.selectedPost || !state.selectedPost.id) {
+            return;
         }
-        interestList.appendChild(li);
+        try {
+            boardDiscordSaveButton.disabled = true;
+            await fetchJson(`/api/board/posts/${state.selectedPost.id}/discord-invite`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ discordInviteUrl: normalizeOptionalText(boardDiscordInviteUrlInput.value) })
+            });
+            boardMessage.style.color = "#087057";
+            boardMessage.textContent = "Discord招待URLを更新しました。";
+            await refreshSelectedPost();
+        } catch (error) {
+            boardMessage.style.color = "#be2f2f";
+            boardMessage.textContent = error.message;
+        } finally {
+            boardDiscordSaveButton.disabled = false;
+        }
     });
 }
 
@@ -460,6 +428,141 @@ function normalizeOptionalText(value) {
     return normalized === "" ? null : normalized;
 }
 
+function renderParticipationPanel(post, isOwnPost) {
+    const joined = post.joinedByCurrentUser === true;
+    const status = String(post.joinRequestStatusForCurrentUser || "");
+    const closed = post.recruitmentClosed === true;
+
+    if (joinRequestCommentInput) {
+        joinRequestCommentInput.value = "";
+    }
+    if (joinRequestForm) {
+        joinRequestForm.hidden = isOwnPost;
+    }
+    if (joinRequestCommentInput) {
+        joinRequestCommentInput.disabled = isOwnPost || joined || status === "PENDING" || closed;
+        if (isOwnPost) {
+            joinRequestCommentInput.placeholder = "自分の募集には参加希望を送信できません";
+        } else if (joined) {
+            joinRequestCommentInput.placeholder = "参加承認済みです";
+        } else if (status === "PENDING") {
+            joinRequestCommentInput.placeholder = "参加希望は承認待ちです";
+        } else if (closed) {
+            joinRequestCommentInput.placeholder = "この募集は締め切られています";
+        } else {
+            joinRequestCommentInput.placeholder = "例: 参加希望です。21:00から入れます。";
+        }
+    }
+    if (joinRequestSubmitButton) {
+        joinRequestSubmitButton.disabled = isOwnPost || joined || status === "PENDING" || closed;
+    }
+
+    if (boardPendingJoinSection) {
+        boardPendingJoinSection.hidden = !isOwnPost;
+    }
+    if (boardPendingJoinList) {
+        boardPendingJoinList.innerHTML = "";
+        const pending = Array.isArray(post.pendingJoinRequests) ? post.pendingJoinRequests : [];
+        if (isOwnPost && pending.length === 0) {
+            boardPendingJoinList.innerHTML = "<li>承認待ちの参加希望はありません。</li>";
+        }
+        pending.forEach((request) => {
+            const li = document.createElement("li");
+            const name = request.requesterDisplayName || request.requesterUsername || "不明";
+            const text = document.createElement("span");
+            text.textContent = `${name}: ${request.comment || ""}`;
+            const approveButton = document.createElement("button");
+            approveButton.type = "button";
+            approveButton.className = "primary";
+            approveButton.textContent = "了承";
+            approveButton.addEventListener("click", async () => {
+                await decideJoinRequest(post.id, request.id, true);
+            });
+            const rejectButton = document.createElement("button");
+            rejectButton.type = "button";
+            rejectButton.className = "secondary";
+            rejectButton.textContent = "見送り";
+            rejectButton.addEventListener("click", async () => {
+                await decideJoinRequest(post.id, request.id, false);
+            });
+            li.append(text, approveButton, rejectButton);
+            boardPendingJoinList.appendChild(li);
+        });
+    }
+
+    if (boardParticipantList) {
+        boardParticipantList.innerHTML = "";
+        const participants = Array.isArray(post.participants) ? post.participants : [];
+        if (participants.length === 0) {
+            boardParticipantList.innerHTML = "<li>参加メンバーはまだいません。</li>";
+        }
+        participants.forEach((user) => {
+            const li = document.createElement("li");
+            li.textContent = `${user.displayName || user.username || "不明"} (@${user.username || ""})`;
+            boardParticipantList.appendChild(li);
+        });
+    }
+
+    const canViewDiscord = Boolean(post.discordInviteUrl) && (isOwnPost || joined);
+    if (boardDiscordSection) {
+        boardDiscordSection.hidden = !canViewDiscord;
+    }
+    if (boardDiscordInviteLink && canViewDiscord) {
+        boardDiscordInviteLink.href = post.discordInviteUrl;
+    }
+
+    if (boardDiscordOwnerForm) {
+        boardDiscordOwnerForm.hidden = !isOwnPost;
+    }
+    if (boardDiscordInviteUrlInput && isOwnPost) {
+        boardDiscordInviteUrlInput.value = post.discordInviteUrl || "";
+    }
+}
+
+async function decideJoinRequest(postId, joinRequestId, approve) {
+    try {
+        await fetchJson(`/api/board/posts/${postId}/join-requests/${joinRequestId}/${approve ? "approve" : "reject"}`, { method: "POST" });
+        boardMessage.style.color = "#087057";
+        boardMessage.textContent = approve ? "参加希望を了承しました。" : "参加希望を見送りました。";
+        await refreshSelectedPost();
+    } catch (error) {
+        boardMessage.style.color = "#be2f2f";
+        boardMessage.textContent = error.message;
+    }
+}
+
+async function refreshSelectedPost() {
+    if (!state.selectedPost || !state.selectedPost.id) {
+        return;
+    }
+    const post = state.selectedPost;
+    await loadThreads();
+    await selectGameTitle(post.threadTitle || state.selectedGameTitle);
+    const refreshed = state.selectedPosts.find((row) => Number(row.id) === Number(post.id));
+    if (refreshed) {
+        await selectPost(refreshed);
+    }
+}
+
+function showPostEditForm(post) {
+    if (!postEditForm) {
+        return;
+    }
+    editPostBodyInput.value = post.body || "";
+    editPostScheduleDateInput.value = post.scheduleDate || "";
+    editPostStartTimeInput.value = post.startTime ? String(post.startTime).slice(0, 5) : "";
+    editPostRankBandInput.value = post.rankBand || "";
+    editPostRecruitmentLimitInput.value = post.recruitmentLimit == null ? "" : String(post.recruitmentLimit);
+    postEditForm.hidden = false;
+}
+
+function hidePostEditForm() {
+    if (!postEditForm) {
+        return;
+    }
+    postEditForm.hidden = true;
+}
+
 function normalizeTitle(value) {
     if (value == null) {
         return "";
@@ -481,18 +584,15 @@ async function fetchJson(url, options = {}) {
 }
 
 function setBoardMode(mode) {
-    const showCreate = mode === "create";
-    if (createThreadSection) {
-        createThreadSection.hidden = !showCreate;
-    }
+    const showList = mode === "list";
     if (threadListSection) {
-        threadListSection.hidden = showCreate;
+        threadListSection.hidden = !showList;
     }
     if (postEditorSection) {
-        postEditorSection.hidden = showCreate;
+        postEditorSection.hidden = !showList;
     }
     if (postListSection) {
-        postListSection.hidden = showCreate;
+        postListSection.hidden = !showList;
     }
 }
 
@@ -529,7 +629,7 @@ async function reportUser(targetUserId, sourceType, sourceId) {
 }
 
 async function initializeBoard() {
-    setBoardMode(searchKeyword ? "list" : "create");
+    setBoardMode(searchKeyword ? "list" : "menu");
     await loadThreads();
 }
 

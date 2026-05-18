@@ -12,7 +12,9 @@
 - Keep integration and docs wording aligned to schedule terminology (`予定`, `スケジュール`).
 - Admin moderation page: `/admin` (admin-only via `AdminGuardService`), APIs under `/api/admin/moderation`.
 - Admin can review all users' schedules/comments by selecting `全ユーザー` and can delete schedules, board posts, board comments, and DMs.
-- Board posts on `/board` can be edited/deleted by the post author via the post detail `編集` / `削除` buttons (`PUT/DELETE /api/board/posts/{postId}`).
+- Board posts on `/board` can be edited/deleted by the post author via post detail actions; edit opens an in-page form and updates via `更新` button (`PUT/DELETE /api/board/posts/{postId}`).
+- Board posts on `/board` support participation flow similar to schedules: users send join requests, authors approve/reject, and Discord invite URL is visible only to author or approved participants.
+- `/board` landing shows only menu cards (`スレッド作成`, `スレッド一覧`); thread creation form is on dedicated `/board/create` page.
 - Schedule share rule: joinable schedule re-share is allowed only after the requester is approved as participant (`schedule_participant`), and UI should explain approval-gated sharing to requester.
 - Joinable schedule supports Discord invite URL (`discord_invite_url`); owner updates it on `/schedules/{id}/discord-invite`, and participants/owner can use it from schedule card.
 - Join request supports optional game ID (`schedule_join_request.game_id`); requester can submit without it, and owner sees it with pending requests when provided.

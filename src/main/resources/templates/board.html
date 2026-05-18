@@ -37,48 +37,17 @@
                 <span class="profile-chip profile-chip-violet">MENU</span>
             </div>
             <div class="board-entry-cards">
-                <button id="openCreateThreadCard" type="button" class="board-entry-card">
+                <a id="openCreateThreadCard" href="/board/create" class="board-entry-card">
                     <span class="board-entry-title">スレッド作成</span>
                     <span class="board-entry-text">新しいゲーム募集スレッドを作る</span>
-                </button>
+                </a>
                 <button id="openThreadListCard" type="button" class="board-entry-card">
                     <span class="board-entry-title">スレッド一覧</span>
                     <span class="board-entry-text">既存スレッドを検索して開く</span>
                 </button>
             </div>
         </section>
-
-        <section id="createThreadSection" class="friend-section">
-            <h3>新しいゲームスレッドを作成</h3>
-            <div class="top-page-badge-row">
-                <span class="profile-chip profile-chip-orange">CREATE</span>
-            </div>
-            <form id="threadForm" class="schedule-form">
-                <label for="threadGameTitle">ゲームタイトル</label>
-                <input id="threadGameTitle" type="text" maxlength="200" placeholder="例: モンハンワイルズ" list="threadGameTitleSuggestions" autocomplete="off" required>
-                <datalist id="threadGameTitleSuggestions"></datalist>
-
-                <label for="threadFirstPostBody">募集内容</label>
-                <textarea id="threadFirstPostBody" rows="4" maxlength="1000" placeholder="例: 21時から2人募集します" required></textarea>
-
-                <label for="threadFirstPostScheduleDate">予定日（任意）</label>
-                <input id="threadFirstPostScheduleDate" type="date">
-
-                <label for="threadFirstPostStartTime">開始時刻（任意）</label>
-                <input id="threadFirstPostStartTime" type="time">
-
-                <label for="threadFirstPostRankBand">ランク（任意）</label>
-                <input id="threadFirstPostRankBand" type="text" maxlength="100" placeholder="例: ダイヤ4 / プラチナ帯">
-
-                <label for="threadFirstPostRecruitmentLimit">募集人数（任意）</label>
-                <input id="threadFirstPostRecruitmentLimit" type="number" min="1" step="1" placeholder="例: 2">
-
-                <div class="form-actions">
-                    <button type="submit" class="primary">スレッドと募集を作成</button>
-                </div>
-            </form>
-            <p id="boardMessage" class="form-message" aria-live="polite"></p>
-        </section>
+        <p id="boardMessage" class="form-message" aria-live="polite"></p>
 
         <section id="threadListSection" class="friend-section" hidden>
             <h3>ゲーム一覧</h3>
@@ -114,15 +83,53 @@
                     <button id="postEditButton" type="button" class="secondary">編集</button>
                     <button id="postDeleteButton" type="button" class="secondary">削除</button>
                 </div>
-                <form id="interestForm" class="schedule-form">
-                    <label for="interestComment">参加希望コメント</label>
-                    <textarea id="interestComment" rows="3" maxlength="500" placeholder="例: 参加希望です。21:00から入れます。" required></textarea>
+                <form id="postEditForm" class="schedule-form" hidden>
+                    <label for="editPostBody">募集内容</label>
+                    <textarea id="editPostBody" rows="4" maxlength="1000" required></textarea>
+
+                    <label for="editPostScheduleDate">予定日（任意）</label>
+                    <input id="editPostScheduleDate" type="date">
+
+                    <label for="editPostStartTime">開始時刻（任意）</label>
+                    <input id="editPostStartTime" type="time">
+
+                    <label for="editPostRankBand">ランク（任意）</label>
+                    <input id="editPostRankBand" type="text" maxlength="100" placeholder="例: ダイヤ4 / プラチナ帯">
+
+                    <label for="editPostRecruitmentLimit">募集人数（任意）</label>
+                    <input id="editPostRecruitmentLimit" type="number" min="1" step="1" placeholder="例: 2">
+
                     <div class="form-actions">
-                        <button id="interestSubmitButton" type="submit" class="primary">参加希望を送信</button>
+                        <button id="postUpdateButton" type="submit" class="primary">更新</button>
+                        <button id="postEditCancelButton" type="button" class="secondary">キャンセル</button>
                     </div>
                 </form>
-                <h4>参加希望コメント一覧</h4>
-                <ul id="interestList" class="mini-list"></ul>
+                <form id="joinRequestForm" class="schedule-form">
+                    <label for="joinRequestComment">参加希望コメント</label>
+                    <textarea id="joinRequestComment" rows="3" maxlength="500" placeholder="例: 参加希望です。21:00から入れます。" required></textarea>
+                    <div class="form-actions">
+                        <button id="joinRequestSubmitButton" type="submit" class="primary">参加希望を送信</button>
+                    </div>
+                </form>
+                <section id="boardPendingJoinSection" hidden>
+                    <h4>参加希望（承認待ち）</h4>
+                    <ul id="boardPendingJoinList" class="mini-list"></ul>
+                </section>
+                <section>
+                    <h4>参加メンバー</h4>
+                    <ul id="boardParticipantList" class="mini-list"></ul>
+                </section>
+                <section id="boardDiscordSection" hidden>
+                    <h4>Discord</h4>
+                    <p><a id="boardDiscordInviteLink" href="#" target="_blank" rel="noopener noreferrer">Discord招待リンクを開く</a></p>
+                </section>
+                <form id="boardDiscordOwnerForm" class="schedule-form" hidden>
+                    <label for="boardDiscordInviteUrl">Discord招待URL（承認メンバー向け）</label>
+                    <input id="boardDiscordInviteUrl" type="url" maxlength="1000" placeholder="https://discord.gg/xxxx">
+                    <div class="form-actions">
+                        <button id="boardDiscordSaveButton" type="submit" class="secondary">Discord URLを保存</button>
+                    </div>
+                </form>
             </div>
         </section>
     </section>

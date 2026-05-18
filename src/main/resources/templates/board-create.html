@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スレッド作成 | ゲーム予定</title>
+    <link rel="stylesheet" href="/css/calendar.css">
+</head>
+<body th:style="${labelColorStyle}">
+<header class="page-hero">
+    <h1 th:text="${currentDisplayName + 'の募集掲示板'}"></h1>
+    <nav class="hero-nav" aria-label="メインメニュー">
+        <a href="/calendar" data-nav-badge="calendar" data-nav-label="トップ">トップ</a>
+        <a href="/board">募集掲示板</a>
+        <a href="/friends" data-nav-badge="friends" data-nav-label="フレンド">フレンド</a>
+        <a href="/profile">プロフィール</a>
+    </nav>
+</header>
+<form method="post" action="/logout" class="logout-floating">
+    <button type="submit">ログアウト</button>
+</form>
+
+<main class="app-shell friends-shell vivid-shell">
+    <section class="schedule-pane">
+        <header>
+            <h2>新しいゲームスレッドを作成</h2>
+            <div class="top-page-badge-row">
+                <span class="profile-chip profile-chip-orange">CREATE</span>
+            </div>
+        </header>
+
+        <section class="friend-section">
+            <a href="/board" class="secondary auth-link-button join-top-link">← 募集掲示板に戻る</a>
+            <form id="threadForm" class="schedule-form">
+                <label for="threadGameTitle">ゲームタイトル</label>
+                <input id="threadGameTitle" type="text" maxlength="200" placeholder="例: モンハンワイルズ" list="threadGameTitleSuggestions" autocomplete="off" required>
+                <datalist id="threadGameTitleSuggestions"></datalist>
+
+                <label for="threadFirstPostBody">募集内容</label>
+                <textarea id="threadFirstPostBody" rows="4" maxlength="1000" placeholder="例: 21時から2人募集します" required></textarea>
+
+                <label for="threadFirstPostScheduleDate">予定日（任意）</label>
+                <input id="threadFirstPostScheduleDate" type="date">
+
+                <label for="threadFirstPostStartTime">開始時刻（任意）</label>
+                <input id="threadFirstPostStartTime" type="time">
+
+                <label for="threadFirstPostRankBand">ランク（任意）</label>
+                <input id="threadFirstPostRankBand" type="text" maxlength="100" placeholder="例: ダイヤ4 / プラチナ帯">
+
+                <label for="threadFirstPostRecruitmentLimit">募集人数（任意）</label>
+                <input id="threadFirstPostRecruitmentLimit" type="number" min="1" step="1" placeholder="例: 2">
+
+                <div class="form-actions">
+                    <button type="submit" class="primary">スレッドと募集を作成</button>
+                </div>
+            </form>
+            <p id="boardCreateMessage" class="form-message" aria-live="polite"></p>
+        </section>
+    </section>
+</main>
+
+<script src="/js/theme.js"></script>
+<script src="/js/nav-badges.js"></script>
+<script src="/js/board-create.js"></script>
+</body>
+</html>

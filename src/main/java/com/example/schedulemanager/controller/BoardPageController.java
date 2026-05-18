@@ -44,4 +44,13 @@ public class BoardPageController {
         model.addAttribute("threads", threads);
         return "board";
     }
+
+    @GetMapping("/board/create")
+    public String boardCreate(Model model, @AuthenticationPrincipal UserDetails userDetails) {
+        AppUser user = userAccountService.getByUsername(userDetails.getUsername());
+        model.addAttribute("currentUsername", user.getUsername());
+        model.addAttribute("currentDisplayName", user.getDisplayName());
+        model.addAttribute("labelColorStyle", labelColorService.toInlineStyle(user.getId()));
+        return "board-create";
+    }
 }

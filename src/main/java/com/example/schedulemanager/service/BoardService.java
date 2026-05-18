@@ -2,11 +2,14 @@ package com.example.schedulemanager.service;
 
 import com.example.schedulemanager.dto.BoardRecruitmentCreateRequest;
 import com.example.schedulemanager.dto.BoardRecruitmentUpdateRequest;
+import com.example.schedulemanager.dto.BoardJoinRequestCreateRequest;
 import com.example.schedulemanager.dto.BoardPostInterestCreateRequest;
 import com.example.schedulemanager.dto.BoardThreadCreateRequest;
+import com.example.schedulemanager.dto.BoardDiscordInviteRequest;
 import com.example.schedulemanager.mapper.BoardMapper;
 import com.example.schedulemanager.mapper.UserMapper;
 import com.example.schedulemanager.model.AppUser;
+import com.example.schedulemanager.model.BoardJoinRequest;
 import com.example.schedulemanager.model.BoardPost;
 import com.example.schedulemanager.model.BoardPostInterest;
 import com.example.schedulemanager.model.BoardThread;
@@ -50,6 +53,15 @@ public class BoardService {
     public List<BoardPost> listPosts(Long threadId) {
         ensureThreadExists(threadId);
         return boardMapper.findPostsByThreadId(threadId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<BoardPost> listPosts(Long threadId, String username) {
+        ensureThreadExists(threadId);
+        AppUser viewer = findCurrentUser(username);
+        List<BoardPost> posts = boardMapper.findPostsByThreadId(threadId);
+        decorateForViewer(posts, viewer.getId());
+        return posts;
     }
 
     @Transactional
@@ -230,6 +242,98 @@ public class BoardService {
         }
     }
 
+    @Transactional
+    public void joinPost(Long postId, String username, BoardJoinRequestCreateRequest request) {
+        BoardPost post = ensurePostExists(postId);
+        AppUser currentUser = findCurrentUser(username);
+        validateJoinablePost(post, currentUser);
+
+        if (boardMapper.existsParticipant(postId, currentUser.getId())) {
+            throw new IllegalArgumentException("すでに参加しています。");
+        }
+        if (isRecruitmentClosed(post, boardMapper.countParticipants(postId))) {
+            throw new IllegalArgumentException("この募集は締め切られています。");
+        }
+
+        String comment = normalizeJoinRequestComment(request == null ? null : request.getComment());
+        BoardJoinRequest existing = boardMapper.findJoinRequestByPostAndRequester(postId, currentUser.getId());
+        if (existing == null) {
+            boardMapper.insertJoinRequest(postId, currentUser.getId(), comment, "PENDING");
+        } else {
+            boardMapper.updateJoinRequest(existing.getId(), comment, "PENDING");
+        }
+
+        if (post.getAuthorUserId() != null && !post.getAuthorUserId().equals(currentUser.getId())) {
+            String actorName = currentUser.getDisplayName() == null ? currentUser.getUsername() : currentUser.getDisplayName();
+            String threadTitle = post.getGameTitle() == null ? "募集投稿" : post.getGameTitle();
+            notificationEventService.publish(
+                    post.getAuthorUserId(),
+                    currentUser.getId(),
+                    "BOARD_JOIN_REQUEST",
+                    "参加希望通知",
+                    actorName + " さんが「" + threadTitle + "」に参加希望を送信しました。");
+        }
+    }
+
+    @Transactional
+    public void decidePostJoinRequest(Long postId, Long joinRequestId, boolean approve, String username) {
+        BoardPost owned = ensurePostExists(postId);
+        AppUser owner = findCurrentUser(username);
+        if (owned.getAuthorUserId() == null || !owned.getAuthorUserId().equals(owner.getId())) {
+            throw new NoSuchElementException("対象の募集が見つかりません。");
+        }
+        List<BoardJoinRequest> pending = boardMapper.findPendingJoinRequestsByPost(postId);
+        BoardJoinRequest target = pending.stream()
+                .filter(row -> row.getId().equals(joinRequestId))
+                .findFirst()
+                .orElseThrow(() -> new NoSuchElementException("参加希望が見つかりません。"));
+
+        if (approve) {
+            if (isRecruitmentClosed(owned, boardMapper.countParticipants(postId))) {
+                throw new IllegalArgumentException("この募集は締め切られているため承認できません。");
+            }
+            if (!boardMapper.existsParticipant(postId, target.getRequesterUserId())) {
+                boardMapper.insertParticipant(postId, target.getRequesterUserId());
+            }
+            boardMapper.updateJoinRequestStatus(joinRequestId, "APPROVED");
+            notificationEventService.publish(
+                    target.getRequesterUserId(),
+                    owner.getId(),
+                    "BOARD_JOIN_APPROVED",
+                    "参加承認",
+                    "募集投稿への参加希望が承認されました。");
+            return;
+        }
+
+        boardMapper.updateJoinRequestStatus(joinRequestId, "REJECTED");
+        notificationEventService.publish(
+                target.getRequesterUserId(),
+                owner.getId(),
+                "BOARD_JOIN_REJECTED",
+                "参加見送り",
+                "募集投稿への参加希望は見送られました。");
+    }
+
+    @Transactional
+    public BoardPost updatePostDiscordInvite(Long postId, String username, BoardDiscordInviteRequest request) {
+        BoardPost existing = ensurePostExists(postId);
+        AppUser owner = findCurrentUser(username);
+        String inviteUrl = normalizeDiscordInviteUrl(request == null ? null : request.getDiscordInviteUrl());
+        int updated = boardMapper.updateDiscordInviteByAuthor(postId, owner.getId(), inviteUrl);
+        if (updated == 0) {
+            throw new NoSuchElementException("指定された投稿が存在しないか、更新権限がありません。");
+        }
+        if (existing.getThreadId() != null) {
+            boardMapper.touchThreadUpdatedAt(existing.getThreadId());
+        }
+        BoardPost post = boardMapper.findPostById(postId);
+        if (post == null) {
+            throw new NoSuchElementException("更新後の投稿取得に失敗しました。");
+        }
+        decorateForViewer(post, owner.getId());
+        return post;
+    }
+
     private void ensureThreadExists(Long threadId) {
         if (threadId == null) {
             throw new IllegalArgumentException("スレッドIDが不正です。");
@@ -249,6 +353,28 @@ public class BoardService {
             throw new NoSuchElementException("指定された投稿が見つかりません。");
         }
         return existing;
+    }
+
+    private void decorateForViewer(List<BoardPost> posts, Long viewerUserId) {
+        for (BoardPost post : posts) {
+            decorateForViewer(post, viewerUserId);
+        }
+    }
+
+    private void decorateForViewer(BoardPost post, Long viewerUserId) {
+        int participantCount = boardMapper.countParticipants(post.getId());
+        post.setParticipantCount(participantCount);
+        post.setRemainingRecruitmentSlots(calcRemainingRecruitmentSlots(post.getRecruitmentLimit(), participantCount));
+        post.setRecruitmentClosed(isRecruitmentClosed(post, participantCount));
+        post.setJoinedByCurrentUser(boardMapper.existsParticipant(post.getId(), viewerUserId));
+        post.setParticipants(boardMapper.findParticipants(post.getId()));
+        BoardJoinRequest own = boardMapper.findJoinRequestByPostAndRequester(post.getId(), viewerUserId);
+        post.setJoinRequestStatusForCurrentUser(own == null ? null : own.getStatus());
+        if (viewerUserId.equals(post.getAuthorUserId())) {
+            post.setPendingJoinRequests(boardMapper.findPendingJoinRequestsByPost(post.getId()));
+        } else {
+            post.setPendingJoinRequests(List.of());
+        }
     }
 
     private AppUser findCurrentUser(String username) {
@@ -288,6 +414,57 @@ public class BoardService {
             return null;
         }
         return value.trim();
+    }
+
+    private String normalizeJoinRequestComment(String value) {
+        String normalized = normalize(value);
+        if (normalized == null || normalized.isBlank()) {
+            throw new IllegalArgumentException("参加希望コメントを入力してください。");
+        }
+        if (normalized.length() > 500) {
+            throw new IllegalArgumentException("参加希望コメントは500文字以内で入力してください。");
+        }
+        return normalized;
+    }
+
+    private String normalizeDiscordInviteUrl(String value) {
+        String normalized = normalize(value);
+        if (normalized == null || normalized.isBlank()) {
+            return null;
+        }
+        if (normalized.length() > 1000) {
+            throw new IllegalArgumentException("Discord招待URLは1000文字以内で入力してください。");
+        }
+        String lower = normalized.toLowerCase();
+        boolean valid = lower.startsWith("https://discord.gg/")
+                || lower.startsWith("https://discord.com/invite/")
+                || lower.startsWith("https://www.discord.gg/")
+                || lower.startsWith("https://www.discord.com/invite/");
+        if (!valid) {
+            throw new IllegalArgumentException("Discord招待URLの形式が不正です。");
+        }
+        return normalized;
+    }
+
+    private void validateJoinablePost(BoardPost post, AppUser currentUser) {
+        if (post == null) {
+            throw new NoSuchElementException("対象の投稿が見つかりません。");
+        }
+        if (currentUser.getId().equals(post.getAuthorUserId())) {
+            throw new IllegalArgumentException("作成者は自分の募集に参加希望できません。");
+        }
+    }
+
+    private Integer calcRemainingRecruitmentSlots(Integer recruitmentLimit, int participantCount) {
+        if (recruitmentLimit == null) {
+            return null;
+        }
+        return Math.max(recruitmentLimit - participantCount, 0);
+    }
+
+    private boolean isRecruitmentClosed(BoardPost post, int participantCount) {
+        Integer limit = post.getRecruitmentLimit();
+        return limit != null && participantCount >= limit;
     }
 
     private void notifyFriendFollowersForRecruitment(AppUser actor, Long threadId) {

@@ -2,6 +2,8 @@ package com.example.schedulemanager.controller;
 
 import com.example.schedulemanager.dto.BoardRecruitmentCreateRequest;
 import com.example.schedulemanager.dto.BoardRecruitmentUpdateRequest;
+import com.example.schedulemanager.dto.BoardJoinRequestCreateRequest;
+import com.example.schedulemanager.dto.BoardDiscordInviteRequest;
 import com.example.schedulemanager.dto.BoardPostInterestCreateRequest;
 import com.example.schedulemanager.dto.BoardThreadCreateRequest;
 import com.example.schedulemanager.model.BoardPost;
@@ -46,8 +48,10 @@ public class BoardApiController {
     }
 
     @GetMapping("/threads/{threadId}/posts")
-    public List<BoardPost> listPosts(@PathVariable("threadId") Long threadId) {
-        return boardService.listPosts(threadId);
+    public List<BoardPost> listPosts(
+            @PathVariable("threadId") Long threadId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return boardService.listPosts(threadId, userDetails.getUsername());
     }
 
     @PostMapping("/threads/{threadId}/posts")
@@ -73,6 +77,41 @@ public class BoardApiController {
             @AuthenticationPrincipal UserDetails userDetails) {
         boardService.deleteRecruitment(postId, userDetails.getUsername());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/posts/{postId}/join-requests")
+    public ResponseEntity<Void> joinPost(
+            @PathVariable("postId") Long postId,
+            @RequestBody(required = false) BoardJoinRequestCreateRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        boardService.joinPost(postId, userDetails.getUsername(), request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/posts/{postId}/join-requests/{joinRequestId}/approve")
+    public ResponseEntity<Void> approvePostJoinRequest(
+            @PathVariable("postId") Long postId,
+            @PathVariable("joinRequestId") Long joinRequestId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        boardService.decidePostJoinRequest(postId, joinRequestId, true, userDetails.getUsername());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/posts/{postId}/join-requests/{joinRequestId}/reject")
+    public ResponseEntity<Void> rejectPostJoinRequest(
+            @PathVariable("postId") Long postId,
+            @PathVariable("joinRequestId") Long joinRequestId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        boardService.decidePostJoinRequest(postId, joinRequestId, false, userDetails.getUsername());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/posts/{postId}/discord-invite")
+    public BoardPost updateDiscordInvite(
+            @PathVariable("postId") Long postId,
+            @RequestBody(required = false) BoardDiscordInviteRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return boardService.updatePostDiscordInvite(postId, userDetails.getUsername(), request);
     }
 
     @GetMapping("/posts/{postId}/interests")
