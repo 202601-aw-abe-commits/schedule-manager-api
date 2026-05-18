@@ -61,6 +61,14 @@ public interface FriendshipMapper {
     int countIncomingPending(@Param("userId") Long userId);
 
     @Select("""
+            SELECT COUNT(*)
+            FROM friendship
+            WHERE status = 'ACCEPTED'
+              AND (requester_user_id = #{userId} OR addressee_user_id = #{userId})
+            """)
+    int countAcceptedFriends(@Param("userId") Long userId);
+
+    @Select("""
             SELECT f.id, f.addressee_user_id AS requester_user_id, u.username AS requester_username,
                    u.display_name AS requester_display_name, f.created_at
             FROM friendship f

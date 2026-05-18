@@ -5,6 +5,7 @@ import com.example.schedulemanager.mapper.FriendshipMapper;
 import com.example.schedulemanager.mapper.ScheduleMapper;
 import com.example.schedulemanager.model.AppUser;
 import com.example.schedulemanager.service.UserAccountService;
+import java.time.LocalDate;
 import java.util.Map;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -34,9 +35,14 @@ public class NavBadgeApiController {
     @GetMapping("/badges")
     public Map<String, Integer> badges(@AuthenticationPrincipal UserDetails userDetails) {
         AppUser user = userAccountService.getByUsername(userDetails.getUsername());
+        LocalDate now = LocalDate.now();
+        LocalDate monthStart = now.withDayOfMonth(1);
+        LocalDate nextMonthStart = monthStart.plusMonths(1);
         return Map.of(
                 "friends", friendshipMapper.countIncomingPending(user.getId()),
                 "dm", directMessageMapper.countUnreadByRecipient(user.getId()),
-                "joins", scheduleMapper.countPendingJoinRequestsForOwner(user.getId()));
+                "joins", scheduleMapper.countPendingJoinRequestsForOwner(user.getId()),
+                "online", friendshipMapper.countAcceptedFriends(user.getId()),
+                "events", scheduleMapper.countOwnedInDateRange(user.getId(), monthStart, nextMonthStart));
     }
 }

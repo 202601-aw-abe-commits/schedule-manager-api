@@ -159,6 +159,72 @@ body::after {
     pointer-events: none;
 }
 
+.hero-title-line {
+    display: flex;
+    justify-content: center;
+}
+
+.hero-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.hero-brand-icon {
+    font-size: 0.75em;
+}
+
+.hero-brand span:nth-child(2) {
+    background: linear-gradient(90deg, #a66cff 0%, #ff5ea9 48%, #7aa9ff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.hero-brand-spark {
+    font-size: 0.7em;
+    color: #ffd84b;
+    text-shadow: 0 0 10px #fff2a0;
+}
+
+.hero-subcopy {
+    margin: 10px 0 0;
+    color: #dce7ff;
+    font-size: clamp(1rem, 2vw, 1.9rem);
+    font-weight: 700;
+    text-shadow: 0 2px 12px #0d1741a6;
+}
+
+.hero-metrics {
+    margin-top: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+    color: #d6def9;
+    font-weight: 600;
+}
+
+.hero-metric {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.03rem;
+}
+
+.hero-metric-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #18d488;
+    box-shadow: 0 0 10px #18d488;
+}
+
+.hero-metric-trophy {
+    color: #ffd54d;
+    filter: drop-shadow(0 0 5px #ffe27f);
+}
+
 @keyframes hero-neon-wave {
     0% {
         transform: translate3d(0, 0, 0) scale(1) skewX(0deg) rotate(0deg);
@@ -224,7 +290,7 @@ body::after {
 }
 
 .hero-nav {
-    margin-top: 14px;
+    margin-top: 18px;
     display: flex;
     justify-content: center;
     gap: 6px;
@@ -238,6 +304,21 @@ body::after {
     max-width: 100%;
     margin-left: auto;
     margin-right: auto;
+}
+
+@media (max-width: 640px) {
+    .hero-subcopy {
+        padding: 0 8px;
+    }
+
+    .hero-metrics {
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .hero-metric {
+        font-size: 0.95rem;
+    }
 }
 
 .hero-nav a {

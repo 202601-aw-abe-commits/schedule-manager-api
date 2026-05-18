@@ -8,7 +8,14 @@
 </head>
 <body th:style="${labelColorStyle}">
 <header class="page-hero">
-    <h1 th:text="${currentDisplayName + 'のゲームスケジュール'}"></h1>
+    <div class="hero-title-line">
+        <h1 class="hero-brand"><span class="hero-brand-icon">🎮</span> <span>GameSchedule</span> <span class="hero-brand-spark">✧</span></h1>
+    </div>
+    <p class="hero-subcopy">フレンドとゲームの予定を共有しよう</p>
+    <div class="hero-metrics" aria-label="トップ統計">
+        <span class="hero-metric"><span class="hero-metric-dot" aria-hidden="true"></span><span id="heroOnlineCount">0</span> オンライン</span>
+        <span class="hero-metric"><span class="hero-metric-trophy" aria-hidden="true">🏆</span><span id="heroEventCount">0</span> イベント</span>
+    </div>
     <nav class="hero-nav" aria-label="メインメニュー">
         <a href="/calendar" data-nav-badge="calendar" data-nav-label="トップ">トップ</a>
         <a href="/board">募集掲示板</a>

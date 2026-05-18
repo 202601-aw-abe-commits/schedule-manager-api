@@ -338,6 +338,18 @@ public interface ScheduleMapper {
     int countPendingJoinRequestsForOwner(@Param("ownerUserId") Long ownerUserId);
 
     @Select("""
+            SELECT COUNT(*)
+            FROM schedule_item
+            WHERE owner_user_id = #{ownerUserId}
+              AND schedule_date >= #{startDate}
+              AND schedule_date < #{endExclusiveDate}
+            """)
+    int countOwnedInDateRange(
+            @Param("ownerUserId") Long ownerUserId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endExclusiveDate") LocalDate endExclusiveDate);
+
+    @Select("""
             SELECT id, schedule_item_id, requester_user_id, comment, game_id, status, created_at, updated_at
             FROM schedule_join_request
             WHERE schedule_item_id = #{scheduleId}

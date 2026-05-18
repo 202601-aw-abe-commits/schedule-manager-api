@@ -21,6 +21,7 @@
 - Friend list page (`/friends/list`) avatar uses each user's configured profile image when available; otherwise falls back to color-based default icon.
 - Friend level ranking avatar (friends page/home widget) uses each user's configured profile image when available; otherwise falls back to color-based default icon.
 - Main navigation (`.hero-nav`) uses an outer rounded container with pill-style active tab highlight (`.is-current`) across calendar/friends/board/profile pages.
+- Calendar top hero shows `GameSchedule` branding and stats (`オンライン`, `イベント`) sourced from `/api/nav/badges`; current implementation defines `オンライン` as accepted friend count and `イベント` as this-month owned schedule count.
 
 ## Project Structure & Module Organization
 - Main backend app lives in `src/main/java/com/example/schedulemanager`.

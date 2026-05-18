@@ -8,8 +8,20 @@ async function loadNavBadges() {
         setNavBadge("friends", Number(data.friends || 0));
         setNavBadge("dm", Number(data.dm || 0));
         setNavBadge("calendar", Number(data.joins || 0));
+        setHeroStats(Number(data.online || 0), Number(data.events || 0));
     } catch (error) {
         // ignore
+    }
+}
+
+function setHeroStats(online, events) {
+    const onlineNode = document.getElementById("heroOnlineCount");
+    if (onlineNode) {
+        onlineNode.textContent = String(Math.max(0, Number(online || 0)));
+    }
+    const eventNode = document.getElementById("heroEventCount");
+    if (eventNode) {
+        eventNode.textContent = String(Math.max(0, Number(events || 0)));
     }
 }
 
