@@ -7,6 +7,8 @@ public class FriendRequestInfo {
     private Long requesterUserId;
     private String requesterUsername;
     private String requesterDisplayName;
+    private String profileIconColor;
+    private Boolean hasProfileImage;
     private LocalDateTime createdAt;
 
     public Long getId() {
@@ -39,6 +41,22 @@ public class FriendRequestInfo {
 
     public void setRequesterDisplayName(String requesterDisplayName) {
         this.requesterDisplayName = requesterDisplayName;
+    }
+
+    public String getProfileIconColor() {
+        return profileIconColor;
+    }
+
+    public void setProfileIconColor(String profileIconColor) {
+        this.profileIconColor = profileIconColor;
+    }
+
+    public Boolean getHasProfileImage() {
+        return hasProfileImage;
+    }
+
+    public void setHasProfileImage(Boolean hasProfileImage) {
+        this.hasProfileImage = hasProfileImage;
     }
 
     public LocalDateTime getCreatedAt() {

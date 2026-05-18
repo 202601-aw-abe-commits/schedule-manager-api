@@ -6,7 +6,7 @@
     <title>フレンド申請 | ゲーム予定</title>
     <link rel="stylesheet" href="/css/calendar.css">
 </head>
-<body th:style="${labelColorStyle}">
+<body th:style="${labelColorStyle}" class="friends-list-page">
 <header class="page-hero">
     <h1 th:text="${currentDisplayName + 'のフレンド'}"></h1>
     <nav class="hero-nav" aria-label="メインメニュー">
@@ -29,11 +29,11 @@
             <div class="friend-columns">
                 <div>
                     <h4>受信申請</h4>
-                    <ul id="incomingRequestList" class="mini-list"></ul>
+                    <ul id="incomingRequestList" class="mini-list friend-card-grid"></ul>
                 </div>
                 <div>
                     <h4>送信中申請</h4>
-                    <ul id="outgoingRequestList" class="mini-list"></ul>
+                    <ul id="outgoingRequestList" class="mini-list friend-card-grid"></ul>
                 </div>
             </div>
             <p id="friendMessage" class="form-message" aria-live="polite"></p>

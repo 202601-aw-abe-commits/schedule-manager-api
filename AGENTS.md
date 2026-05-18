@@ -20,6 +20,7 @@
 - Friend profile page (`/friends/profile/{username}`) displays `X URL` and `配信URL` as clickable links (open in new tab) when set.
 - Friend search/profile lookup image (`/api/users/{userId}/profile-image`) is viewable for authenticated users so searched users' selected profile images are reflected even before friendship.
 - Friend list page (`/friends/list`) avatar uses each user's configured profile image when available; otherwise falls back to color-based default icon.
+- Friend requests page (`/friends/requests`) incoming/outgoing cards use the same avatar/card visual style as friend list, including profile image fallback behavior.
 - Friend level ranking avatar (friends page/home widget) uses each user's configured profile image when available; otherwise falls back to color-based default icon.
 - Main navigation (`.hero-nav`) uses an outer rounded container with pill-style active tab highlight (`.is-current`) across calendar/friends/board/profile pages.
 - Calendar top hero shows `GameSchedule` branding and stats (`オンライン`, `イベント`) sourced from `/api/nav/badges`; current implementation defines `オンライン` as accepted friend count and `イベント` as this-month owned schedule count.

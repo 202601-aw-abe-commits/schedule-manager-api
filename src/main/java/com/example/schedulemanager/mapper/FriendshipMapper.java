@@ -43,6 +43,8 @@ public interface FriendshipMapper {
 
     @Select("""
             SELECT f.id, f.requester_user_id, u.username AS requester_username, u.display_name AS requester_display_name,
+                   u.profile_icon_color,
+                   CASE WHEN u.profile_image_data IS NULL THEN FALSE ELSE TRUE END AS has_profile_image,
                    f.created_at
             FROM friendship f
             JOIN app_user u ON u.id = f.requester_user_id
@@ -70,7 +72,10 @@ public interface FriendshipMapper {
 
     @Select("""
             SELECT f.id, f.addressee_user_id AS requester_user_id, u.username AS requester_username,
-                   u.display_name AS requester_display_name, f.created_at
+                   u.display_name AS requester_display_name,
+                   u.profile_icon_color,
+                   CASE WHEN u.profile_image_data IS NULL THEN FALSE ELSE TRUE END AS has_profile_image,
+                   f.created_at
             FROM friendship f
             JOIN app_user u ON u.id = f.addressee_user_id
             WHERE f.requester_user_id = #{userId}
