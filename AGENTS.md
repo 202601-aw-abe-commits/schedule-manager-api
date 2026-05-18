@@ -20,6 +20,9 @@
 - `/board` post summary list is rendered as cards (friend-list-like style) showing `何月何日`, `何時`, `募集人数`; tapping a card opens post detail.
 - Game title emoji badge mapping is shared via `/js/game-badges.js` and used across board/top pages for consistent game markers.
 - Board recruitment posts are auto-cleaned daily: posts with `schedule_date` earlier than today are deleted, and threads with no remaining posts are also removed.
+- Public AdSense landing pages are available at `/`, `/privacy`, and `/terms`; they are anonymous-accessible, while `/login` remains the existing authentication entry point.
+- Public landing pages are intentionally concise and mobile-friendly for AdSense review; the TOP page should stay summary-first and avoid dense long-form copy.
+- `/terms` is the public terms page and should mirror the latest provided Japanese policy text, including the 2026-05-18 last-updated date and the numbered articles.
 - Calendar schedule creation supports pre-registering participants for joinable schedules via friend selection and manual name input; selecting a friend card writes the display name into the player-name textarea, multiple selection is supported, the picker opens as a browser dialog popup, `あと何人募集するか` is treated as the additional recruit count, not the total cap, and saved names are shown in `参加中` together with approved participants.
 - Calendar participant picker uses each friend's configured profile image when available and falls back to the default color icon while rendering the popup cards.
 - Schedule share rule: joinable schedule re-share is allowed only after the requester is approved as participant (`schedule_participant`), and UI should explain approval-gated sharing to requester.

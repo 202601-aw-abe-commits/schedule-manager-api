@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{app.title} + ' | TOP'">ゲーム参加型日程 | TOP</title>
+    <link rel="stylesheet" href="/css/public.css">
+</head>
+<body class="public-page">
+<main class="public-main">
+    <div class="public-wrap">
+        <section class="public-hero public-hero-split">
+            <div class="public-hero-copy">
+                <span class="public-kicker">PUBLIC TOP</span>
+                <h1 class="public-title" th:text="#{app.title}">ゲーム参加型日程</h1>
+                <p class="public-lead">
+                    ゲームの予定、フレンドとの参加管理、募集掲示板をひとつにまとめたスケジュール管理アプリです。
+                    ログイン前でもサービス概要、使い方、規約を確認できます。
+                </p>
+                <div class="public-cta-row">
+                    <a class="public-button primary" href="/login" th:text="#{common.login}">ログイン</a>
+                </div>
+                <div class="public-inline-links">
+                    <a href="/privacy">プライバシーポリシー</a>
+                    <a href="/terms">利用規約</a>
+                </div>
+            </div>
+
+            <aside class="public-hero-card">
+                <div class="public-hero-card-top">
+                    <span class="public-kicker compact">Overview</span>
+                    <h2>アプリの概要</h2>
+                    <p>
+                        まずはアプリの概要だけを短く伝え、詳細は必要なページだけに分けています。
+                    </p>
+                </div>
+                <div class="public-hero-mini-list">
+                    <div class="public-mini-item">
+                        <span>予定作成</span>
+                        <strong>日付・ゲーム・参加者を整理</strong>
+                    </div>
+                    <div class="public-mini-item">
+                        <span>フレンド管理</span>
+                        <strong>検索・申請・確認をまとめて管理</strong>
+                    </div>
+                    <div class="public-mini-item">
+                        <span>募集掲示板</span>
+                        <strong>参加募集と承認をシンプルに運用</strong>
+                    </div>
+                </div>
+            </aside>
+        </section>
+
+        <section class="public-section public-panel">
+            <div class="public-section-head">
+                <div>
+                    <span class="public-kicker compact">Features</span>
+                    <h2>主な機能</h2>
+                </div>
+                <p>短い説明を中心に構成しています。</p>
+            </div>
+            <div class="public-feature-grid">
+                <article class="public-feature">
+                    <span class="badge">SCHEDULE</span>
+                    <h3>予定の作成・共有</h3>
+                    <p>日付、ゲーム名、参加者、メモをまとめて管理できます。</p>
+                </article>
+                <article class="public-feature">
+                    <span class="badge">FRIENDS</span>
+                    <h3>フレンド管理</h3>
+                    <p>フレンド検索、申請管理、プロフィール確認ができます。</p>
+                </article>
+                <article class="public-feature">
+                    <span class="badge">BOARD</span>
+                    <h3>募集掲示板</h3>
+                    <p>参加募集スレッドの作成と承認ができます。</p>
+                </article>
+                <article class="public-feature">
+                    <span class="badge">PROFILE</span>
+                    <h3>プロフィール設定</h3>
+                    <p>アイコンやリンクを設定して、自分の情報を整えられます。</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="public-section public-panel">
+            <div class="public-section-head">
+                <div>
+                    <span class="public-kicker compact">How to</span>
+                    <h2>使い方</h2>
+                </div>
+                <p>最初の利用手順だけを、3つに絞ってまとめています。</p>
+            </div>
+            <div class="public-steps">
+                <div class="public-step">
+                    <span class="public-step-num">1</span>
+                    <h3>ログインする</h3>
+                    <p>アカウントでログインして機能を使います。</p>
+                </div>
+                <div class="public-step">
+                    <span class="public-step-num">2</span>
+                    <h3>予定を登録する</h3>
+                    <p>ゲーム名や日付、参加メンバーを入力して保存します。</p>
+                </div>
+                <div class="public-step">
+                    <span class="public-step-num">3</span>
+                    <h3>共有して集める</h3>
+                    <p>共有リンクや募集掲示板で参加者を集めます。</p>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer class="public-footer">
+    <div class="public-footer-inner">
+        <div>© <span th:text="#{app.title}">ゲーム参加型日程</span></div>
+        <div class="public-footer-links">
+            <a href="/privacy">プライバシーポリシー</a>
+            <a href="/terms">利用規約</a>
+        </div>
+    </div>
+</footer>
+</body>
+</html>
