@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ゲーム予定</title>
-    <link rel="stylesheet" href="/css/calendar.css">
+    <link rel="stylesheet" href="/css/calendar.css?v=20260518-1">
 </head>
 <body th:style="${labelColorStyle}">
 <header class="page-hero">
@@ -193,15 +193,17 @@
             </div>
         </section>
 
-        <section id="presetParticipantFriendPickerScreen" class="friend-section friend-share-picker-screen" hidden>
-            <h3>参加中プレイヤーを選択</h3>
-            <p class="help-text">フレンドを複数選べます。カードをクリックすると選択/解除します。</p>
-            <ul id="presetParticipantFriendPickerList" class="preset-participant-picker-grid"></ul>
-            <div class="form-actions">
-                <button id="presetParticipantFriendPickerApplyButton" type="button" class="primary">選択を反映</button>
-                <button id="presetParticipantFriendPickerCancelButton" type="button" class="secondary">戻る</button>
+        <dialog id="presetParticipantFriendPickerScreen" class="friend-section friend-share-picker-screen">
+            <div class="preset-participant-picker-panel">
+                <h3>参加中プレイヤーを選択</h3>
+                <p class="help-text">フレンドを複数選べます。カードをクリックすると選択/解除します。</p>
+                <ul id="presetParticipantFriendPickerList" class="preset-participant-picker-grid"></ul>
+                <div class="form-actions">
+                    <button id="presetParticipantFriendPickerApplyButton" type="button" class="primary">選択を反映</button>
+                    <button id="presetParticipantFriendPickerCancelButton" type="button" class="secondary">戻る</button>
+                </div>
             </div>
-        </section>
+        </dialog>
 
         <section class="friend-section" style="margin-top: 20px;">
             <h3>通知設定</h3>
@@ -223,9 +225,9 @@
 
     </section>
 </main>
-<script src="/js/theme.js"></script>
-<script src="/js/game-badges.js"></script>
-<script src="/js/nav-badges.js"></script>
-<script src="/js/calendar.js"></script>
+<script src="/js/theme.js?v=20260518-1"></script>
+<script src="/js/game-badges.js?v=20260518-1"></script>
+<script src="/js/nav-badges.js?v=20260518-1"></script>
+<script src="/js/calendar.js?v=20260518-1"></script>
 </body>
 </html>

@@ -188,6 +188,13 @@ if (presetParticipantFriendPickerCancelButton) {
         closePresetParticipantFriendPickerScreen();
     });
 }
+if (presetParticipantFriendPickerScreen) {
+    presetParticipantFriendPickerScreen.addEventListener("click", (event) => {
+        if (event.target === presetParticipantFriendPickerScreen) {
+            closePresetParticipantFriendPickerScreen();
+        }
+    });
+}
 
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -1518,6 +1525,16 @@ function buildDefaultProfileDataUrl(iconColor) {
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
+function resolveFriendAvatarUrl(friend) {
+    if (!friend || !friend.id) {
+        return buildDefaultProfileDataUrl(DEFAULT_PROFILE_ICON_COLOR);
+    }
+    if (friend.hasProfileImage) {
+        return `/api/users/${friend.id}/profile-image`;
+    }
+    return buildDefaultProfileDataUrl(friend.profileIconColor);
+}
+
 async function fetchJson(url, options = {}) {
     const response = await fetch(url, options);
     const contentType = response.headers.get("content-type") || "";
@@ -2283,12 +2300,25 @@ async function openPresetParticipantFriendPickerScreen() {
         return;
     }
     renderPresetParticipantFriendPicker();
-    presetParticipantFriendPickerScreen.hidden = false;
-    presetParticipantFriendPickerScreen.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (typeof presetParticipantFriendPickerScreen.showModal === "function") {
+        presetParticipantFriendPickerScreen.showModal();
+    } else {
+        presetParticipantFriendPickerScreen.hidden = false;
+    }
+    const firstCard = presetParticipantFriendPickerList
+        ? presetParticipantFriendPickerList.querySelector(".friend-list-item")
+        : null;
+    if (firstCard && typeof firstCard.scrollIntoView === "function") {
+        firstCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
 }
 
 function closePresetParticipantFriendPickerScreen() {
     if (presetParticipantFriendPickerScreen) {
-        presetParticipantFriendPickerScreen.hidden = true;
+        if (typeof presetParticipantFriendPickerScreen.close === "function" && presetParticipantFriendPickerScreen.open) {
+            presetParticipantFriendPickerScreen.close();
+        } else {
+            presetParticipantFriendPickerScreen.hidden = true;
+        }
     }
 }

@@ -38,6 +38,10 @@ body {
     overflow-x: hidden;
 }
 
+body.modal-lock {
+    overflow: hidden;
+}
+
 body.random-bg-enabled {
     background-image:
         linear-gradient(rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.62)),
@@ -1235,12 +1239,44 @@ a.board-entry-card[href="/friends/requests"] {
 
 .preset-participant-picker-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 12px;
     min-height: 140px;
     padding: 0;
     margin: 0;
     list-style: none;
+}
+
+.friend-share-picker-screen {
+    border: 0;
+    padding: 0;
+    width: min(100%, 820px);
+    max-width: calc(100vw - 28px);
+    background: transparent;
+    overflow: visible;
+}
+
+.friend-share-picker-screen::backdrop {
+    background: rgba(9, 16, 38, 0.58);
+    backdrop-filter: blur(8px);
+}
+
+.friend-share-picker-screen .preset-participant-picker-panel {
+    width: min(100%, 780px);
+    max-height: calc(100vh - 36px);
+    overflow: auto;
+    border: 1px solid #a4c0ff;
+    border-radius: 20px;
+    padding: 16px;
+    background:
+        radial-gradient(circle at 10% 10%, #eef8ff 0%, transparent 34%),
+        radial-gradient(circle at 90% 12%, #f3e9ff 0%, transparent 34%),
+        linear-gradient(150deg, #ffffff 0%, #f3f8ff 48%, #fff7fb 100%);
+    box-shadow: 0 26px 60px rgba(9, 16, 38, 0.45);
+}
+
+.friend-share-picker-screen .preset-participant-picker-panel h3 {
+    margin-top: 0;
 }
 
 .preset-participant-picker-grid .friend-list-item {
