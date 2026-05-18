@@ -126,6 +126,7 @@ if (topScheduleOwnOnlyButton) {
     topScheduleOwnOnlyButton.addEventListener("click", () => {
         ownOnlyMode = true;
         applyScheduleFilters();
+        scrollToScheduleDateField();
     });
 }
 
@@ -139,6 +140,7 @@ document.getElementById("nextMonth").addEventListener("click", async () => {
 
 document.getElementById("newScheduleButton").addEventListener("click", () => {
     resetFormForCreate();
+    scrollToScheduleFormTop();
 });
 
 document.getElementById("cancelEditButton").addEventListener("click", () => {
@@ -750,6 +752,22 @@ function applyScheduleFilters() {
     renderScheduleList(filterSchedulesByTopFilter(latestSchedules));
     rebuildMonthMarkersFromFilter();
     renderCalendar();
+}
+
+function scrollToScheduleDateField() {
+    if (!scheduleDateInput) {
+        return;
+    }
+    scheduleDateInput.scrollIntoView({ behavior: "smooth", block: "start" });
+    scheduleDateInput.focus({ preventScroll: true });
+}
+
+function scrollToScheduleFormTop() {
+    if (!formTitle) {
+        return;
+    }
+    formTitle.scrollIntoView({ behavior: "smooth", block: "start" });
+    formTitle.focus?.({ preventScroll: true });
 }
 
 function filterMonthRowsByTopFilter(rows) {
