@@ -6,6 +6,7 @@ public class BoardRecruitmentCreateRequest {
     private String startTime;
     private String rankBand;
     private Integer recruitmentLimit;
+    private String discordInviteUrl;
 
     public String getBody() {
         return body;
@@ -45,5 +46,13 @@ public class BoardRecruitmentCreateRequest {
 
     public void setRankBand(String rankBand) {
         this.rankBand = rankBand;
+    }
+
+    public String getDiscordInviteUrl() {
+        return discordInviteUrl;
+    }
+
+    public void setDiscordInviteUrl(String discordInviteUrl) {
+        this.discordInviteUrl = discordInviteUrl;
     }
 }

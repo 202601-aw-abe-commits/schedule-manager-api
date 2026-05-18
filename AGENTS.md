@@ -15,6 +15,7 @@
 - Board posts on `/board` can be edited/deleted by the post author via post detail actions; edit opens an in-page form and updates via `更新` button (`PUT/DELETE /api/board/posts/{postId}`).
 - Board posts on `/board` support participation flow similar to schedules: users send join requests, authors approve/reject, and Discord invite URL is visible only to author or approved participants.
 - `/board` landing shows only menu cards (`スレッド作成`, `スレッド一覧`); thread creation form is on dedicated `/board/create` page.
+- `/board/create` thread creation form supports optional Discord invite URL input; URL visibility remains limited to post author and approved participants.
 - Schedule share rule: joinable schedule re-share is allowed only after the requester is approved as participant (`schedule_participant`), and UI should explain approval-gated sharing to requester.
 - Joinable schedule supports Discord invite URL (`discord_invite_url`); owner updates it on `/schedules/{id}/discord-invite`, and participants/owner can use it from schedule card.
 - Join request supports optional game ID (`schedule_join_request.game_id`); requester can submit without it, and owner sees it with pending requests when provided.

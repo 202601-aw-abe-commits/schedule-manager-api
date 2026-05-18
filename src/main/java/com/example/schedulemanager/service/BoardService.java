@@ -111,6 +111,7 @@ public class BoardService {
         if (recruitmentLimit != null && recruitmentLimit < 1) {
             throw new IllegalArgumentException("募集人数は1以上で指定してください。");
         }
+        String discordInviteUrl = normalizeDiscordInviteUrl(request.getDiscordInviteUrl());
 
         AppUser user = findCurrentUser(username);
         BoardPost post = new BoardPost();
@@ -121,6 +122,7 @@ public class BoardService {
         post.setStartTime(startTime);
         post.setRankBand(rankBand);
         post.setRecruitmentLimit(recruitmentLimit);
+        post.setDiscordInviteUrl(discordInviteUrl);
         boardMapper.insertPost(post);
         boardMapper.touchThreadUpdatedAt(threadId);
         notifyFriendFollowersForRecruitment(user, threadId);

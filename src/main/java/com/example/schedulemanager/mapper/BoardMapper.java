@@ -67,8 +67,8 @@ public interface BoardMapper {
     BoardThread findThreadViewById(@Param("threadId") Long threadId);
 
     @Insert("""
-            INSERT INTO board_post (thread_id, author_user_id, body, schedule_date, start_time, rank_band, recruitment_limit)
-            VALUES (#{threadId}, #{authorUserId}, #{body}, #{scheduleDate}, #{startTime}, #{rankBand}, #{recruitmentLimit})
+            INSERT INTO board_post (thread_id, author_user_id, body, schedule_date, start_time, rank_band, recruitment_limit, discord_invite_url)
+            VALUES (#{threadId}, #{authorUserId}, #{body}, #{scheduleDate}, #{startTime}, #{rankBand}, #{recruitmentLimit}, #{discordInviteUrl})
             """)
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insertPost(BoardPost post);

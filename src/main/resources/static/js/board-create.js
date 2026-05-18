@@ -5,6 +5,7 @@ const threadFirstPostScheduleDateInput = document.getElementById("threadFirstPos
 const threadFirstPostStartTimeInput = document.getElementById("threadFirstPostStartTime");
 const threadFirstPostRankBandInput = document.getElementById("threadFirstPostRankBand");
 const threadFirstPostRecruitmentLimitInput = document.getElementById("threadFirstPostRecruitmentLimit");
+const threadDiscordInviteUrlInput = document.getElementById("threadDiscordInviteUrl");
 const threadGameTitleSuggestions = document.getElementById("threadGameTitleSuggestions");
 const boardCreateMessage = document.getElementById("boardCreateMessage");
 
@@ -40,7 +41,8 @@ threadForm.addEventListener("submit", async (event) => {
                 scheduleDate: threadFirstPostScheduleDateInput.value || null,
                 startTime: threadFirstPostStartTimeInput.value || null,
                 rankBand: normalizeTitle(threadFirstPostRankBandInput.value) || null,
-                recruitmentLimit: parseIntOrNull(threadFirstPostRecruitmentLimitInput.value)
+                recruitmentLimit: parseIntOrNull(threadFirstPostRecruitmentLimitInput.value),
+                discordInviteUrl: normalizeOptionalText(threadDiscordInviteUrlInput.value)
             })
         });
         pushGameTitleHistory(created.gameTitle || trimmedTitle);
@@ -107,6 +109,11 @@ function normalizeTitle(value) {
         return "";
     }
     return String(value).trim();
+}
+
+function normalizeOptionalText(value) {
+    const normalized = normalizeTitle(value);
+    return normalized === "" ? null : normalized;
 }
 
 async function fetchJson(url, options = {}) {
