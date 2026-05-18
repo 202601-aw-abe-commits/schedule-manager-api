@@ -20,6 +20,7 @@
 - Friend profile page (`/friends/profile/{username}`) displays `X URL` and `配信URL` as clickable links (open in new tab) when set.
 - Friend list page (`/friends/list`) avatar uses each user's configured profile image when available; otherwise falls back to color-based default icon.
 - Friend level ranking avatar (friends page/home widget) uses each user's configured profile image when available; otherwise falls back to color-based default icon.
+- Main navigation (`.hero-nav`) uses an outer rounded container with pill-style active tab highlight (`.is-current`) across calendar/friends/board/profile pages.
 
 ## Project Structure & Module Organization
 - Main backend app lives in `src/main/java/com/example/schedulemanager`.

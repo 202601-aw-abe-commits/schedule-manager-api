@@ -13,6 +13,24 @@ async function loadNavBadges() {
     }
 }
 
+function markCurrentNav() {
+    const path = window.location.pathname;
+    const navLinks = document.querySelectorAll(".hero-nav a[href]");
+    navLinks.forEach((link) => {
+        const href = link.getAttribute("href");
+        if (!href || !href.startsWith("/")) {
+            return;
+        }
+        const isCurrent =
+            (href === "/calendar" && path.startsWith("/calendar")) ||
+            (href === "/friends" && path.startsWith("/friends")) ||
+            (href === "/board" && path.startsWith("/board")) ||
+            (href === "/profile" && path.startsWith("/profile")) ||
+            (href !== "/" && href !== "/calendar" && href !== "/friends" && href !== "/board" && href !== "/profile" && path === href);
+        link.classList.toggle("is-current", isCurrent);
+    });
+}
+
 function setNavBadge(key, count) {
     const node = document.querySelector(`[data-nav-badge="${key}"]`);
     if (!node) {
@@ -36,5 +54,6 @@ function setNavBadge(key, count) {
     node.appendChild(badge);
 }
 
+markCurrentNav();
 loadNavBadges();
 window.setInterval(loadNavBadges, 15000);

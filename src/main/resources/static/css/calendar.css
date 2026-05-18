@@ -227,24 +227,33 @@ body::after {
     margin-top: 14px;
     display: flex;
     justify-content: center;
-    gap: 12px;
+    gap: 6px;
     flex-wrap: wrap;
+    padding: 4px;
+    border-radius: 999px;
+    border: 1px solid #7f8cd8;
+    background: linear-gradient(180deg, #6b74cb 0%, #5865b8 100%);
+    box-shadow: inset 0 1px 0 #9eaaf0, 0 8px 20px #2a34803a;
+    width: fit-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .hero-nav a {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 98px;
-    padding: 8px 14px;
+    min-width: 112px;
+    padding: 8px 18px;
     border-radius: 999px;
     text-decoration: none;
-    background: #ffffffc7;
-    border: 1px solid #b9d8ff;
-    color: #21439a;
+    background: transparent;
+    border: 1px solid transparent;
+    color: #161a33;
     font-weight: 700;
-    box-shadow: 0 0 10px #90cfff66;
-    transition: transform 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
+    box-shadow: none;
+    transition: transform 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease, color 0.18s ease, border-color 0.18s ease;
 }
 
 .hero-nav a .nav-badge {
@@ -265,9 +274,16 @@ body::after {
 }
 
 .hero-nav a:hover {
-    background: #f3f9ff;
-    box-shadow: 0 0 14px #65c9ff88;
-    transform: translateY(-2px);
+    background: #8b94dc80;
+    border-color: #aeb6f0;
+    color: #0f1330;
+}
+
+.hero-nav a.is-current {
+    background: linear-gradient(180deg, #6f3ce0 0%, #6443d1 100%);
+    border-color: #c2afea;
+    color: #f6f4ff;
+    box-shadow: inset 0 0 0 1px #e4dcfb, 0 0 0 2px #8995dc;
 }
 
 .app-shell {
@@ -2041,9 +2057,27 @@ body.dark-mode .inline-form input::placeholder {
 body.dark-mode .hero-nav a,
 body.dark-mode .secondary,
 body.dark-mode .theme-toggle {
-    background: #1a2c4c;
-    color: #c4daff;
-    border-color: #395a90;
+    color: #d8ddff;
+    border-color: transparent;
+}
+
+body.dark-mode .hero-nav {
+    border-color: #6677c7;
+    background: linear-gradient(180deg, #334289 0%, #2a376f 100%);
+    box-shadow: inset 0 1px 0 #6f82cf, 0 8px 20px #08133580;
+}
+
+body.dark-mode .hero-nav a:hover {
+    background: #7f8fe25e;
+    border-color: #95a5ea;
+    color: #f1f4ff;
+}
+
+body.dark-mode .hero-nav a.is-current {
+    background: linear-gradient(180deg, #7f53ed 0%, #6f47d9 100%);
+    border-color: #c4b6ef;
+    color: #f8f6ff;
+    box-shadow: inset 0 0 0 1px #e9e2ff, 0 0 0 2px #8090d8;
 }
 
 body.dark-mode .logout-floating button {
